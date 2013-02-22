@@ -1,0 +1,9 @@
+name = Entity Example
+description = A simple entity example showing the main steps required to set up your own entity.
+core = 7.x
+package = Example modules
+dependencies[] = field
+dependencies[] = rdf
+dependencies[] = devnulldb_field_storage
+files[] = entity_example.test
+configure = admin/structure/entity_example_basic/manage
