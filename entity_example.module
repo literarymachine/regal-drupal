@@ -636,6 +636,23 @@ class EntityExampleBasicController
     // attached to this entity. We use the same primary_keys logic
     // to determine whether to update or insert, and which hook we
     // need to invoke.
+    $json = $this->__entity_serialize_json_ld($entity);
+    $rdf = $this->__entity_serialize_turtle($entity);
+    file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
+    file_put_contents("/tmp/{$entity->basic_id}.json", $json);
+    if (empty($primary_keys)) {
+      field_attach_insert('entity_example_basic', $entity);
+    }
+    else {
+      field_attach_update('entity_example_basic', $entity);
+      $invocation = 'entity_update';
+    }
+    // Invoke either hook_entity_update() or hook_entity_insert().
+    module_invoke_all($invocation, $entity, 'entity_example_basic');
+    return $entity;
+  }
+
+  private function __entity_serialize_turtle($entity) {
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
     $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
     $rdf_mapping = rdf_mapping_load('entity_example_basic', $entity->bundle_type);
@@ -659,17 +676,31 @@ class EntityExampleBasicController
       file_put_contents('php://stderr', "mapping: $prefix to $namespace\n");
       $rdf_serializer->setNamespace($namespace, $prefix);
     }
-    file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf_model->serializeStatements($rdf_serializer));
-    if (empty($primary_keys)) {
-      field_attach_insert('entity_example_basic', $entity);
+    return $rdf_model->serializeStatements($rdf_serializer);
+  }
+
+  private function __entity_serialize_json_ld($entity) {
+    $rdf_mapping = rdf_mapping_load('entity_example_basic', $entity->bundle_type);
+    $json_ld = new stdClass();
+    $json_ld_context = new stdClass();
+    foreach ($rdf_mapping as $fieldname => $mapping) {
+      $rdf_predicate_curie = $mapping['predicates'][0];
+      list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
+      $rdf_predicate_uri = rdf_get_namespaces()[$rdf_predicate_prefix] . $rdf_predicate_local;
+      $json_ld_context->{$fieldname} = $rdf_predicate_uri;
     }
-    else {
-      field_attach_update('entity_example_basic', $entity);
-      $invocation = 'entity_update';
+    $json_ld->{'@context'} = $json_ld_context;
+    $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
+    $bundle = entity_extract_ids('entity_example_basic', $entity)[2];
+    $field_instances = field_info_instances('entity_example_basic', $bundle);
+    foreach (array_keys($field_instances) as $field_name) {
+      $items = field_get_items('entity_example_basic', $entity, $field_name);
+      foreach ($items as $item) {
+        $json_ld->$field_name = $item['value'];
+      }
+      file_put_contents('php://stderr', "storing $field_name\n");
     }
-    // Invoke either hook_entity_update() or hook_entity_insert().
-    module_invoke_all($invocation, $entity, 'entity_example_basic');
-    return $entity;
+    return str_replace('\\/', '/', json_encode($json_ld));
   }
 
   /**
