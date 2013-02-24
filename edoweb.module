@@ -674,11 +674,10 @@ class EdowebBasicController
         $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
         $rdf_model->addStatement($rdf_statement);
       }
-      file_put_contents('php://stderr', "storing $field_name\n");
     }
     $rdf_serializer = new LibRDF_Serializer('turtle');
     foreach ($rdf_namespaces as $prefix => $namespace) {
-      file_put_contents('php://stderr', "mapping: $prefix to $namespace\n");
+      $this->__log("mapping: $prefix to $namespace\n");
       $rdf_serializer->setNamespace($namespace, $prefix);
     }
     return $rdf_model->serializeStatements($rdf_serializer);
@@ -743,5 +742,9 @@ class EdowebBasicController
         throw $e;
       }
     }
+  }
+
+  private function __log($message, $target='php://stderr') {
+    // file_put_contents($target, $message);
   }
 }
