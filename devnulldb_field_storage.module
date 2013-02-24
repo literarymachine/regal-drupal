@@ -22,8 +22,8 @@ function devnulldb_field_storage_field_storage_info() {
  * Implements hook_field_storage_details().
  */
 function devnulldb_field_storage_field_storage_details($field) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -31,8 +31,8 @@ function devnulldb_field_storage_field_storage_details($field) {
  * Implements hook_field_storage_create_field().
  */
 function devnulldb_field_storage_field_storage_create_field($field) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -40,8 +40,8 @@ function devnulldb_field_storage_field_storage_create_field($field) {
  * Implements hook_field_storage_update_field().
  */
 function devnulldb_field_storage_field_storage_update_field($field, $prior_field, $has_data) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -49,8 +49,8 @@ function devnulldb_field_storage_field_storage_update_field($field, $prior_field
  * Implements hook_field_storage_delete_field().
  */
 function devnulldb_field_storage_field_storage_delete_field($field) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -58,8 +58,8 @@ function devnulldb_field_storage_field_storage_delete_field($field) {
  * Implements hook_field_storage_load().
  */
 function devnulldb_field_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -67,8 +67,8 @@ function devnulldb_field_storage_field_storage_load($entity_type, $entities, $ag
  * Implements hook_field_storage_write().
  */
 function devnulldb_field_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -78,8 +78,8 @@ function devnulldb_field_storage_field_storage_write($entity_type, $entity, $op,
  *
  */
 function devnulldb_field_storage_field_storage_delete($entity_type, $entity, $fields) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -88,8 +88,8 @@ function devnulldb_field_storage_field_storage_delete($entity_type, $entity, $fi
  *
  */
 function devnulldb_field_storage_field_storage_delete_revision($entity_type, $entity, $fields) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -98,8 +98,8 @@ function devnulldb_field_storage_field_storage_delete_revision($entity_type, $en
  *
  */
 function devnulldb_field_storage_field_storage_delete_instance($instance) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -111,14 +111,14 @@ class DevnullDBStorageException extends Exception {}
  * Alter the entity info.
  */
 function devnulldb_field_storage_entity_query_alter($query) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
 function devnulldb_field_storage_field_storage_query($query) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -127,8 +127,8 @@ function devnulldb_field_storage_field_storage_query($query) {
  *
  */
 function devnulldb_field_storage_query($query) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -136,8 +136,8 @@ function devnulldb_field_storage_query($query) {
  * Implements hook_field_attach_rename_bundle().
  */
 function devnulldb_field_storage_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -145,8 +145,8 @@ function devnulldb_field_storage_field_attach_rename_bundle($entity_type, $bundl
  * Implements hook_entity_insert().
  */
 function devnulldb_field_storage_entity_insert($entity, $entity_type) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -154,8 +154,8 @@ function devnulldb_field_storage_entity_insert($entity, $entity_type) {
  * Implements hook_entity_update().
  */
 function devnulldb_field_storage_entity_update($entity, $entity_type) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -163,8 +163,8 @@ function devnulldb_field_storage_entity_update($entity, $entity_type) {
  * Implements hook_field_attach_delete.
  */
 function devnulldb_field_storage_field_attach_delete($entity_type, $entity) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
@@ -172,7 +172,11 @@ function devnulldb_field_storage_field_attach_delete($entity_type, $entity) {
  * Implements hook_entity_info_alter().
  */
 function devnulldb_field_storage_entity_info_alter(&$entity_info) {
-  file_put_contents('php://stderr', __FUNCTION__ . " called\n");
-  file_put_contents('php://stderr', "arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
+}
+
+function __devnulldb_log($message, $target='php://stderr') {
+  //file_put_contents($target, $message);
 }
