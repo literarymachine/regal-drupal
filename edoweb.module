@@ -663,7 +663,8 @@ class EdowebBasicController
     $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
     $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
     $rdf_namespaces = rdf_get_namespaces();
-    $bundle = entity_extract_ids('edoweb_basic', $entity)[2];
+    $entity_ids = entity_extract_ids('edoweb_basic', $entity);
+    $bundle = $entity_ids[2];
     $field_instances = field_info_instances('edoweb_basic', $bundle);
     foreach (array_keys($field_instances) as $field_name) {
       $items = field_get_items('edoweb_basic', $entity, $field_name);
@@ -699,7 +700,8 @@ class EdowebBasicController
     }
     $json_ld->{'@context'} = $json_ld_context;
     $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
-    $bundle = entity_extract_ids('edoweb_basic', $entity)[2];
+    $entity_ids = entity_extract_ids('edoweb_basic', $entity);
+    $bundle = $entity_ids[2];
     $field_instances = field_info_instances('edoweb_basic', $bundle);
     foreach (array_keys($field_instances) as $field_name) {
       $items = field_get_items('edoweb_basic', $entity, $field_name);
