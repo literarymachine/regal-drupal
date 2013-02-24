@@ -10,12 +10,12 @@
 /**
  * Implements hook_schema().
  */
-function entity_example_schema() {
+function edoweb_schema() {
   $schema = array();
 
   // The name of the table can be any name we choose. However, namespacing the
   // table with the module name is best practice.
-  $schema['entity_example_basic'] = array(
+  $schema['edoweb_basic'] = array(
     'description' => 'The base table for our basic entity.',
       'fields' => array(
         'basic_id' => array(
@@ -51,18 +51,18 @@ function entity_example_schema() {
  * Implements hook_install().
  *
  */
-function entity_example_install() {
+function edoweb_install() {
   // Create all the fields we are adding to our entity type.
   // http://api.drupal.org/api/function/field_create_field/7
-  foreach (_entity_example_installed_fields() as $field) {
+  foreach (_edoweb_installed_fields() as $field) {
     field_create_field($field);
   }
 
   // Create all the instances for our fields.
   // http://api.drupal.org/api/function/field_create_instance/7
-  foreach (_entity_example_installed_instances() as $instance) {
-    $instance['entity_type'] = 'entity_example_basic';
-    $instance['bundle'] = 'first_example_bundle';
+  foreach (_edoweb_installed_instances() as $instance) {
+    $instance['entity_type'] = 'edoweb_basic';
+    $instance['bundle'] = 'monograph_bundle';
     field_create_instance($instance);
   }
 }
@@ -70,7 +70,7 @@ function entity_example_install() {
 /**
  * Return a structured array defining the fields created by this content type.
  */
-function _entity_example_installed_fields() {
+function _edoweb_installed_fields() {
   $t = get_t();
   return array(
     'field_title' => array(
@@ -89,7 +89,7 @@ function _entity_example_installed_fields() {
 /**
  * Return a structured array defining the instances for this content type.
  */
-function _entity_example_installed_instances() {
+function _edoweb_installed_instances() {
   $t = get_t();
   return array(
     'field_title' => array(
@@ -112,11 +112,11 @@ function _entity_example_installed_instances() {
  * At uninstall time we'll notify field.module that the entity was deleted
  * so that attached fields can be cleaned up.
  */
-function entity_example_uninstall() {
-  field_attach_delete_bundle('entity_example_basic' , 'first_example_bundle' );
+function edoweb_uninstall() {
+  field_attach_delete_bundle('edoweb_basic' , 'monograph_bundle' );
   // Delete field instances for now.
   // Check status of http://drupal.org/node/1015846
-  $instances = _entity_example_installed_instances();
+  $instances = _edoweb_installed_instances();
   foreach ($instances as $instance_name => $instance) {
     field_delete_instance($instance);
   }
