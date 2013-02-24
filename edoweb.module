@@ -530,6 +530,59 @@ function edoweb_help($path, $arg) {
   }
 }
 
+/*************************
+ * Edoweb helper functions
+ *************************/
+
+function _edoweb_entity_serialize_turtle($entity) {
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
+  $rdf_namespaces = rdf_get_namespaces();
+  foreach ($rdf_mapping as $field_name => $field_mapping) {
+    $rdf_predicate_curie = $field_mapping['predicates'][0];
+    list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
+    $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
+    $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
+    $items = field_get_items('edoweb_basic', $entity, $field_name);
+    foreach ($items as $item) {
+      $rdf_object = new LibRDF_LiteralNode($item['value']);
+      $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
+      $rdf_model->addStatement($rdf_statement);
+    }
+  }
+  $rdf_serializer = new LibRDF_Serializer('turtle');
+  foreach ($rdf_namespaces as $prefix => $namespace) {
+    _edoweb_log("mapping: $prefix to $namespace\n");
+    $rdf_serializer->setNamespace($namespace, $prefix);
+  }
+  return $rdf_model->serializeStatements($rdf_serializer);
+}
+
+function _edoweb_entity_serialize_json_ld($entity) {
+  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
+  $rdf_namespaces = rdf_get_namespaces();
+  $json_ld = new stdClass();
+  $json_ld_context = new stdClass();
+  foreach ($rdf_mapping as $field_name => $field_mapping) {
+    $rdf_predicate_curie = $field_mapping['predicates'][0];
+    list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
+    $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
+    $json_ld_context->{$field_name} = $rdf_predicate_uri;
+    $items = field_get_items('edoweb_basic', $entity, $field_name);
+    foreach ($items as $item) {
+      $json_ld->$field_name = $item['value'];
+    }
+  }
+  $json_ld->{'@context'} = $json_ld_context;
+  $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
+  return str_replace('\\/', '/', json_encode($json_ld, JSON_PRETTY_PRINT));
+}
+
+function _edoweb_log($message, $target='php://stderr') {
+  // file_put_contents($target, $message);
+}
+
 /**
  * EdowebBasicControllerInterface definition.
  *
@@ -642,8 +695,8 @@ class EdowebBasicController
     // attached to this entity. We use the same primary_keys logic
     // to determine whether to update or insert, and which hook we
     // need to invoke.
-    $json = $this->__entity_serialize_json_ld($entity);
-    $rdf = $this->__entity_serialize_turtle($entity);
+    $json = _edoweb_entity_serialize_json_ld($entity);
+    $rdf = _edoweb_entity_serialize_turtle($entity);
     file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
     file_put_contents("/tmp/{$entity->basic_id}.json", $json);
     if (empty($primary_keys)) {
@@ -656,51 +709,6 @@ class EdowebBasicController
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     return $entity;
-  }
-
-  private function __entity_serialize_turtle($entity) {
-    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-    $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-    $rdf_namespaces = rdf_get_namespaces();
-    foreach ($rdf_mapping as $field_name => $field_mapping) {
-      $rdf_predicate_curie = $field_mapping['predicates'][0];
-      list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
-      $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-      $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
-      $items = field_get_items('edoweb_basic', $entity, $field_name);
-      foreach ($items as $item) {
-        $rdf_object = new LibRDF_LiteralNode($item['value']);
-        $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
-        $rdf_model->addStatement($rdf_statement);
-      }
-    }
-    $rdf_serializer = new LibRDF_Serializer('turtle');
-    foreach ($rdf_namespaces as $prefix => $namespace) {
-      $this->__log("mapping: $prefix to $namespace\n");
-      $rdf_serializer->setNamespace($namespace, $prefix);
-    }
-    return $rdf_model->serializeStatements($rdf_serializer);
-  }
-
-  private function __entity_serialize_json_ld($entity) {
-    $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-    $rdf_namespaces = rdf_get_namespaces();
-    $json_ld = new stdClass();
-    $json_ld_context = new stdClass();
-    foreach ($rdf_mapping as $field_name => $field_mapping) {
-      $rdf_predicate_curie = $field_mapping['predicates'][0];
-      list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
-      $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-      $json_ld_context->{$field_name} = $rdf_predicate_uri;
-      $items = field_get_items('edoweb_basic', $entity, $field_name);
-      foreach ($items as $item) {
-        $json_ld->$field_name = $item['value'];
-      }
-    }
-    $json_ld->{'@context'} = $json_ld_context;
-    $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
-    return str_replace('\\/', '/', json_encode($json_ld));
   }
 
   /**
@@ -744,7 +752,4 @@ class EdowebBasicController
     }
   }
 
-  private function __log($message, $target='php://stderr') {
-    // file_put_contents($target, $message);
-  }
 }
