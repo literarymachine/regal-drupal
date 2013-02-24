@@ -663,15 +663,12 @@ class EdowebBasicController
     $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
     $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
     $rdf_namespaces = rdf_get_namespaces();
-    $entity_ids = entity_extract_ids('edoweb_basic', $entity);
-    $bundle = $entity_ids[2];
-    $field_instances = field_info_instances('edoweb_basic', $bundle);
-    foreach (array_keys($field_instances) as $field_name) {
-      $items = field_get_items('edoweb_basic', $entity, $field_name);
-      $rdf_predicate_curie = $rdf_mapping[$field_name]['predicates'][0];
+    foreach ($rdf_mapping as $field_name => $field_mapping) {
+      $rdf_predicate_curie = $field_mapping['predicates'][0];
       list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
       $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
       $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
+      $items = field_get_items('edoweb_basic', $entity, $field_name);
       foreach ($items as $item) {
         $rdf_object = new LibRDF_LiteralNode($item['value']);
         $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
@@ -692,24 +689,18 @@ class EdowebBasicController
     $rdf_namespaces = rdf_get_namespaces();
     $json_ld = new stdClass();
     $json_ld_context = new stdClass();
-    foreach ($rdf_mapping as $fieldname => $mapping) {
-      $rdf_predicate_curie = $mapping['predicates'][0];
+    foreach ($rdf_mapping as $field_name => $field_mapping) {
+      $rdf_predicate_curie = $field_mapping['predicates'][0];
       list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
       $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-      $json_ld_context->{$fieldname} = $rdf_predicate_uri;
-    }
-    $json_ld->{'@context'} = $json_ld_context;
-    $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
-    $entity_ids = entity_extract_ids('edoweb_basic', $entity);
-    $bundle = $entity_ids[2];
-    $field_instances = field_info_instances('edoweb_basic', $bundle);
-    foreach (array_keys($field_instances) as $field_name) {
+      $json_ld_context->{$field_name} = $rdf_predicate_uri;
       $items = field_get_items('edoweb_basic', $entity, $field_name);
       foreach ($items as $item) {
         $json_ld->$field_name = $item['value'];
       }
-      file_put_contents('php://stderr', "storing $field_name\n");
     }
+    $json_ld->{'@context'} = $json_ld_context;
+    $json_ld->{'@id'} = "uuid:{$entity->basic_id}";
     return str_replace('\\/', '/', json_encode($json_ld));
   }
 
