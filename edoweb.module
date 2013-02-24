@@ -323,13 +323,13 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   // field module.
   // field_attach_prepare_view() lets the fields load any data they need
   // before viewing.
-  field_attach_prepare_view($entity_type, array($entity->basic_id => $entity),
-    $view_mode);
+  //field_attach_prepare_view($entity_type, array($entity->basic_id => $entity),
+  //  $view_mode);
   // We call entity_prepare_view() so it can invoke hook_entity_prepare_view()
   // for us.
-  entity_prepare_view($entity_type, array($entity->basic_id => $entity));
+  //entity_prepare_view($entity_type, array($entity->basic_id => $entity));
   // Now field_attach_view() generates the content for the fields.
-  $entity->content += field_attach_view($entity_type, $entity, $view_mode);
+  //$entity->content += field_attach_view($entity_type, $entity, $view_mode);
 
   // OK, Field API done, now we can set up some of our own data.
   $entity->content['created'] = array(
