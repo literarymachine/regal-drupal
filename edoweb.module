@@ -197,7 +197,7 @@ function edoweb_menu() {
 function edoweb_info_page() {
   $content['preface'] = array(
     '#type' => 'item',
-    '#markup' => t('The entity example provides a simple example entity.')
+    '#markup' => t('List of Edoweb entities')
   );
   if (user_access('administer edoweb_basic entities')) {
     $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
