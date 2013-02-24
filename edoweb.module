@@ -338,6 +338,18 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     '#markup' => format_date($entity->created),
   );
 
+  $entity->content['turtle'] = array(
+    '#type' => 'item',
+    '#title' => t('Turtle view'),
+    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_turtle($entity)))
+  );
+
+  $entity->content['json'] = array(
+    '#type' => 'item',
+    '#title' => t('JSON-LD view'),
+    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_json_ld($entity)))
+  );
+
   // Now to invoke some hooks. We need the language code for
   // hook_entity_view(), so let's get that.
   global $language ;
