@@ -570,8 +570,14 @@ function _edoweb_entity_serialize_turtle($entity) {
   $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
   $rdf_namespaces = rdf_get_namespaces();
-  // Skip first element, these are the rdf:type definitions
-  unset($rdf_mapping[key($rdf_mapping)]);
+  // First element contains the rdf:type definitions
+  $rdf_type_predicate = new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+  foreach (array_shift($rdf_mapping) as $rdf_type_mapping) {
+    $rdf_type_statement = new LibRDF_Statement(
+      $rdf_subject, $rdf_type_predicate, new LibRDF_URINode($rdf_type_mapping)
+    );
+    $rdf_model->addStatement($rdf_type_statement);
+  }
   foreach ($rdf_mapping as $field_name => $field_mapping) {
     $rdf_predicate_curie = $field_mapping['predicates'][0];
     list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
