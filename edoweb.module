@@ -578,6 +578,7 @@ function _edoweb_entity_serialize_turtle($entity) {
     $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
     $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
     $items = field_get_items('edoweb_basic', $entity, $field_name);
+    if (empty($items)) continue;
     foreach ($items as $item) {
       $rdf_object = new LibRDF_LiteralNode($item['value']);
       $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
@@ -605,6 +606,7 @@ function _edoweb_entity_serialize_json_ld($entity) {
     $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
     $json_ld_context->{$field_name} = $rdf_predicate_uri;
     $items = field_get_items('edoweb_basic', $entity, $field_name);
+    if (empty($items)) continue;
     foreach ($items as $item) {
       $json_ld->$field_name = $item['value'];
     }
