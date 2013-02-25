@@ -65,6 +65,25 @@ function edoweb_install() {
     $instance['bundle'] = 'monograph_bundle';
     field_create_instance($instance);
   }
+
+  // Create roles and permissions
+  $role_ids = array();
+  foreach (_edoweb_installed_roles() as $role_desc) {
+    $role = new stdClass();
+    $role->name = $role_desc['name'];
+    user_role_save($role);
+    // Fetch from DB to get role id
+    $role = user_role_load_by_name($role->name);
+    user_role_grant_permissions($role->rid, _edoweb_installed_permissions());
+    $role_ids[$role->rid] = $role->name;
+  }
+
+  // Create users
+  foreach (_edoweb_installed_users() as $user) {
+    $user['roles'] = $role_ids;
+    user_save(null, $user);
+  }
+
 }
 
 /**
@@ -169,6 +188,43 @@ function _edoweb_installed_instances() {
   );
 }
 
+/**
+ * Return a structured array defining the permissions for this content type.
+ */
+function _edoweb_installed_permissions() {
+  return array(
+    'view any edoweb_basic entity',
+    'edit any edoweb_basic entity',
+    'create edoweb_basic entities',
+  );
+}
+
+/**
+ * Return a structured array defining the roles for this content type.
+ */
+function _edoweb_installed_roles() {
+  return array(
+    array(
+      'name' => 'edoweb_backend_user',
+    ),
+  );
+}
+
+/**
+ * Return a structured array defining the roles for this content type.
+ */
+function _edoweb_installed_users() {
+  return array(
+    array(
+      'name' => 'edoweb',
+      'pass' => 'edoweb2013',
+      'mail' => 'edoweb@localhost.localdomain',
+      'init' => 'edoweb@localhost.localdomain',
+      'status' => 1,
+    )
+  );
+}
+
 /*
  * Implements hook_uninstall().
  *
@@ -183,4 +239,18 @@ function edoweb_uninstall() {
   foreach ($instances as $instance_name => $instance) {
     field_delete_instance($instance);
   }
+
+  // Delete users
+  foreach (_edoweb_installed_users() as $user) {
+    $account = user_load_by_name($user['name']);
+    user_delete($account->uid);
+  }
+
+  // Revoke permissions and delete roles
+  foreach (_edoweb_installed_roles() as $role_desc) {
+    $role = user_role_load_by_name($role_desc['name']);
+    user_role_revoke_permissions($role->rid, _edoweb_installed_permissions());
+    user_role_delete($role->rid);
+  }
+
 }
