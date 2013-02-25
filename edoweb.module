@@ -569,30 +569,34 @@ function _edoweb_entity_serialize_turtle($entity) {
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-  $rdf_namespaces = rdf_get_namespaces();
   // First element contains the rdf:type definitions
-  $rdf_type_predicate = new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
+  $rdf_type_predicate = new LibRDF_URINode(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+  );
   foreach (array_shift($rdf_mapping) as $rdf_type_mapping) {
     $rdf_type_statement = new LibRDF_Statement(
-      $rdf_subject, $rdf_type_predicate, new LibRDF_URINode($rdf_type_mapping)
+      $rdf_subject, $rdf_type_predicate,
+      new LibRDF_URINode(_edoweb_expand_curie($rdf_type_mapping))
     );
     $rdf_model->addStatement($rdf_type_statement);
   }
+  // Following elements contain predicate mappings
   foreach ($rdf_mapping as $field_name => $field_mapping) {
-    $rdf_predicate_curie = $field_mapping['predicates'][0];
-    list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
-    $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-    $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
+    $rdf_predicate = new LibRDF_URINode(
+      _edoweb_expand_curie($field_mapping['predicates'][0])
+    );
     $items = field_get_items('edoweb_basic', $entity, $field_name);
-    if (empty($items)) continue;
+    if (TRUE === empty($items)) continue;
     foreach ($items as $item) {
       $rdf_object = new LibRDF_LiteralNode($item['value']);
-      $rdf_statement = new LibRDF_Statement($rdf_subject, $rdf_predicate, $rdf_object);
+      $rdf_statement = new LibRDF_Statement(
+        $rdf_subject, $rdf_predicate, $rdf_object
+      );
       $rdf_model->addStatement($rdf_statement);
     }
   }
   $rdf_serializer = new LibRDF_Serializer('turtle');
-  foreach ($rdf_namespaces as $prefix => $namespace) {
+  foreach (rdf_get_namespaces() as $prefix => $namespace) {
     _edoweb_log("mapping: $prefix to $namespace\n");
     $rdf_serializer->setNamespace($namespace, $prefix);
   }
@@ -601,16 +605,17 @@ function _edoweb_entity_serialize_turtle($entity) {
 
 function _edoweb_entity_serialize_json_ld($entity) {
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-  $rdf_namespaces = rdf_get_namespaces();
   $json_ld = new stdClass();
   $json_ld_context = new stdClass();
-  // Skip first element, these are the rdf:type definitions
-  unset($rdf_mapping[key($rdf_mapping)]);
+  // First element contains the rdf:type definitions
+  $json_ld->{'@type'} = array_map(
+    '_edoweb_expand_curie', array_shift($rdf_mapping)
+  );
+  // Following elements contain predicate mappings
   foreach ($rdf_mapping as $field_name => $field_mapping) {
-    $rdf_predicate_curie = $field_mapping['predicates'][0];
-    list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
-    $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-    $json_ld_context->{$field_name} = $rdf_predicate_uri;
+    $json_ld_context->{$field_name} = _edoweb_expand_curie(
+      $field_mapping['predicates'][0]
+    );
     $items = field_get_items('edoweb_basic', $entity, $field_name);
     if (TRUE === empty($items)) continue;
     foreach ($items as $item) {
@@ -628,6 +633,12 @@ function _edoweb_entity_serialize_json_ld($entity) {
 
 function _edoweb_log($message, $target='php://stderr') {
   // file_put_contents($target, $message);
+}
+
+function _edoweb_expand_curie($curie) {
+  $rdf_namespaces = rdf_get_namespaces();
+  list($curie_prefix, $curie_local) = explode(':', $curie);
+  return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
 
 /**
@@ -691,7 +702,6 @@ class EdowebBasicController
     $entities = parent::load($ids, $conditions);
     foreach ($entities as $entity) {
       $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-      $rdf_namespaces = rdf_get_namespaces();
       $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
       $rdf_parser = new LibRDF_Parser('turtle');
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
@@ -700,10 +710,9 @@ class EdowebBasicController
       // Skip first element, these are the rdf:type definitions
       unset($rdf_mapping[key($rdf_mapping)]);
       foreach ($rdf_mapping as $field_name => $mapping) {
-        $rdf_predicate_curie = $mapping['predicates'][0];
-        list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
-        $rdf_predicate_uri = $rdf_namespaces[$rdf_predicate_prefix] . $rdf_predicate_local;
-        $rdf_predicate = new LibRDF_URINode($rdf_predicate_uri);
+        $rdf_predicate = new LibRDF_URINode(
+          _edoweb_expand_curie($mapping['predicates'][0])
+        );
         foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
           $entity->{$field_name}['und'][]['value'] = (string) $value;
         }
