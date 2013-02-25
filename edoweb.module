@@ -500,15 +500,33 @@ function edoweb_rdf_mapping() {
       'type' => 'edoweb_basic',
       'bundle' => 'monograph_bundle',
       'mapping' => array(
-        // 'rdftype' => array('sioc:blogpost'),
-        // We don't use the default bundle mapping for title. Instead, we add
-        // the v:name property. We still want to use dc:title as well, though,
-        // so we include it in the array.
-        'field_title' => array(
-          'predicates' => array('dc:title'),
+        'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
+        'field_edoweb_title' => array(
+          'predicates' => array('isbd:P1004'),
         ),
-        'field_abstract' => array(
-          'predicates' => array('dc:abstract'),
+        'field_edoweb_title_other' => array(
+          'predicates' => array('isbd:P1006'),
+        ),
+        'field_edoweb_contributor' => array(
+          'predicates' => array('dc:contributor'),
+        ),
+        'field_edoweb_issued' => array(
+          'predicates' => array('dc:issued'),
+        ),
+        'field_edoweb_language' => array(
+          'predicates' => array('dc:language'),
+        ),
+        'field_edoweb_edition' => array(
+          'predicates' => array('bibo:edition'),
+        ),
+        'field_edoweb_publication_place' => array(
+          'predicates' => array('isbd:P1016'),
+        ),
+        'field_edoweb_subject' => array(
+          'predicates' => array('dc:subject'),
+        ),
+        'field_edoweb_publisher' => array(
+          'predicates' => array('isbd:P1017'),
         ),
       ),
     ),
@@ -525,8 +543,9 @@ function edoweb_rdf_mapping() {
  */
 function edoweb_rdf_namespaces() {
   return array(
-    // Google's namespace for their custom vocabularies.
-    'v' => 'http://rdf.data-vocabulary.org/#',
+    'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
+    'frbr' => 'http://purl.org/vocab/frbr/core#',
+    'bibo' => 'http://purl.org/ontology/bibo/',
   );
 }
 
@@ -551,6 +570,8 @@ function _edoweb_entity_serialize_turtle($entity) {
   $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
   $rdf_namespaces = rdf_get_namespaces();
+  // Skip first element, these are the rdf:type definitions
+  unset($rdf_mapping[key($rdf_mapping)]);
   foreach ($rdf_mapping as $field_name => $field_mapping) {
     $rdf_predicate_curie = $field_mapping['predicates'][0];
     list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
@@ -576,6 +597,8 @@ function _edoweb_entity_serialize_json_ld($entity) {
   $rdf_namespaces = rdf_get_namespaces();
   $json_ld = new stdClass();
   $json_ld_context = new stdClass();
+  // Skip first element, these are the rdf:type definitions
+  unset($rdf_mapping[key($rdf_mapping)]);
   foreach ($rdf_mapping as $field_name => $field_mapping) {
     $rdf_predicate_curie = $field_mapping['predicates'][0];
     list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
@@ -662,6 +685,8 @@ class EdowebBasicController
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
       $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+      // Skip first element, these are the rdf:type definitions
+      unset($rdf_mapping[key($rdf_mapping)]);
       foreach ($rdf_mapping as $field_name => $mapping) {
         $rdf_predicate_curie = $mapping['predicates'][0];
         list($rdf_predicate_prefix, $rdf_predicate_local) = explode(':', $rdf_predicate_curie);
