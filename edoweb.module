@@ -188,6 +188,13 @@ function edoweb_menu() {
     'access arguments' => array('create edoweb_basic entities'),
   );
 
+  // Import example entities.
+  $items['edoweb/resource/basic/import'] = array(
+    'title' => 'Import an Edoweb Basic Entity',
+    'page callback' => 'edoweb_basic_import',
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
   return $items;
 }
 
@@ -401,6 +408,40 @@ function edoweb_basic_add() {
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create();
   return drupal_get_form('edoweb_basic_form', $entity);
+}
+
+/**
+ * Provides a wrapper on the edit form to add a new entity.
+ */
+function edoweb_basic_import() {
+  return drupal_get_form('edoweb_basic_import_form');
+}
+
+function edoweb_basic_import_form($form, &$form_state) {
+  $form['resource_uri'] = array(
+    '#type' => 'textfield',
+    '#weight' => 50,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+    '#submit' => array('edoweb_basic_import_submit'),
+    '#weight' => 100,
+  );
+  return $form;
+}
+
+function edoweb_basic_import_submit(&$form, &$form_state) {
+  // Create a basic entity structure to be used and passed to the validation
+  // and submission functions.
+  $entity = entity_get_controller('edoweb_basic')->create();
+  $api = new LinkedDataClient();
+  $resource_uri = $form['resource_uri']['#value'];
+  $api->load($entity, $resource_uri);
+  $form_state['redirect'] = false;
+  drupal_set_message(t('The form has been submitted.'));
+  $form = drupal_get_form('edoweb_basic_form', $entity);
+  $form['#action'] = url('edoweb/resource/basic/add');
 }
 
 /**
@@ -808,6 +849,48 @@ class EdowebBasicController
         throw $e;
       }
     }
+  }
+
+}
+
+/*
+ * An interface to lobid.org
+ */
+class LinkedDataClient {
+
+  /*
+   * Load an entity from the API.
+   *
+   * @param $entity
+   *   The drupal entity to load data into
+   */
+  public function load($entity, $resource_uri) {
+    $request_url = "$resource_uri/about";
+    $http_options = array(
+      'method' => 'GET',
+      'headers' => array('Accept' => 'application/rdf+xml'),
+      'max_redirects' => 1,
+    );
+    $http_response = drupal_http_request($request_url, $http_options);
+    $rdf_data = $http_response->data;
+    LibRDF_LiteralNode::setPlainOutput(true);
+    $entities = array($entity);
+    $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+    $rdf_subject = new LibRDF_URINode($resource_uri);
+    // Skip first element, these are the rdf:type definitions
+    unset($rdf_mapping[key($rdf_mapping)]);
+    foreach ($rdf_mapping as $field_name => $mapping) {
+      $rdf_predicate = new LibRDF_URINode(
+        _edoweb_expand_curie($mapping['predicates'][0])
+      );
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        $entity->{$field_name}['und'][]['value'] = (string) $value;
+      }
+    }
+    return TRUE;
   }
 
 }
