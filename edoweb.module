@@ -644,6 +644,24 @@ function _edoweb_entity_serialize_turtle($entity) {
   return $rdf_model->serializeStatements($rdf_serializer);
 }
 
+function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser) {
+  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  LibRDF_LiteralNode::setPlainOutput(true);
+
+  // Skip first element, these are the rdf:type definitions
+  unset($rdf_mapping[key($rdf_mapping)]);
+  foreach ($rdf_mapping as $field_name => $mapping) {
+    $rdf_predicate = new LibRDF_URINode(
+      _edoweb_expand_curie($mapping['predicates'][0])
+    );
+    foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+      $entity->{$field_name}['und'][]['value'] = (string) $value;
+    }
+  }
+}
+
 function _edoweb_entity_serialize_json_ld($entity) {
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
   $json_ld = new stdClass();
@@ -741,23 +759,11 @@ class EdowebBasicController
   public function load($ids = array(), $conditions = array()) {
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
+    $rdf_parser = new LibRDF_Parser('turtle');
     foreach ($entities as $entity) {
-      $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-      $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
-      $rdf_parser = new LibRDF_Parser('turtle');
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
       $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-      // Skip first element, these are the rdf:type definitions
-      unset($rdf_mapping[key($rdf_mapping)]);
-      foreach ($rdf_mapping as $field_name => $mapping) {
-        $rdf_predicate = new LibRDF_URINode(
-          _edoweb_expand_curie($mapping['predicates'][0])
-        );
-        foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-          $entity->{$field_name}['und'][]['value'] = (string) $value;
-        }
-      }
+      $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+      _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     }
     return $entities;
   }
@@ -873,23 +879,9 @@ class LinkedDataClient {
     );
     $http_response = drupal_http_request($request_url, $http_options);
     $rdf_data = $http_response->data;
-    LibRDF_LiteralNode::setPlainOutput(true);
-    $entities = array($entity);
-    $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-    $rdf_parser = new LibRDF_Parser('rdfxml');
-    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
     $rdf_subject = new LibRDF_URINode($resource_uri);
-    // Skip first element, these are the rdf:type definitions
-    unset($rdf_mapping[key($rdf_mapping)]);
-    foreach ($rdf_mapping as $field_name => $mapping) {
-      $rdf_predicate = new LibRDF_URINode(
-        _edoweb_expand_curie($mapping['predicates'][0])
-      );
-      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-        $entity->{$field_name}['und'][]['value'] = (string) $value;
-      }
-    }
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     return TRUE;
   }
 
