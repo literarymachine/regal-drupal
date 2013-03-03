@@ -106,6 +106,12 @@ function _edoweb_installed_fields() {
       'cardinality' => 1,
       'type'        => 'text',
     ),
+    'field_edoweb_creator' => array(
+      'field_name' => 'field_edoweb_creator',
+      'cardinality' => 1,
+      // TODO: Create and set entity reference type
+      'type'        => 'text',
+    ),
     'field_edoweb_contributor' => array(
       'field_name' => 'field_edoweb_contributor',
       'cardinality' => 1,
@@ -160,6 +166,10 @@ function _edoweb_installed_instances() {
     'field_edoweb_title_other' => array(
       'field_name'  => 'field_edoweb_title_other',
       'label'       => $t('Titelzusatz'),
+    ),
+    'field_edoweb_creator' => array(
+      'field_name'  => 'field_edoweb_creator',
+      'label'       => $t('Autor'),
     ),
     'field_edoweb_contributor' => array(
       'field_name'  => 'field_edoweb_contributor',

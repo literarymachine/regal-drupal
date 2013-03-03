@@ -559,6 +559,9 @@ function edoweb_rdf_mapping() {
         'field_edoweb_title_other' => array(
           'predicates' => array('isbd:P1006'),
         ),
+        'field_edoweb_creator' => array(
+          'predicates' => array('dce:creator'),
+        ),
         'field_edoweb_contributor' => array(
           'predicates' => array('dc:contributor'),
         ),
@@ -598,6 +601,7 @@ function edoweb_rdf_namespaces() {
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
+    'dce' => 'http://purl.org/dc/elements/1.1/',
   );
 }
 
