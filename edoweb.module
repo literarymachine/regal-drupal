@@ -424,6 +424,7 @@ function edoweb_basic_import_form($form, &$form_state) {
   $form['resource_uri'] = array(
     '#type' => 'textfield',
     '#weight' => 50,
+    '#description' => t('Enter the HTTP-URI of the Linked Data resource you want to import.'),
   );
   $form['submit'] = array(
     '#type' => 'submit',
