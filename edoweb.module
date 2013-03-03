@@ -679,7 +679,7 @@ function _edoweb_entity_serialize_jsonld($entity) {
   $rdf_serializer = new LibRDF_Serializer('ntriples');
   $rdf_ntriples = _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
   $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
-  return str_replace('\\/', '/', json_encode($rdf_jsonld, JSON_PRETTY_PRINT));
+  return str_replace('\\/', '/', json_encode($rdf_jsonld));
 }
 
 function _edoweb_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data) {
@@ -713,7 +713,6 @@ function _edoweb_expand_curie($curie) {
 
 interface EdowebBasicControllerInterface
   extends DrupalEntityControllerInterface {
-  public function load($ids = array(), $conditions = array());
   public function create();
   public function save($entity);
   public function delete($entity);
