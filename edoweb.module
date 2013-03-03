@@ -873,13 +873,17 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($entity, $resource_uri) {
-    $request_url = "$resource_uri/about";
+    $request_url = $resource_uri;
     $http_options = array(
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
-      'max_redirects' => 1,
     );
     $http_response = drupal_http_request($request_url, $http_options);
+    // FIXME: drupal_http_request does not follow 303s
+    if (303 == $http_response->code) {
+      $request_url = $http_response->headers['location'];
+      $http_response = drupal_http_request($request_url, $http_options);
+    }
     $rdf_data = $http_response->data;
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
