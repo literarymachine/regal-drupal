@@ -22,7 +22,6 @@ function edoweb_schema() {
           'description' => 'Primary key of the basic entity.',
           'type' => 'char',
           'length' => '36',
-          //'unsigned' => TRUE,
           'not null' => TRUE,
         ),
         // If we allow multiple bundles, then the schema must handle that;
@@ -39,6 +38,11 @@ function edoweb_schema() {
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0,
+        ),
+        'origin' => array(
+          'description' => 'Optionally the original URI of the entity.',
+          'type' => 'text',
+          'not null' => FALSE,
         ),
       ),
     'primary key' => array('basic_id'),

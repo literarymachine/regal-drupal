@@ -344,6 +344,14 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     '#type' => 'item',
     '#title' => t('Created date'),
     '#markup' => format_date($entity->created),
+    '#weight' => -1,
+  );
+
+  $entity->content['origin'] = array(
+    '#type' => 'item',
+    '#title' => t('Origin'),
+    '#markup' => l($entity->origin, $entity->origin),
+    '#weight' => -1,
   );
 
   $entity->content['turtle'] = array(
@@ -888,6 +896,7 @@ class LinkedDataClient {
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    $entity->origin = $resource_uri;
     return TRUE;
   }
 
