@@ -356,7 +356,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   $entity->content['json'] = array(
     '#type' => 'item',
     '#title' => t('JSON-LD view'),
-    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_json_ld($entity))),
+    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_jsonld($entity))),
     '#weight' => 100,
   );
 
@@ -650,7 +650,7 @@ function _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
   return $rdf_model->serializeStatements($rdf_serializer);
 }
 
-function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_parser, $rdf_data) {
+function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser) {
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
@@ -668,7 +668,7 @@ function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_parser, $rdf
   }
 }
 
-function _edoweb_entity_serialize_json_ld($entity) {
+function _edoweb_entity_serialize_jsonld($entity) {
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
   $jsonld_context = new stdClass();
   $rdf_namespaces = rdf_get_namespaces();
@@ -680,6 +680,14 @@ function _edoweb_entity_serialize_json_ld($entity) {
   $rdf_ntriples = _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
   $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
   return str_replace('\\/', '/', json_encode($rdf_jsonld, JSON_PRETTY_PRINT));
+}
+
+function _edoweb_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data) {
+  $options = array();
+  $options['format'] = 'application/nquads';
+  $rdf_ntriples = jsonld_to_rdf(json_decode($rdf_data), $options);
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  return _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_ntriples, $rdf_parser);
 }
 
 function _edoweb_log($message, $target='php://stderr') {
@@ -754,8 +762,10 @@ class EdowebBasicController
     $rdf_parser = new LibRDF_Parser('turtle');
     foreach ($entities as $entity) {
       $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-      $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
-      _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_parser, $rdf_data);
+      $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.json");
+      _edoweb_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data);
+      //$rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+      //_edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     }
     return $entities;
   }
@@ -792,7 +802,7 @@ class EdowebBasicController
     // attached to this entity. We use the same primary_keys logic
     // to determine whether to update or insert, and which hook we
     // need to invoke.
-    $json = _edoweb_entity_serialize_json_ld($entity);
+    $json = _edoweb_entity_serialize_jsonld($entity);
     $rdf = _edoweb_entity_serialize_turtle($entity);
     file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
     file_put_contents("/tmp/{$entity->basic_id}.json", $json);
@@ -873,7 +883,7 @@ class LinkedDataClient {
     $rdf_data = $http_response->data;
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_parser, $rdf_data);
+    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     return TRUE;
   }
 
