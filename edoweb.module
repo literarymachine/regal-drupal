@@ -772,12 +772,9 @@ class EdowebBasicController
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
     $rdf_parser = new LibRDF_Parser('turtle');
+    $edoweb_api_client = new EdowebAPIClient();
     foreach ($entities as $entity) {
-      $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-      $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.json");
-      _edoweb_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data);
-      //$rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
-      //_edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+      $edoweb_api_client->load($entity);
     }
     return $entities;
   }
@@ -814,10 +811,6 @@ class EdowebBasicController
     // attached to this entity. We use the same primary_keys logic
     // to determine whether to update or insert, and which hook we
     // need to invoke.
-    $json = _edoweb_entity_serialize_jsonld($entity);
-    $rdf = _edoweb_entity_serialize_turtle($entity);
-    file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
-    file_put_contents("/tmp/{$entity->basic_id}.json", $json);
     if (empty($primary_keys)) {
       field_attach_insert('edoweb_basic', $entity);
     }
@@ -827,6 +820,9 @@ class EdowebBasicController
     }
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
+    // Store entity via Edoweb API
+    $edoweb_api_client = new EdowebAPIClient();
+    $edoweb_api_client->save($entity);
     return $entity;
   }
 
@@ -902,6 +898,130 @@ class LinkedDataClient {
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     $entity->origin = $resource_uri;
     return TRUE;
+  }
+
+}
+
+interface EdowebAPIClientInterface {
+  public function load($entity);
+  public function save($entity);
+}
+
+/*
+ * An edoweb api client that acts on local files.
+ */
+class EdowebAPIClientLocal implements EdowebAPIClientInterface {
+
+  /*
+   * Load an entity from the API.
+   *
+   * @param $entity
+   *   The drupal entity to load data into
+   */
+  public function load($entity) {
+    $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+    $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+    $rdf_parser = new LibRDF_Parser('turtle');
+    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    return TRUE;
+  }
+
+  /*
+   * Save an entity to the API
+   *
+   * @param $entity
+   *   The drupal entity to store data from
+   *
+   */
+  public function save($entity) {
+    $json = _edoweb_entity_serialize_jsonld($entity);
+    $rdf = _edoweb_entity_serialize_turtle($entity);
+    file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
+    file_put_contents("/tmp/{$entity->basic_id}.json", $json);
+    return TRUE;
+  }
+
+}
+
+class EdowebAPIClient implements EdowebAPIClientInterface {
+
+  /*
+   * The URL of the Edoweb API
+   */
+  private $__edoweb_api_host = 'orthos.hbz-nrw.de';
+
+  /**
+   * The username for the Edoweb API
+   *
+   */
+  private $__edoweb_api_user = 'fedoraAdmin';
+
+  /**
+   * The password for the Edoweb API
+   *
+   */
+  private $__edoweb_api_pass = 'fedoraAdmin1';
+
+  /*
+   * Load an entity from the API.
+   *
+   * @param $entity
+   *   The drupal entity to load data into
+   */
+  public function load($entity) {
+    $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+    $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+    $rdf_parser = new LibRDF_Parser('turtle');
+    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    return TRUE;
+  }
+
+  /*
+   * Save an entity to the API
+   *
+   * @param $entity
+   *   The drupal entity to store data from
+   *
+   */
+  public function save($entity) {
+    $http_post_data = _edoweb_entity_serialize_jsonld($entity);
+    $http_url = "http://{$this->__edoweb_api_user}:{$this->__edoweb_api_pass}@{$this->__edoweb_api_host}/monograph/edoweb:{$entity->basic_id}/metadata";
+    $http_response = $this->_http_post($http_url, $http_post_data);
+
+    // Display response in UI
+    $status_type = 'error';
+    switch ($http_response->code[0]) {
+      case '2':
+        $status_type = 'status';
+        break;
+      case '3':
+        $status_type = 'warning';
+        break;
+    }
+    drupal_set_message(
+      sprintf("API call to %s responded with HTTP %s.<pre>{%s}</pre>",
+              $http_url, $http_response->code, htmlentities(print_r($http_response, TRUE))
+      ), $status_type
+    );
+  }
+
+  protected function _http_put($request_url, $request_body) {
+    $http_options = array(
+      'method' => 'PUT',
+      'data' => $request_body,
+    );
+    $http_response = drupal_http_request($request_url, $http_options);
+    return $http_response;
+  }
+
+  protected function _http_post($request_url, $request_body) {
+    $http_options = array(
+      'method' => 'POST',
+      'data' => $request_body,
+      'headers' => array('Content-Type' => 'application/json'),
+    );
+    $http_response = drupal_http_request($request_url, $http_options);
+    return $http_response;
   }
 
 }
