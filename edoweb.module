@@ -889,7 +889,12 @@ class LinkedDataClient {
     $http_response = drupal_http_request($request_url, $http_options);
     // FIXME: drupal_http_request does not follow 303s
     if (303 == $http_response->code) {
-      $request_url = $http_response->headers['location'];
+      $redirect_url = $http_response->headers['location'];
+      if ("/" == substr($redirect_url, 0, 1)) {
+        $parsed_url = parse_url($request_url);
+        $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}$redirect_url";
+      }
+      $request_url = $redirect_url;
       $http_response = drupal_http_request($request_url, $http_options);
     }
     $rdf_data = $http_response->data;
