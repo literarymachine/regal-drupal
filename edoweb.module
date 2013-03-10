@@ -429,10 +429,20 @@ function edoweb_basic_import() {
 }
 
 function edoweb_basic_import_form($form, &$form_state) {
-  $form['resource_uri'] = array(
+  $form['resource_id'] = array(
     '#type' => 'textfield',
     '#weight' => 50,
     '#description' => t('Enter the HTTP-URI of the Linked Data resource you want to import.'),
+  );
+  $form['base_url'] = array(
+    '#title' => 'ID Typ',
+    '#type' => 'select',
+    '#weight' => 75,
+    '#options' => array(
+      'http://lobid.org/resource/%s' => 'HT Nummer',
+      'http://ld.zdb-services.de/resource/%s' => 'ZDB ID',
+      '%s' => 'Linked Data URI',
+    ),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -448,8 +458,15 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create();
   $api = new LinkedDataClient();
-  $resource_uri = $form['resource_uri']['#value'];
-  $api->load($entity, $resource_uri);
+  $resource_id = $form['resource_id']['#value'];
+  $base_url = $form['base_url']['#value'];
+  $resource_uri = sprintf($base_url, $resource_id);
+  try {
+    $api->load($entity, $resource_uri);
+    drupal_set_message(t("Imported data from ") . $resource_uri, 'status');
+  } catch (LibRDF_Error $e) {
+    drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
+  }
   $form_state['redirect'] = false;
   $form = drupal_get_form('edoweb_basic_form', $entity);
   $form['#action'] = url('edoweb/resource/basic/add');
