@@ -49,7 +49,7 @@ function edoweb_entity_info() {
     // functions. It is not required if we don't have bundles or revisions.
     // Here we do not support a revision, so that entity key is omitted.
     'entity keys' => array(
-      'id' => 'basic_id' , // The 'id' (basic_id here) is the unique id.
+      'id' => 'local_id' , // The 'id' (local_id here) is the unique id.
       'bundle' => 'bundle_type' // Bundle will be determined by the 'bundle_type' field
     ),
     'bundle keys' => array(
@@ -101,7 +101,7 @@ function edoweb_entity_info() {
  * the path: edoweb/resource/basic/%edoweb_basic in
  * hook_menu() tells Drupal to call edoweb_basic_load().
  *
- * @param $basic_id
+ * @param $local_id
  *   Integer specifying the basic entity id.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
@@ -111,9 +111,9 @@ function edoweb_entity_info() {
  * @see edoweb_basic_load_multiple()
  * @see edoweb_menu()
  */
-function edoweb_basic_load($basic_id = NULL, $reset = FALSE) {
-  $basic_ids = (isset($basic_id) ? array($basic_id) : array());
-  $basic = edoweb_basic_load_multiple($basic_ids, array(), $reset);
+function edoweb_basic_load($local_id = NULL, $reset = FALSE) {
+  $local_ids = (isset($local_id) ? array($local_id) : array());
+  $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
   return $basic ? reset($basic) : FALSE;
 }
 
@@ -123,8 +123,8 @@ function edoweb_basic_load($basic_id = NULL, $reset = FALSE) {
  * We only need to pass this request along to entity_load(), which
  * will in turn call the load() method of our entity controller class.
  */
-function edoweb_basic_load_multiple($basic_ids = FALSE, $conditions = array(), $reset = FALSE) {
-  return entity_load('edoweb_basic', $basic_ids, $conditions, $reset);
+function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $reset = FALSE) {
+  return entity_load('edoweb_basic', $local_ids, $conditions, $reset);
 }
 
 /**
@@ -132,7 +132,7 @@ function edoweb_basic_load_multiple($basic_ids = FALSE, $conditions = array(), $
  */
 function edoweb_basic_uri($basic) {
   return array(
-    'path' => 'edoweb/resource/basic/' . $basic->basic_id,
+    'path' => 'edoweb/resource/basic/' . $basic->local_id,
   );
 }
 
@@ -280,7 +280,7 @@ function edoweb_basic_list_entities() {
       // Create tabular rows for our entities.
       $rows[] = array(
         'data' => array(
-          'id' => l($entity->basic_id, 'edoweb/resource/basic/' . $entity->basic_id),
+          'id' => l($entity->local_id, 'edoweb/resource/basic/' . $entity->local_id),
           'bundle' => $entity->bundle_type,
         ),
       );
@@ -306,7 +306,7 @@ function edoweb_basic_list_entities() {
  * Callback for a page title when this entity is displayed.
  */
 function edoweb_basic_title($entity) {
-  return t('Edoweb Basic (id=@id)', array('@id' => $entity->basic_id));
+  return t('Edoweb Basic (id=@id)', array('@id' => $entity->local_id));
 }
 
 /**
@@ -331,11 +331,11 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   // field module.
   // field_attach_prepare_view() lets the fields load any data they need
   // before viewing.
-  field_attach_prepare_view($entity_type, array($entity->basic_id => $entity),
+  field_attach_prepare_view($entity_type, array($entity->local_id => $entity),
     $view_mode);
   // We call entity_prepare_view() so it can invoke hook_entity_prepare_view()
   // for us.
-  entity_prepare_view($entity_type, array($entity->basic_id => $entity));
+  entity_prepare_view($entity_type, array($entity->local_id => $entity));
   // Now field_attach_view() generates the content for the fields.
   $entity->content += field_attach_view($entity_type, $entity, $view_mode);
 
@@ -347,10 +347,10 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     '#weight' => -1,
   );
 
-  $entity->content['origin'] = array(
+  $entity->content['remote_id'] = array(
     '#type' => 'item',
     '#title' => t('Origin'),
-    '#markup' => l($entity->origin, $entity->origin),
+    '#markup' => l($entity->remote_id, $entity->remote_id),
     '#weight' => -1,
   );
 
@@ -523,7 +523,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   $entity = $form_state['values']['basic_entity'];
   field_attach_submit('edoweb_basic', $entity, $form, $form_state);
   $entity = edoweb_basic_save($entity);
-  $form_state['redirect'] = 'edoweb/resource/basic/' . $entity->basic_id;
+  $form_state['redirect'] = 'edoweb/resource/basic/' . $entity->local_id;
 }
 
 /**
@@ -535,7 +535,7 @@ function edoweb_basic_edit_delete( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   edoweb_basic_delete($entity);
   drupal_set_message(t('The entity %id has been deleted',
-    array('%id' => $entity->basic_id))
+    array('%id' => $entity->local_id))
   );
   $form_state['redirect'] = 'edoweb/resource';
 }
@@ -639,7 +639,7 @@ function edoweb_help($path, $arg) {
  *************************/
 
 function _edoweb_entity_serialize_turtle($entity) {
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
   $rdf_serializer = new LibRDF_Serializer('turtle');
   return _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
 }
@@ -705,7 +705,7 @@ function _edoweb_entity_serialize_jsonld($entity) {
   foreach ($rdf_namespaces as $prefix => $uri) {
     $jsonld_context->{$prefix} = $uri;
   }
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
+  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
   $rdf_serializer = new LibRDF_Serializer('ntriples');
   $rdf_ntriples = _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
   $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
@@ -780,7 +780,7 @@ class EdowebBasicController
   public function create() {
     $entity = new stdClass();
     $entity->type = 'edoweb_basic';
-    $entity->basic_id = null;
+    $entity->local_id = null;
     $entity->bundle_type = 'monograph_bundle';
     return $entity;
   }
@@ -789,7 +789,7 @@ class EdowebBasicController
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
     $rdf_parser = new LibRDF_Parser('turtle');
-    $edoweb_api_client = new EdowebAPIClient();
+    $edoweb_api_client = new EdowebAPIClientLocal();
     foreach ($entities as $entity) {
       $edoweb_api_client->load($entity);
     }
@@ -800,23 +800,18 @@ class EdowebBasicController
    * Saves the custom fields using drupal_write_record()
    */
   public function save($entity) {
-    // If our entity has no basic_id, then we need to give it a
+    // If our entity has no local_id, then we need to give it a
     // time of creation.
-    //if (empty($entity->basic_id)) {
-      //$entity->created = time();
-    //}
+    if (empty($entity->local_id)) {
+      $entity->created = time();
+      $entity->remote_id = self::uuid_v4();
+    }
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
     // The 'primary_keys' argument determines whether this will be an insert
     // or an update. So if the entity already has an ID, we'll specify
-    // basic_id as the key.
-    $primary_keys = $entity->basic_id ? 'basic_id' : array();
-    // Since we are not using auto-increments, we have to manually assign
-    // the UUID.
-    if (empty($entity->basic_id)) {
-      $entity->created = time();
-      $entity->basic_id = self::uuid_v4();
-    }
+    // local_id as the key.
+    $primary_keys = $entity->local_id ? 'local_id' : array();
     // Write out the entity record.
     drupal_write_record('edoweb_basic', $entity, $primary_keys);
     // We're going to invoke either hook_entity_update() or
@@ -838,7 +833,7 @@ class EdowebBasicController
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     // Store entity via Edoweb API
-    $edoweb_api_client = new EdowebAPIClient();
+    $edoweb_api_client = new EdowebAPIClientLocal();
     $edoweb_api_client->save($entity);
     return $entity;
   }
@@ -858,11 +853,11 @@ class EdowebBasicController
    * Deletion is unfortunately not supported in the base
    * DrupalDefaultEntityController class.
    *
-   * @param $basic_ids
+   * @param $local_ids
    *   An array of entity IDs or a single numeric ID.
    */
   public function delete_multiple($entities) {
-    $basic_ids = array();
+    $local_ids = array();
     if (!empty($entities)) {
       $transaction = db_transaction();
       try {
@@ -870,10 +865,10 @@ class EdowebBasicController
           // Invoke hook_entity_delete().
           module_invoke_all('entity_delete', $entity, 'edoweb_basic');
           field_attach_delete('edoweb_basic', $entity);
-          $basic_ids[] = $entity->basic_id;
+          $local_ids[] = $entity->local_id;
         }
         db_delete('edoweb_basic')
-          ->condition('basic_id', $basic_ids, 'IN')
+          ->condition('local_id', $local_ids, 'IN')
           ->execute();
       }
       catch (Exception $e) {
@@ -918,7 +913,7 @@ class LinkedDataClient {
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    $entity->origin = $resource_uri;
+    $entity->remote_id = $resource_uri;
     return TRUE;
   }
 
@@ -941,8 +936,8 @@ class EdowebAPIClientLocal implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-    $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+    $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
+    $rdf_data = file_get_contents("/tmp/{$entity->remote_id}.ttl");
     $rdf_parser = new LibRDF_Parser('turtle');
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     return TRUE;
@@ -958,8 +953,8 @@ class EdowebAPIClientLocal implements EdowebAPIClientInterface {
   public function save($entity) {
     $json = _edoweb_entity_serialize_jsonld($entity);
     $rdf = _edoweb_entity_serialize_turtle($entity);
-    file_put_contents("/tmp/{$entity->basic_id}.ttl", $rdf);
-    file_put_contents("/tmp/{$entity->basic_id}.json", $json);
+    file_put_contents("/tmp/{$entity->remote_id}.ttl", $rdf);
+    file_put_contents("/tmp/{$entity->remote_id}.json", $json);
     return TRUE;
   }
 
@@ -991,8 +986,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->basic_id}");
-    $rdf_data = file_get_contents("/tmp/{$entity->basic_id}.ttl");
+    $rdf_subject = new LibRDF_URINode("uuid:{$entity->local_id}");
+    $rdf_data = file_get_contents("/tmp/{$entity->local_id}.ttl");
     $rdf_parser = new LibRDF_Parser('turtle');
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     return TRUE;
@@ -1007,7 +1002,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function save($entity) {
     $http_post_data = _edoweb_entity_serialize_jsonld($entity);
-    $http_url = "http://{$this->__edoweb_api_user}:{$this->__edoweb_api_pass}@{$this->__edoweb_api_host}/monograph/edoweb:{$entity->basic_id}/metadata";
+    $http_url = "http://{$this->__edoweb_api_user}:{$this->__edoweb_api_pass}@{$this->__edoweb_api_host}/monograph/edoweb:{$entity->local_id}/metadata";
     $http_response = $this->_http_post($http_url, $http_post_data);
 
     // Display response in UI

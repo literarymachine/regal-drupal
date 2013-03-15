@@ -18,10 +18,10 @@ function edoweb_schema() {
   $schema['edoweb_basic'] = array(
     'description' => 'The base table for our basic entity.',
       'fields' => array(
-        'basic_id' => array(
+        'local_id' => array(
           'description' => 'Primary key of the basic entity.',
-          'type' => 'char',
-          'length' => '36',
+          'type' => 'serial',
+          'unsigned' => TRUE,
           'not null' => TRUE,
         ),
         // If we allow multiple bundles, then the schema must handle that;
@@ -39,13 +39,13 @@ function edoweb_schema() {
           'not null' => TRUE,
           'default' => 0,
         ),
-        'origin' => array(
-          'description' => 'Optionally the original URI of the entity.',
+        'remote_id' => array(
+          'description' => 'The remote id of the entity, can be a URI',
           'type' => 'text',
           'not null' => FALSE,
         ),
       ),
-    'primary key' => array('basic_id'),
+    'primary key' => array('local_id'),
   );
 
   return $schema;
