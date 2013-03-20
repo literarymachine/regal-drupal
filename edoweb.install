@@ -150,6 +150,11 @@ function _edoweb_installed_fields() {
       'cardinality' => 1,
       'type'        => 'text',
     ),
+    'field_edoweb_file' => array(
+      'field_name' => 'field_edoweb_file',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'file',
+    ),
   );
 }
 
@@ -198,6 +203,10 @@ function _edoweb_installed_instances() {
     'field_edoweb_publisher' => array(
       'field_name'  => 'field_edoweb_publisher',
       'label'       => $t('Verlag'),
+    ),
+    'field_edoweb_file' => array(
+      'field_name'  => 'field_edoweb_file',
+      'label'       => $t('Datei'),
     ),
   );
 }

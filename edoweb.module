@@ -600,6 +600,9 @@ function edoweb_rdf_mapping() {
         'field_edoweb_publisher' => array(
           'predicates' => array('isbd:P1017'),
         ),
+        'field_edoweb_file' => array(
+          'predicates' => array('ore:aggregates'),
+        ),
       ),
     ),
   );
@@ -618,7 +621,8 @@ function edoweb_rdf_namespaces() {
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
-    'dce' => 'http://purl.org/dc/elements/1.1/',
+    'dce'  => 'http://purl.org/dc/elements/1.1/',
+    'ore'  => 'http://www.openarchives.org/ore/terms/',
   );
 }
 
@@ -632,6 +636,20 @@ function edoweb_help($path, $arg) {
         'This Module implements Edoweb functionality'
       ) . "</p>";
   }
+}
+
+/**
+ * Implements hook_file_load().
+ */
+function edoweb_file_load($files) {
+  //drupal_set_message(print_r($files, TRUE));
+}
+
+/**
+ * Implements hook_file_insert().
+ */
+function edoweb_file_insert($files) {
+  //drupal_set_message(print_r($files, TRUE));
 }
 
 /*************************
@@ -665,12 +683,24 @@ function _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
     );
     $items = field_get_items('edoweb_basic', $entity, $field_name);
     if (TRUE === empty($items)) continue;
-    foreach ($items as $item) {
-      $rdf_object = new LibRDF_LiteralNode($item['value']);
-      $rdf_statement = new LibRDF_Statement(
-        $rdf_subject, $rdf_predicate, $rdf_object
-      );
-      $rdf_model->addStatement($rdf_statement);
+    // Special case: handle file fields
+    if ('field_edoweb_file' == $field_name) {
+      foreach ($items as $item) {
+        $file = file_load($item['fid']);
+        $rdf_object = new LibRDF_URINode($file->uri);
+        $rdf_statement = new LibRDF_Statement(
+          $rdf_subject, $rdf_predicate, $rdf_object
+        );
+        $rdf_model->addStatement($rdf_statement);
+      }
+    } else {
+      foreach ($items as $item) {
+        $rdf_object = new LibRDF_LiteralNode($item['value']);
+        $rdf_statement = new LibRDF_Statement(
+          $rdf_subject, $rdf_predicate, $rdf_object
+        );
+        $rdf_model->addStatement($rdf_statement);
+      }
     }
   }
   foreach (rdf_get_namespaces() as $prefix => $namespace) {
@@ -692,8 +722,20 @@ function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_p
     $rdf_predicate = new LibRDF_URINode(
       _edoweb_expand_curie($mapping['predicates'][0])
     );
-    foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-      $entity->{$field_name}['und'][]['value'] = (string) $value;
+    // Special case for file field
+    if ('field_edoweb_file' == $field_name) {
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        $file_id = db_query(
+          'SELECT fid FROM {file_managed} WHERE uri = :uri',
+          array(':uri' => substr($value, 1, -1))
+        )->fetchField();
+        $file = file_load($file_id);
+        $entity->{$field_name}['und'][] = (array) $file;
+      }
+    } else {
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        $entity->{$field_name}['und'][]['value'] = (string) $value;
+      }
     }
   }
 }
