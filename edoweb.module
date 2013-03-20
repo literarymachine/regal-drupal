@@ -662,6 +662,12 @@ function _edoweb_entity_serialize_turtle($entity) {
   return _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
 }
 
+function _edoweb_entity_serialize_ntriples($entity) {
+  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
+  $rdf_serializer = new LibRDF_Serializer('ntriples');
+  return _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+}
+
 function _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
@@ -772,6 +778,45 @@ function _edoweb_expand_curie($curie) {
   return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
 
+function _edoweb_http_request($request_url, $http_options) {
+
+  $http_response = drupal_http_request($request_url, $http_options);
+
+  // FIXME: drupal_http_request does not follow 303s
+  if ((303 == $http_response->code) || (307 == $http_response->code)) {
+    $redirect_url = $http_response->headers['location'];
+    // Fix for relative redirect URLs
+    if ("/" == substr($redirect_url, 0, 1)) {
+      $parsed_url = parse_url($request_url);
+      $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}$redirect_url";
+    }
+    $request_url = $redirect_url;
+    $http_response = drupal_http_request($request_url, $http_options);
+  }
+
+  // Display response in UI
+  $status_type = 'error';
+  switch ($http_response->code[0]) {
+    case '2':
+      $status_type = 'status';
+      break;
+    case '3':
+      $status_type = 'warning';
+      break;
+  }
+  drupal_set_message(
+    sprintf(
+      'API call responded with HTTP %s.<pre>{%s}</pre>',
+      $http_response->code,
+      htmlentities(print_r($http_response, TRUE))
+    ),
+    $status_type
+  );
+
+  return $http_response;
+
+}
+
 /**
  * EdowebBasicControllerInterface definition.
  *
@@ -831,7 +876,7 @@ class EdowebBasicController
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
     $rdf_parser = new LibRDF_Parser('turtle');
-    $edoweb_api_client = new EdowebAPIClientLocal();
+    $edoweb_api_client = new EdowebAPIClient();
     foreach ($entities as $entity) {
       $edoweb_api_client->load($entity);
     }
@@ -875,7 +920,7 @@ class EdowebBasicController
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     // Store entity via Edoweb API
-    $edoweb_api_client = new EdowebAPIClientLocal();
+    $edoweb_api_client = new EdowebAPIClient();
     $edoweb_api_client->save($entity);
     return $entity;
   }
@@ -940,17 +985,7 @@ class LinkedDataClient {
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
-    $http_response = drupal_http_request($request_url, $http_options);
-    // FIXME: drupal_http_request does not follow 303s
-    if (303 == $http_response->code) {
-      $redirect_url = $http_response->headers['location'];
-      if ("/" == substr($redirect_url, 0, 1)) {
-        $parsed_url = parse_url($request_url);
-        $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}$redirect_url";
-      }
-      $request_url = $redirect_url;
-      $http_response = drupal_http_request($request_url, $http_options);
-    }
+    $http_response = _edoweb_http_request($request_url, $http_options);
     $rdf_data = $http_response->data;
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
@@ -1028,11 +1063,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->local_id}");
-    $rdf_data = file_get_contents("/tmp/{$entity->local_id}.ttl");
-    $rdf_parser = new LibRDF_Parser('turtle');
+    $http_url = sprintf(
+      'http://%s:%s@%s/monograph/edoweb:%s/metadata',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_get($http_url);
+    $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
+    $rdf_data = $http_response->data;
+    $rdf_parser = new LibRDF_Parser('ntriples');
     _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    return TRUE;
   }
 
   /*
@@ -1043,44 +1085,51 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *
    */
   public function save($entity) {
-    $http_post_data = _edoweb_entity_serialize_jsonld($entity);
-    $http_url = "http://{$this->__edoweb_api_user}:{$this->__edoweb_api_pass}@{$this->__edoweb_api_host}/monograph/edoweb:{$entity->local_id}/metadata";
-    $http_response = $this->_http_post($http_url, $http_post_data);
 
-    // Display response in UI
-    $status_type = 'error';
-    switch ($http_response->code[0]) {
-      case '2':
-        $status_type = 'status';
-        break;
-      case '3':
-        $status_type = 'warning';
-        break;
-    }
-    drupal_set_message(
-      sprintf("API call to %s responded with HTTP %s.<pre>{%s}</pre>",
-              $http_url, $http_response->code, htmlentities(print_r($http_response, TRUE))
-      ), $status_type
+    // Create resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/monograph/edoweb:%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
     );
+    $http_response = $this->_http_put($http_url);
+
+    // Send metadata
+    $http_post_data = _edoweb_entity_serialize_ntriples($entity);
+    $http_url = sprintf(
+      'http://%s:%s@%s/monograph/edoweb:%s/metadata',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_post($http_url, $http_post_data);
   }
 
-  protected function _http_put($request_url, $request_body) {
+  protected function _http_put($request_url, $request_body = '') {
     $http_options = array(
       'method' => 'PUT',
       'data' => $request_body,
     );
-    $http_response = drupal_http_request($request_url, $http_options);
-    return $http_response;
+    return _edoweb_http_request($request_url, $http_options);
   }
 
-  protected function _http_post($request_url, $request_body) {
+  protected function _http_post($request_url, $request_body = '') {
     $http_options = array(
       'method' => 'POST',
       'data' => $request_body,
-      'headers' => array('Content-Type' => 'application/json'),
+      'headers' => array('Content-Type' => 'text/plain'),
     );
-    $http_response = drupal_http_request($request_url, $http_options);
-    return $http_response;
+    return _edoweb_http_request($request_url, $http_options);
+  }
+
+  protected function _http_get($request_url) {
+    $http_options = array(
+      'method' => 'GET',
+    );
+    return _edoweb_http_request($request_url, $http_options);
   }
 
 }
