@@ -690,6 +690,7 @@ function edoweb_rdf_mapping() {
         ),
         'field_edoweb_creator' => array(
           'predicates' => array('dce:creator'),
+          'type' => 'rel',
         ),
         'field_edoweb_contributor' => array(
           'predicates' => array('dc:contributor'),
@@ -813,7 +814,12 @@ function _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
       }
     } else {
       foreach ($items as $item) {
-        $rdf_object = new LibRDF_LiteralNode($item['value']);
+        if (isset($field_mapping['type'])
+            and $field_mapping['type'] == 'rel') {
+          $rdf_object = new LibRDF_URINode($item['value']);
+        } else {
+          $rdf_object = new LibRDF_LiteralNode($item['value']);
+        }
         $rdf_statement = new LibRDF_Statement(
           $rdf_subject, $rdf_predicate, $rdf_object
         );
@@ -852,7 +858,11 @@ function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_p
       }
     } else {
       foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-        $entity->{$field_name}['und'][]['value'] = (string) $value;
+        if ($value instanceOf LibRDF_LiteralNode) {
+          $entity->{$field_name}['und'][]['value'] = (string) $value;
+        } else {
+          $entity->{$field_name}['und'][]['value'] = substr($value, 1, -1);
+        }
       }
     }
   }
