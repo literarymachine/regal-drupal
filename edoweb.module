@@ -196,6 +196,12 @@ function edoweb_menu() {
     'access arguments' => array('create edoweb_basic entities'),
   );
 
+  // GND Autocompletion
+  $items['edoweb/autocomplete'] = array(
+    'page callback' => '_edoweb_gnd_autocomplete',
+    'access arguments' => array('access edoweb autocomplete'),
+    'type' => MENU_CALLBACK
+  );
   return $items;
 }
 
@@ -503,6 +509,16 @@ function edoweb_basic_form($form, &$form_state, $entity) {
   );
 
   return $form;
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function edoweb_field_widget_form_alter(&$element, &$form_state, $context) {
+  if ('field_edoweb_creator' == $element['#field_name']) {
+    print_r($form_state);
+    $element['value']['#autocomplete_path'] = 'edoweb/autocomplete';
+  }
 }
 
 
@@ -815,6 +831,12 @@ function _edoweb_http_request($request_url, $http_options) {
 
   return $http_response;
 
+function _edoweb_gnd_autocomplete($string) {
+  $matches = array(
+    'uuid:1' => 'Someone',
+    'uuid:2' => 'Someone else',
+  );
+  drupal_json_output($matches);
 }
 
 /**
