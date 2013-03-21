@@ -110,7 +110,7 @@ function _edoweb_installed_fields() {
       'field_name' => 'field_edoweb_creator',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       // TODO: Create and set entity reference type
-      'type'        => 'text',
+      'type'        => 'edoweb_ld_reference',
     ),
     'field_edoweb_contributor' => array(
       'field_name' => 'field_edoweb_contributor',
@@ -175,9 +175,6 @@ function _edoweb_installed_instances() {
     'field_edoweb_creator' => array(
       'field_name'  => 'field_edoweb_creator',
       'label'       => $t('Autor'),
-      'widget' => array(
-        'type' => 'edoweb_autocomplete',
-       ),
     ),
     'field_edoweb_contributor' => array(
       'field_name'  => 'field_edoweb_contributor',

@@ -512,6 +512,30 @@ function edoweb_basic_form($form, &$form_state, $entity) {
 }
 
 /**
+ * Implements hook_field_info().
+ */
+function edoweb_field_info() {
+  return array(
+    'edoweb_ld_reference' => array(
+      'label' => t('A linked data field'),
+      'description' => t('This field holds the URI of a linked data resource'),
+      'default_widget' => 'edoweb_autocomplete',
+      'default_formatter' => 'edoweb_ld_format',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function edoweb_field_is_empty($item, $field) {
+  if (empty($item['value']) && (string) $item['value'] !== '0') {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
  * Implements hook_field_widget_info().
  *
  * @see field_example_field_widget_form()
@@ -520,11 +544,36 @@ function edoweb_field_widget_info() {
   return array(
     'edoweb_autocomplete' => array(
       'label' => t('Auto-complete'),
-      'field types' => array('text'),
+      'field types' => array('edoweb_ld_reference'),
     ),
   );
 }
 
+/**
+ * Implements hook_field_formatter_info().
+ */
+function edoweb_field_formatter_info() {
+  return array(
+    'edoweb_ld_format' => array(
+      'label' => t('Linked data URI'),
+      'field types' => array('edoweb_ld_reference'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function edoweb_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $elements = array();
+  foreach ($items as $delta => $item) {
+    $elements[$delta] = array(
+      '#markup' => l("Label for {$item['value']}", $item['value']),
+    );
+  }
+  return $elements;
+}
 
 /**
  * Implements hook_field_widget_form().
