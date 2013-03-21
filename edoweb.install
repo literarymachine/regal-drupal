@@ -175,6 +175,9 @@ function _edoweb_installed_instances() {
     'field_edoweb_creator' => array(
       'field_name'  => 'field_edoweb_creator',
       'label'       => $t('Autor'),
+      'widget' => array(
+        'type' => 'edoweb_autocomplete',
+       ),
     ),
     'field_edoweb_contributor' => array(
       'field_name'  => 'field_edoweb_contributor',

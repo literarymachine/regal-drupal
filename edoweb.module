@@ -512,15 +512,62 @@ function edoweb_basic_form($form, &$form_state, $entity) {
 }
 
 /**
- * Implements hook_field_widget_form_alter().
+ * Implements hook_field_widget_info().
+ *
+ * @see field_example_field_widget_form()
  */
-function edoweb_field_widget_form_alter(&$element, &$form_state, $context) {
-  if ('field_edoweb_creator' == $element['#field_name']) {
-    print_r($form_state);
-    $element['value']['#autocomplete_path'] = 'edoweb/autocomplete';
-  }
+function edoweb_field_widget_info() {
+  return array(
+    'edoweb_autocomplete' => array(
+      'label' => t('Auto-complete'),
+      'field types' => array('text'),
+    ),
+  );
 }
 
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * hook_widget_form() is where Drupal tells us to create form elements for
+ * our field's widget.
+ *
+ */
+function edoweb_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
+  // Check if value was set in form input, e.g. when this function
+  // is called by ajax via the "Add another item" button.
+  $value = isset($form_state['input']['field_edoweb_creator']['und'][$delta]['value']) ?
+    $form_state['input']['field_edoweb_creator']['und'][$delta]['value'] : $value;
+
+  $widget = $element;
+  $widget['#delta'] = $delta;
+
+  switch ($instance['widget']['type']) {
+    case 'edoweb_autocomplete':
+      drupal_set_message($value);
+      if ($value != '') {
+        $widget += array(
+          '#type' => 'hidden',
+          '#autocomplete_path' => 'edoweb/autocomplete',
+          '#value' => $value,
+        );
+        $element['label'] = array(
+          '#type' => 'textfield',
+          '#value' => "Label for $value",
+          '#disabled' => TRUE,
+        );
+      } else {
+        $widget += array(
+          '#type' => 'textfield',
+          '#autocomplete_path' => 'edoweb/autocomplete',
+        );
+      }
+      $element['value'] = $widget;
+  }
+
+  return $element;
+}
 
 /**
  * Validation handler for edoweb_basic_add_form form.
@@ -832,10 +879,18 @@ function _edoweb_http_request($request_url, $http_options) {
   return $http_response;
 
 function _edoweb_gnd_autocomplete($string) {
-  $matches = array(
-    'uuid:1' => 'Someone',
-    'uuid:2' => 'Someone else',
+  $names = array(
+    'uuid:1' => 'Hans',
+    'uuid:2' => 'Uli',
+    'uuid:3' => 'Heiner',
+    'uuid:4' => 'Gabi',
+    'uuid:5' => 'Susi',
+    'uuid:6' => 'Uschi',
   );
+  $matches = array();
+  foreach ($names as $id => $name) {
+    if (0 === strpos($name, $string)) $matches[$id] = $name;
+  }
   drupal_json_output($matches);
 }
 
