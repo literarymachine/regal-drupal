@@ -594,7 +594,6 @@ function edoweb_field_widget_form(&$form, &$form_state, $field, $instance, $lang
 
   switch ($instance['widget']['type']) {
     case 'edoweb_autocomplete':
-      drupal_set_message($value);
       if ($value != '') {
         $widget += array(
           '#type' => 'hidden',
@@ -951,6 +950,11 @@ function _edoweb_gnd_autocomplete($string) {
     if (0 === strpos($name, $string)) $matches[$id] = $name;
   }
   drupal_json_output($matches);
+}
+
+function _edoweb_is_uri($string) {
+  $pattern = "`^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\d*))?(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?$`";
+  return preg_match($pattern, $string) === 1;
 }
 
 /**
