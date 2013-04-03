@@ -140,6 +140,7 @@ function edoweb_basic_uri($basic) {
  * Implements hook_menu().
  */
 function edoweb_menu() {
+
   $items['edoweb/resource'] = array(
     'title' => 'Edoweb',
     'page callback' => 'edoweb_info_page',
@@ -488,6 +489,12 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
  *   for fields attached to the entity.
  */
 function edoweb_basic_form($form, &$form_state, $entity) {
+
+  // Overwrite default autocomplete behaviour
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') .'/edoweb_autocomplete.js',
+    array('weight' => '100')
+  );
 
   $form['basic_entity'] = array(
     '#type' => 'value',
