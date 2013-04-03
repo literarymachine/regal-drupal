@@ -207,6 +207,9 @@ function _edoweb_installed_instances() {
     'field_edoweb_file' => array(
       'field_name'  => 'field_edoweb_file',
       'label'       => $t('Datei'),
+      'settings'    => array(
+        'file_extensions' => 'pdf',
+      ),
     ),
   );
 }
