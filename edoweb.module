@@ -942,6 +942,7 @@ function _edoweb_http_request($request_url, $http_options) {
   );
 
   return $http_response;
+}
 
 function _edoweb_gnd_autocomplete($string) {
   $autocomplete_url = "http://demo.lobid.org/search?format=full&index=gnd-index&category=author";
