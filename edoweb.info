@@ -6,5 +6,7 @@ dependencies[] = field
 dependencies[] = file
 dependencies[] = rdf
 dependencies[] = devnulldb_field_storage
+dependencies[] = entityreference
+dependencies[] = entity
 files[] = edoweb.test
 configure = admin/structure/edoweb_basic/manage

@@ -66,7 +66,6 @@ function edoweb_install() {
   // http://api.drupal.org/api/function/field_create_instance/7
   foreach (_edoweb_installed_instances() as $instance) {
     $instance['entity_type'] = 'edoweb_basic';
-    $instance['bundle'] = 'monograph_bundle';
     field_create_instance($instance);
   }
 
@@ -96,64 +95,76 @@ function edoweb_install() {
 function _edoweb_installed_fields() {
   $t = get_t();
   return array(
-    'field_edoweb_title' => array(
+    array(
       'field_name' => 'field_edoweb_title',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_title_other' => array(
+    array(
       'field_name' => 'field_edoweb_title_other',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_creator' => array(
+    array(
       'field_name' => 'field_edoweb_creator',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       // TODO: Create and set entity reference type
       'type'        => 'edoweb_ld_reference',
     ),
-    'field_edoweb_contributor' => array(
+    array(
       'field_name' => 'field_edoweb_contributor',
       'cardinality' => 1,
       // TODO: Create and set entity reference type
       'type'        => 'text',
     ),
-    'field_edoweb_issued' => array(
+    array(
       'field_name' => 'field_edoweb_issued',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_language' => array(
+    array(
       'field_name' => 'field_edoweb_language',
       'cardinality' => 1,
       // TODO: Create and set entity reference type
       'type'        => 'text',
     ),
-    'field_edoweb_edition' => array(
+    array(
       'field_name' => 'field_edoweb_edition',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_publication_place' => array(
+    array(
       'field_name' => 'field_edoweb_publication_place',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_subject' => array(
+    array(
       'field_name' => 'field_edoweb_subject',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       // TODO: Create and set entity reference type
       'type'        => 'text',
     ),
-    'field_edoweb_publisher' => array(
+    array(
       'field_name' => 'field_edoweb_publisher',
       'cardinality' => 1,
       'type'        => 'text',
     ),
-    'field_edoweb_file' => array(
+    array(
       'field_name' => 'field_edoweb_file',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'file',
+    ),
+    array(
+      'field_name' => 'field_edoweb_volume',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'entityreference',
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler' => 'base',
+        'handler_settings' => array(
+          'target_bundles' => array('volume_bundle' => 'volume_bundle'),
+        ),
+      ),
     ),
   );
 }
@@ -164,52 +175,92 @@ function _edoweb_installed_fields() {
 function _edoweb_installed_instances() {
   $t = get_t();
   return array(
-    'field_edoweb_title' => array(
+    /**
+     * Field instances in the monograph bundle
+     */
+    array(
       'field_name'  => 'field_edoweb_title',
       'label'       => $t('Titel'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_title_other' => array(
+    array(
       'field_name'  => 'field_edoweb_title_other',
       'label'       => $t('Titelzusatz'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_creator' => array(
+    array(
       'field_name'  => 'field_edoweb_creator',
       'label'       => $t('Autor'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_contributor' => array(
+    array(
       'field_name'  => 'field_edoweb_contributor',
       'label'       => $t('Beteiligte Person'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_issued' => array(
+    array(
       'field_name'  => 'field_edoweb_issued',
       'label'       => $t('Erscheinungsjahr'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_language' => array(
+    array(
       'field_name'  => 'field_edoweb_language',
       'label'       => $t('Sprache'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_edition' => array(
+    array(
       'field_name'  => 'field_edoweb_edition',
       'label'       => $t('Ausgabe'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_publication_place' => array(
+    array(
       'field_name'  => 'field_edoweb_publication_place',
       'label'       => $t('Erscheinungsort'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_subject' => array(
+    array(
       'field_name'  => 'field_edoweb_subject',
       'label'       => $t('Schlagwort'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_publisher' => array(
+    array(
       'field_name'  => 'field_edoweb_publisher',
       'label'       => $t('Verlag'),
+      'bundle'      => 'monograph_bundle',
     ),
-    'field_edoweb_file' => array(
+    array(
       'field_name'  => 'field_edoweb_file',
       'label'       => $t('Datei'),
+      'bundle'      => 'monograph_bundle',
       'settings'    => array(
         'file_extensions' => 'pdf',
       ),
+    ),
+    /**
+     * Field instances in the ejournal bundle
+     */
+    array(
+      'field_name'  => 'field_edoweb_title',
+      'label'       => $t('Titel'),
+      'bundle'      => 'ejournal_bundle',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_creator',
+      'label'       => $t('Autor'),
+      'bundle'      => 'ejournal_bundle',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_volume',
+      'label'       => $t('Volume'),
+      'bundle'      => 'ejournal_bundle',
+    ),
+    /**
+     * Field instances in the volume bundle
+     */
+    array(
+      'field_name'  => 'field_edoweb_title',
+      'label'       => $t('Titel'),
+      'bundle'      => 'volume_bundle',
     ),
   );
 }
@@ -258,7 +309,11 @@ function _edoweb_installed_users() {
  * so that attached fields can be cleaned up.
  */
 function edoweb_uninstall() {
+  // Delete bundles
   field_attach_delete_bundle('edoweb_basic' , 'monograph_bundle' );
+  field_attach_delete_bundle('edoweb_basic' , 'ejournal_bundle' );
+  field_attach_delete_bundle('edoweb_basic' , 'volume_bundle' );
+
   // Delete field instances for now.
   // Check status of http://drupal.org/node/1015846
   $instances = _edoweb_installed_instances();
