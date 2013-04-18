@@ -65,30 +65,30 @@ function edoweb_entity_info() {
     // Bundles are alternative groups of fields or configuration
     // associated with a base entity type.
     'bundles' => array(
-      'monograph_bundle' => array(
+      'monograph' => array(
         'label' => t('Monograph'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/monograph_bundle/manage',
+          'path' => 'admin/structure/edoweb_basic/monograph/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'ejournal_bundle' => array(
+      'ejournal' => array(
         'label' => t('eJournal'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/ejournal_bundle/manage',
+          'path' => 'admin/structure/edoweb_basic/ejournal/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'volume_bundle' => array(
+      'volume' => array(
         'label' => t('Volume'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/volume_bundle/manage',
+          'path' => 'admin/structure/edoweb_basic/volume/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -167,17 +167,17 @@ function edoweb_menu() {
   // This provides a place for Field API to hang its own
   // interface and has to be the same as what was defined
   // in basic_entity_info() above.
-  $items['admin/structure/edoweb_basic/monograph_bundle/manage'] = array(
+  $items['admin/structure/edoweb_basic/monograph/manage'] = array(
     'title' => 'Administer Monograph Bundle',
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
   );
-  $items['admin/structure/edoweb_basic/ejournal_bundle/manage'] = array(
+  $items['admin/structure/edoweb_basic/ejournal/manage'] = array(
     'title' => 'Administer eJournal Bundle',
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
   );
-  $items['admin/structure/edoweb_basic/volume_bundle/manage'] = array(
+  $items['admin/structure/edoweb_basic/volume/manage'] = array(
     'title' => 'Administer Volume Bundle',
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
@@ -256,7 +256,7 @@ function edoweb_info_page() {
   );
   if (user_access('administer edoweb_basic entities')) {
     $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
-      array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal_bundle/manage'))
+      array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal/manage'))
     );
   }
   $content['table'] = edoweb_basic_list_entities();
@@ -454,8 +454,8 @@ function edoweb_field_extra_fields() {
   // Since we have only one bundle type, we'll just provide the extra_fields
   // for it here.
   // $extra_fields['edoweb_basic']['monograph_bundle']['form'] = $form_elements;
-  $extra_fields['edoweb_basic']['monograph_bundle']['display'] = $display_elements;
-  $extra_fields['edoweb_basic']['ejournal_bundle']['display'] = $display_elements;
+  $extra_fields['edoweb_basic']['monograph']['display'] = $display_elements;
+  $extra_fields['edoweb_basic']['ejournal']['display'] = $display_elements;
 
   return $extra_fields;
 }
@@ -464,7 +464,6 @@ function edoweb_field_extra_fields() {
  * Provides a wrapper on the edit form to add a new entity.
  */
 function edoweb_basic_add($bundle_type) {
-  $bundle_type = $bundle_type . '_bundle';
   // Create a basic entity structure to be used and passed to the validation
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
@@ -519,6 +518,7 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
   }
   $form_state['redirect'] = false;
   $form = drupal_get_form('edoweb_basic_form', $entity);
+  //FIXME: set proper bundle type
   $form['#action'] = url('edoweb/resource/basic/add');
 }
 
@@ -821,7 +821,7 @@ class EdowebBasicController
   /**
    * Create and return a new edoweb_basic entity.
    */
-  public function create($bundle_type = 'monograph_bundle') {
+  public function create($bundle_type = 'monograph') {
     $entity = new stdClass();
     $entity->type = 'edoweb_basic';
     $entity->local_id = null;
