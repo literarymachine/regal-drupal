@@ -7,10 +7,10 @@
 /**
  * Implements hook_install().
  */
-function devnulldb_field_storage_install() {
-  variable_set('field_storage_default', 'devnulldb_field_storage');
+function edoweb_storage_install() {
+  variable_set('field_storage_default', 'edoweb_storage');
 }
 
-function devnulldb_field_storage_disable() {
+function edoweb_storage_disable() {
   variable_del('field_storage_default');
 }

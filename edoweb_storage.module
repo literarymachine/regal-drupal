@@ -2,18 +2,22 @@
 
 /**
  * @file
- * Implementation of the field storage API for DevNullDB.
+ * Implementation of the field storage API for Edoweb Storage.
  * Any data access is logged and discarded.
  */
+
+function edoweb_storage_init() {
+  $GLOBALS['conf']['cache'] = FALSE;
+}
 
 /**
  * Implements hook_field_storage_info().
  */
-function devnulldb_field_storage_field_storage_info() {
+function edoweb_storage_field_storage_info() {
   return array(
-    'devnulldb_field_storage' => array(
-      'label' => t('DevNullDB field storage'),
-      'description' => t('Stores nodes and fields in a DevNullDB database.'),
+    'edoweb_storage' => array(
+      'label' => t('Edoweb Storage field storage'),
+      'description' => t('Stores nodes and fields in a Edoweb Storage database.'),
     ),
   );
 }
@@ -21,7 +25,7 @@ function devnulldb_field_storage_field_storage_info() {
 /**
  * Implements hook_field_storage_details().
  */
-function devnulldb_field_storage_field_storage_details($field) {
+function edoweb_storage_field_storage_details($field) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -30,7 +34,7 @@ function devnulldb_field_storage_field_storage_details($field) {
 /**
  * Implements hook_field_storage_create_field().
  */
-function devnulldb_field_storage_field_storage_create_field($field) {
+function edoweb_storage_field_storage_create_field($field) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -39,7 +43,7 @@ function devnulldb_field_storage_field_storage_create_field($field) {
 /**
  * Implements hook_field_storage_update_field().
  */
-function devnulldb_field_storage_field_storage_update_field($field, $prior_field, $has_data) {
+function edoweb_storage_field_storage_update_field($field, $prior_field, $has_data) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -48,7 +52,7 @@ function devnulldb_field_storage_field_storage_update_field($field, $prior_field
 /**
  * Implements hook_field_storage_delete_field().
  */
-function devnulldb_field_storage_field_storage_delete_field($field) {
+function edoweb_storage_field_storage_delete_field($field) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -57,7 +61,7 @@ function devnulldb_field_storage_field_storage_delete_field($field) {
 /**
  * Implements hook_field_storage_load().
  */
-function devnulldb_field_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
+function edoweb_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -66,7 +70,7 @@ function devnulldb_field_storage_field_storage_load($entity_type, $entities, $ag
 /**
  * Implements hook_field_storage_write().
  */
-function devnulldb_field_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
+function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -77,7 +81,7 @@ function devnulldb_field_storage_field_storage_write($entity_type, $entity, $op,
  * Implement hook_field_storage_delete().
  *
  */
-function devnulldb_field_storage_field_storage_delete($entity_type, $entity, $fields) {
+function edoweb_storage_field_storage_delete($entity_type, $entity, $fields) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -87,7 +91,7 @@ function devnulldb_field_storage_field_storage_delete($entity_type, $entity, $fi
  * Implement hook_field_storage_delete_revision().
  *
  */
-function devnulldb_field_storage_field_storage_delete_revision($entity_type, $entity, $fields) {
+function edoweb_storage_field_storage_delete_revision($entity_type, $entity, $fields) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -97,7 +101,7 @@ function devnulldb_field_storage_field_storage_delete_revision($entity_type, $en
  * Implement hook_field_storage_delete_instance().
  *
  */
-function devnulldb_field_storage_field_storage_delete_instance($instance) {
+function edoweb_storage_field_storage_delete_instance($instance) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -110,13 +114,13 @@ class DevnullDBStorageException extends Exception {}
  *
  * Alter the entity info.
  */
-function devnulldb_field_storage_entity_query_alter($query) {
+function edoweb_storage_entity_query_alter($query) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
-function devnulldb_field_storage_field_storage_query($query) {
+function edoweb_storage_field_storage_query($query) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -126,7 +130,7 @@ function devnulldb_field_storage_field_storage_query($query) {
  * Implements hook_field_storage_query().
  *
  */
-function devnulldb_field_storage_query($query) {
+function edoweb_storage_query($query) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -135,7 +139,7 @@ function devnulldb_field_storage_query($query) {
 /**
  * Implements hook_field_attach_rename_bundle().
  */
-function devnulldb_field_storage_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
+function edoweb_storage_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -144,7 +148,7 @@ function devnulldb_field_storage_field_attach_rename_bundle($entity_type, $bundl
 /**
  * Implements hook_entity_insert().
  */
-function devnulldb_field_storage_entity_insert($entity, $entity_type) {
+function edoweb_storage_entity_insert($entity, $entity_type) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -153,7 +157,7 @@ function devnulldb_field_storage_entity_insert($entity, $entity_type) {
 /**
  * Implements hook_entity_update().
  */
-function devnulldb_field_storage_entity_update($entity, $entity_type) {
+function edoweb_storage_entity_update($entity, $entity_type) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -162,7 +166,7 @@ function devnulldb_field_storage_entity_update($entity, $entity_type) {
 /**
  * Implements hook_field_attach_delete.
  */
-function devnulldb_field_storage_field_attach_delete($entity_type, $entity) {
+function edoweb_storage_field_attach_delete($entity_type, $entity) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -171,12 +175,12 @@ function devnulldb_field_storage_field_attach_delete($entity_type, $entity) {
 /**
  * Implements hook_entity_info_alter().
  */
-function devnulldb_field_storage_entity_info_alter(&$entity_info) {
+function edoweb_storage_entity_info_alter(&$entity_info) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
 }
 
 function __devnulldb_log($message, $target='php://stderr') {
-  //file_put_contents($target, $message);
+  file_put_contents($target, $message);
 }

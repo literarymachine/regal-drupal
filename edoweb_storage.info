@@ -1,0 +1,6 @@
+name = Edoweb Storage
+description = Store Field content using the Edoweb API
+package = Edoweb
+version = 0.1
+core = 7.x
+files[] = edoweb_storage.module

@@ -1,6 +1,0 @@
-name = DevNullDB Storage
-description = Store Field content on DevNullDB.
-package = DevNullDB
-version = VERSION
-core = 7.x
-files[] = devnulldb_field_storage.module
