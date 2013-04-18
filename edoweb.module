@@ -405,14 +405,14 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   $entity->content['turtle'] = array(
     '#type' => 'item',
     '#title' => t('Turtle view'),
-    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_turtle($entity))),
+    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_storage_entity_serialize_turtle($entity))),
     '#weight' => 100,
   );
 
   $entity->content['json'] = array(
     '#type' => 'item',
     '#title' => t('JSON-LD view'),
-    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_entity_serialize_jsonld($entity))),
+    '#markup' => sprintf('<pre>%s</pre>', htmlentities(_edoweb_storage_entity_serialize_jsonld($entity))),
     '#weight' => 100,
   );
 
@@ -703,141 +703,6 @@ function edoweb_file_insert($files) {
   //drupal_set_message(print_r($files, TRUE));
 }
 
-/*************************
- * Edoweb helper functions
- *************************/
-
-function _edoweb_entity_serialize_turtle($entity) {
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
-  $rdf_serializer = new LibRDF_Serializer('turtle');
-  return _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
-}
-
-function _edoweb_entity_serialize_ntriples($entity) {
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
-  $rdf_serializer = new LibRDF_Serializer('ntriples');
-  return _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
-}
-
-function _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-  // First element contains the rdf:type definitions
-  $rdf_type_predicate = new LibRDF_URINode(
-    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-  );
-  foreach (array_shift($rdf_mapping) as $rdf_type_mapping) {
-    $rdf_type_statement = new LibRDF_Statement(
-      $rdf_subject, $rdf_type_predicate,
-      new LibRDF_URINode(_edoweb_expand_curie($rdf_type_mapping))
-    );
-    $rdf_model->addStatement($rdf_type_statement);
-  }
-  // Following elements contain predicate mappings
-  foreach ($rdf_mapping as $field_name => $field_mapping) {
-    $rdf_predicate = new LibRDF_URINode(
-      _edoweb_expand_curie($field_mapping['predicates'][0])
-    );
-    $items = field_get_items('edoweb_basic', $entity, $field_name);
-    if (TRUE === empty($items)) continue;
-    // Special case: handle file fields
-    if ('field_edoweb_file' == $field_name) {
-      foreach ($items as $item) {
-        $file = file_load($item['fid']);
-        $rdf_object = new LibRDF_URINode($file->uri);
-        $rdf_statement = new LibRDF_Statement(
-          $rdf_subject, $rdf_predicate, $rdf_object
-        );
-        $rdf_model->addStatement($rdf_statement);
-      }
-    } else {
-      foreach ($items as $item) {
-        if (isset($field_mapping['type'])
-            and $field_mapping['type'] == 'rel') {
-          $rdf_object = new LibRDF_URINode($item['value']);
-        } else {
-          $rdf_object = new LibRDF_LiteralNode($item['value']);
-        }
-        $rdf_statement = new LibRDF_Statement(
-          $rdf_subject, $rdf_predicate, $rdf_object
-        );
-        $rdf_model->addStatement($rdf_statement);
-      }
-    }
-  }
-  foreach (rdf_get_namespaces() as $prefix => $namespace) {
-    _edoweb_log("mapping: $prefix to $namespace\n");
-    $rdf_serializer->setNamespace($namespace, $prefix);
-  }
-  return $rdf_model->serializeStatements($rdf_serializer);
-}
-
-function _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser) {
-  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
-  LibRDF_LiteralNode::setPlainOutput(true);
-
-  // Skip first element, these are the rdf:type definitions
-  unset($rdf_mapping[key($rdf_mapping)]);
-  foreach ($rdf_mapping as $field_name => $mapping) {
-    $rdf_predicate = new LibRDF_URINode(
-      _edoweb_expand_curie($mapping['predicates'][0])
-    );
-    // Special case for file field
-    if ('field_edoweb_file' == $field_name) {
-      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-        $file_id = db_query(
-          'SELECT fid FROM {file_managed} WHERE uri = :uri',
-          array(':uri' => substr($value, 1, -1))
-        )->fetchField();
-        $file = file_load($file_id);
-        $entity->{$field_name}['und'][] = (array) $file;
-      }
-    } else {
-      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-        if ($value instanceOf LibRDF_LiteralNode) {
-          $entity->{$field_name}['und'][]['value'] = (string) $value;
-        } else {
-          $entity->{$field_name}['und'][]['value'] = substr($value, 1, -1);
-        }
-      }
-    }
-  }
-}
-
-function _edoweb_entity_serialize_jsonld($entity) {
-  $rdf_mapping = rdf_mapping_load('edoweb_basic', $entity->bundle_type);
-  $jsonld_context = new stdClass();
-  $rdf_namespaces = rdf_get_namespaces();
-  foreach ($rdf_namespaces as $prefix => $uri) {
-    $jsonld_context->{$prefix} = $uri;
-  }
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
-  $rdf_serializer = new LibRDF_Serializer('ntriples');
-  $rdf_ntriples = _edoweb_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
-  $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
-  return str_replace('\\/', '/', json_encode($rdf_jsonld));
-}
-
-function _edoweb_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data) {
-  $options = array();
-  $options['format'] = 'application/nquads';
-  $rdf_ntriples = jsonld_to_rdf(json_decode($rdf_data), $options);
-  $rdf_parser = new LibRDF_Parser('ntriples');
-  return _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_ntriples, $rdf_parser);
-}
-
-function _edoweb_log($message, $target='php://stderr') {
-  // file_put_contents($target, $message);
-}
-
-function _edoweb_expand_curie($curie) {
-  $rdf_namespaces = rdf_get_namespaces();
-  list($curie_prefix, $curie_local) = explode(':', $curie);
-  return $rdf_namespaces[$curie_prefix] . $curie_local;
-}
-
 function _edoweb_http_request($request_url, $http_options) {
 
   $http_response = drupal_http_request($request_url, $http_options);
@@ -955,11 +820,11 @@ class EdowebBasicController
   public function load($ids = array(), $conditions = array()) {
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
-    $rdf_parser = new LibRDF_Parser('turtle');
-    $edoweb_api_client = new EdowebAPIClientLocal();
-    foreach ($entities as $entity) {
-      $edoweb_api_client->load($entity);
-    }
+    //$rdf_parser = new LibRDF_Parser('turtle');
+    //$edoweb_api_client = new EdowebAPIClientLocal();
+    //foreach ($entities as $entity) {
+    //  $edoweb_api_client->load($entity);
+    //}
     return $entities;
   }
 
@@ -1000,8 +865,8 @@ class EdowebBasicController
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     // Store entity via Edoweb API
-    $edoweb_api_client = new EdowebAPIClientLocal();
-    $edoweb_api_client->save($entity);
+    //$edoweb_api_client = new EdowebAPIClientLocal();
+    //$edoweb_api_client->save($entity);
     return $entity;
   }
 
@@ -1076,140 +941,3 @@ class LinkedDataClient {
 
 }
 
-interface EdowebAPIClientInterface {
-  public function load($entity);
-  public function save($entity);
-}
-
-/*
- * An edoweb api client that acts on local files.
- */
-class EdowebAPIClientLocal implements EdowebAPIClientInterface {
-
-  /*
-   * Load an entity from the API.
-   *
-   * @param $entity
-   *   The drupal entity to load data into
-   */
-  public function load($entity) {
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
-    $rdf_data = file_get_contents("/tmp/{$entity->remote_id}.ttl");
-    $rdf_parser = new LibRDF_Parser('turtle');
-    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    return TRUE;
-  }
-
-  /*
-   * Save an entity to the API
-   *
-   * @param $entity
-   *   The drupal entity to store data from
-   *
-   */
-  public function save($entity) {
-    $json = _edoweb_entity_serialize_jsonld($entity);
-    $rdf = _edoweb_entity_serialize_turtle($entity);
-    file_put_contents("/tmp/{$entity->remote_id}.ttl", $rdf);
-    file_put_contents("/tmp/{$entity->remote_id}.json", $json);
-    return TRUE;
-  }
-
-}
-
-class EdowebAPIClient implements EdowebAPIClientInterface {
-
-  /*
-   * The URL of the Edoweb API
-   */
-  private $__edoweb_api_host = 'orthos.hbz-nrw.de';
-
-  /**
-   * The username for the Edoweb API
-   *
-   */
-  private $__edoweb_api_user = 'fedoraAdmin';
-
-  /**
-   * The password for the Edoweb API
-   *
-   */
-  private $__edoweb_api_pass = 'fedoraAdmin1';
-
-  /*
-   * Load an entity from the API.
-   *
-   * @param $entity
-   *   The drupal entity to load data into
-   */
-  public function load($entity) {
-    $http_url = sprintf(
-      'http://%s:%s@%s/monograph/edoweb:%s/metadata',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_get($http_url);
-    $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
-    $rdf_data = $http_response->data;
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-  }
-
-  /*
-   * Save an entity to the API
-   *
-   * @param $entity
-   *   The drupal entity to store data from
-   *
-   */
-  public function save($entity) {
-
-    // Create resource
-    $http_url = sprintf(
-      'http://%s:%s@%s/monograph/edoweb:%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_put($http_url);
-
-    // Send metadata
-    $http_post_data = _edoweb_entity_serialize_ntriples($entity);
-    $http_url = sprintf(
-      'http://%s:%s@%s/monograph/edoweb:%s/metadata',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_post($http_url, $http_post_data);
-  }
-
-  protected function _http_put($request_url, $request_body = '') {
-    $http_options = array(
-      'method' => 'PUT',
-      'data' => $request_body,
-    );
-    return _edoweb_http_request($request_url, $http_options);
-  }
-
-  protected function _http_post($request_url, $request_body = '') {
-    $http_options = array(
-      'method' => 'POST',
-      'data' => $request_body,
-      'headers' => array('Content-Type' => 'text/plain'),
-    );
-    return _edoweb_http_request($request_url, $http_options);
-  }
-
-  protected function _http_get($request_url) {
-    $http_options = array(
-      'method' => 'GET',
-    );
-    return _edoweb_http_request($request_url, $http_options);
-  }
-
-}

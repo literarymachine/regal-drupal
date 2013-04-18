@@ -1,11 +1,11 @@
-name = Edoweb
+name = Edoweb Entities
 description = An Edoweb entity
 core = 7.x
-package = Edoweb modules
+package = Edoweb
 dependencies[] = field
 dependencies[] = file
 dependencies[] = rdf
-dependencies[] = devnulldb_field_storage
+dependencies[] = edoweb_storage
 dependencies[] = entityreference
 dependencies[] = entity
 dependencies[] = edoweb_field
