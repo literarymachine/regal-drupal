@@ -540,6 +540,18 @@ function edoweb_basic_form($form, &$form_state, $entity) {
 
   field_attach_form('edoweb_basic', $entity, $form, $form_state);
 
+  // Remove any entityreference fields from the form
+  // because they will be added via a separate form
+  $fields_info = field_info_instances(
+    'edoweb_basic', $entity->bundle_type
+  );
+  foreach ($fields_info as $field_name => $value) {
+    $field_info = field_info_field($field_name);
+    if ('entityreference' == $field_info['type']) {
+      unset($form[$field_name]);
+    }
+  }
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
