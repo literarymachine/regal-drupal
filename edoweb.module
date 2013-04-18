@@ -150,7 +150,7 @@ function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $
  */
 function edoweb_basic_uri($basic) {
   return array(
-    'path' => 'edoweb/resource/basic/' . $basic->local_id,
+    'path' => "edoweb/resource/{$basic->bundle_type}/{$basic->local_id}",
   );
 }
 
@@ -327,7 +327,7 @@ function edoweb_basic_list_entities() {
       // Create tabular rows for our entities.
       $rows[] = array(
         'data' => array(
-          'id' => l($entity->local_id, 'edoweb/resource/basic/' . $entity->local_id),
+          'id' => l($entity->local_id, "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}"),
           'title' => $entity->field_edoweb_title['und'][0]['value'],
           'bundle' => $entity->bundle_type,
         ),
@@ -585,7 +585,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   $entity = $form_state['values']['basic_entity'];
   field_attach_submit('edoweb_basic', $entity, $form, $form_state);
   $entity = edoweb_basic_save($entity);
-  $form_state['redirect'] = 'edoweb/resource/basic/' . $entity->local_id;
+  $form_state['redirect'] = "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}";
 }
 
 /**
