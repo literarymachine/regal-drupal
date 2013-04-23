@@ -66,11 +66,29 @@ function edoweb_entity_info() {
     // associated with a base entity type.
     'bundles' => array(
       'monograph_bundle' => array(
-        'label' => 'First example bundle',
+        'label' => t('Monograph'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/manage',
+          'path' => 'admin/structure/edoweb_basic/monograph_bundle/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'ejournal_bundle' => array(
+        'label' => t('eJournal'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/ejournal_bundle/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'volume_bundle' => array(
+        'label' => t('Volume'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/volume_bundle/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -83,7 +101,7 @@ function edoweb_entity_info() {
         'label' => t('Tweaky'),
         'custom settings' =>  FALSE,
       ),
-    )
+    ),
   );
 
   return $info;
@@ -150,8 +168,18 @@ function edoweb_menu() {
   // This provides a place for Field API to hang its own
   // interface and has to be the same as what was defined
   // in basic_entity_info() above.
-  $items['admin/structure/edoweb_basic/manage'] = array(
-    'title' => 'Administer edoweb_basic entity type',
+  $items['admin/structure/edoweb_basic/monograph_bundle/manage'] = array(
+    'title' => 'Administer Monograph Bundle',
+    'page callback' => 'edoweb_basic_admin_page',
+    'access arguments' => array('administer edoweb_basic entities'),
+  );
+  $items['admin/structure/edoweb_basic/ejournal_bundle/manage'] = array(
+    'title' => 'Administer eJournal Bundle',
+    'page callback' => 'edoweb_basic_admin_page',
+    'access arguments' => array('administer edoweb_basic entities'),
+  );
+  $items['admin/structure/edoweb_basic/volume_bundle/manage'] = array(
+    'title' => 'Administer Volume Bundle',
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
   );
@@ -159,7 +187,7 @@ function edoweb_menu() {
   // The page to view our entities - needs to follow what
   // is defined in basic_uri and will use load_basic to retrieve
   // the necessary entity info.
-  $items['edoweb/resource/basic/%edoweb_basic'] = array(
+  $items['edoweb/resource/%/%edoweb_basic'] = array(
     'title callback' => 'edoweb_basic_title',
     'title arguments' => array(3),
     'page callback' => 'edoweb_basic_view',
@@ -168,14 +196,23 @@ function edoweb_menu() {
   );
 
   // 'View' tab for an individual entity page.
-  $items['edoweb/resource/basic/%edoweb_basic/view'] = array(
+  $items['edoweb/resource/%/%edoweb_basic/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
+  // 'Add volume' tab for ejournal pages.
+  $items['edoweb/resource/ejournal/%edoweb_basic/add'] = array(
+    'title' => 'Add Volume',
+    'page callback' => 'edoweb_basic_add',
+    'page arguments' => array('volume'),
+    'access arguments' => array('create edoweb_basic entities'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   // 'Edit' tab for an individual entity page.
-  $items['edoweb/resource/basic/%edoweb_basic/edit'] = array(
+  $items['edoweb/resource/%/%edoweb_basic/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edoweb_basic_form', 3),
@@ -183,18 +220,22 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // Add example entities.
-  $items['edoweb/resource/basic/add'] = array(
+  // Add entities.
+  $items['edoweb/resource/%/add'] = array(
     'title' => 'Add an Edoweb Basic Entity',
     'page callback' => 'edoweb_basic_add',
+    'page arguments' => array(2),
     'access arguments' => array('create edoweb_basic entities'),
+    'type' => MENU_CALLBACK,
   );
 
-  // Import example entities.
-  $items['edoweb/resource/basic/import'] = array(
+  // Import entities.
+  $items['edoweb/resource/%/import'] = array(
     'title' => 'Import an Edoweb Basic Entity',
     'page callback' => 'edoweb_basic_import',
+    'page arguments' => array(2),
     'access arguments' => array('create edoweb_basic entities'),
+    'type' => MENU_CALLBACK,
   );
 
   // GND Autocompletion
@@ -216,7 +257,7 @@ function edoweb_info_page() {
   );
   if (user_access('administer edoweb_basic entities')) {
     $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
-      array('!link' => l(t('here'), 'admin/structure/edoweb_basic/manage'))
+      array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal_bundle/manage'))
     );
   }
   $content['table'] = edoweb_basic_list_entities();
@@ -288,6 +329,7 @@ function edoweb_basic_list_entities() {
       $rows[] = array(
         'data' => array(
           'id' => l($entity->local_id, 'edoweb/resource/basic/' . $entity->local_id),
+          'title' => $entity->field_edoweb_title['und'][0]['value'],
           'bundle' => $entity->bundle_type,
         ),
       );
@@ -296,7 +338,7 @@ function edoweb_basic_list_entities() {
     $content['entity_table'] = array(
       '#theme' => 'table',
       '#rows' => $rows,
-      '#header' => array(t('ID'), t('Bundle')),
+      '#header' => array(t('ID'), t('Title'), t('Bundle')),
     );
   }
   else {
@@ -414,6 +456,7 @@ function edoweb_field_extra_fields() {
   // for it here.
   // $extra_fields['edoweb_basic']['monograph_bundle']['form'] = $form_elements;
   $extra_fields['edoweb_basic']['monograph_bundle']['display'] = $display_elements;
+  $extra_fields['edoweb_basic']['ejournal_bundle']['display'] = $display_elements;
 
   return $extra_fields;
 }
@@ -421,10 +464,11 @@ function edoweb_field_extra_fields() {
 /**
  * Provides a wrapper on the edit form to add a new entity.
  */
-function edoweb_basic_add() {
+function edoweb_basic_add($bundle_type) {
+  $bundle_type = $bundle_type . '_bundle';
   // Create a basic entity structure to be used and passed to the validation
   // and submission functions.
-  $entity = entity_get_controller('edoweb_basic')->create();
+  $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
   return drupal_get_form('edoweb_basic_form', $entity);
 }
 
@@ -685,7 +729,7 @@ function edoweb_rdf_mapping() {
   return array(
     array(
       'type' => 'edoweb_basic',
-      'bundle' => 'monograph_bundle',
+      'bundle' => RDF_DEFAULT_BUNDLE,
       'mapping' => array(
         'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
         'field_edoweb_title' => array(
@@ -1012,11 +1056,11 @@ class EdowebBasicController
   /**
    * Create and return a new edoweb_basic entity.
    */
-  public function create() {
+  public function create($bundle_type = 'monograph_bundle') {
     $entity = new stdClass();
     $entity->type = 'edoweb_basic';
     $entity->local_id = null;
-    $entity->bundle_type = 'monograph_bundle';
+    $entity->bundle_type = $bundle_type;
     return $entity;
   }
 
@@ -1024,7 +1068,7 @@ class EdowebBasicController
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
     $rdf_parser = new LibRDF_Parser('turtle');
-    $edoweb_api_client = new EdowebAPIClient();
+    $edoweb_api_client = new EdowebAPIClientLocal();
     foreach ($entities as $entity) {
       $edoweb_api_client->load($entity);
     }
@@ -1068,7 +1112,7 @@ class EdowebBasicController
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     // Store entity via Edoweb API
-    $edoweb_api_client = new EdowebAPIClient();
+    $edoweb_api_client = new EdowebAPIClientLocal();
     $edoweb_api_client->save($entity);
     return $entity;
   }
