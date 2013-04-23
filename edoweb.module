@@ -945,11 +945,16 @@ function _edoweb_http_request($request_url, $http_options) {
 }
 
 function _edoweb_gnd_autocomplete($string) {
-  $autocomplete_url = "http://demo.lobid.org/search?format=full&index=gnd-index&category=author";
-  $result = json_decode(file_get_contents("{$autocomplete_url}&query={$string}"));
+  $autocomplete_url = "http://demo.lobid.org/author/$string?index=gnd-index";
+  $http_options = array(
+    'method' => 'GET',
+    'headers' => array('Accept' => 'application/json'),
+  );
+  $http_response = drupal_http_request($autocomplete_url, $http_options);
+  $json_data = json_decode($http_response->data);
   $label_property = "http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson";
   $matches = array();
-  foreach($result as $match) {
+  foreach($json_data as $match) {
     $matches[$match->{'@id'}] = $match->{$label_property};
   }
   drupal_json_output($matches);
