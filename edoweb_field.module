@@ -3,7 +3,7 @@
 /**
  * Implements hook_field_info().
  */
-function edoweb_field_info() {
+function edoweb_field_field_info() {
   return array(
     'edoweb_ld_reference' => array(
       'label' => t('A linked data field'),
@@ -17,7 +17,7 @@ function edoweb_field_info() {
 /**
  * Implements hook_field_is_empty().
  */
-function edoweb_field_is_empty($item, $field) {
+function edoweb_field_field_is_empty($item, $field) {
   if (empty($item['value']) && (string) $item['value'] !== '0') {
     return TRUE;
   }
@@ -29,7 +29,7 @@ function edoweb_field_is_empty($item, $field) {
  *
  * @see field_example_field_widget_form()
  */
-function edoweb_field_widget_info() {
+function edoweb_field_field_widget_info() {
   return array(
     'edoweb_autocomplete' => array(
       'label' => t('Auto-complete'),
@@ -41,7 +41,7 @@ function edoweb_field_widget_info() {
 /**
  * Implements hook_field_formatter_info().
  */
-function edoweb_field_formatter_info() {
+function edoweb_field_field_formatter_info() {
   return array(
     'edoweb_ld_format' => array(
       'label' => t('Linked data URI'),
@@ -54,7 +54,7 @@ function edoweb_field_formatter_info() {
 /**
  * Implements hook_field_formatter_view().
  */
-function edoweb_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function edoweb_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $elements = array();
   foreach ($items as $delta => $item) {
     $elements[$delta] = array(
@@ -71,7 +71,7 @@ function edoweb_field_formatter_view($entity_type, $entity, $field, $instance, $
  * our field's widget.
  *
  */
-function edoweb_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 
   // Overwrite default autocomplete behaviour
   drupal_add_js(
