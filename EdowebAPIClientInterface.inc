@@ -21,7 +21,7 @@ function _edoweb_storage_entity_serialize_turtle($entity) {
 }
 
 function _edoweb_storage_entity_serialize_ntriples($entity) {
-  $rdf_subject = new LibRDF_URINode("uuid:{$entity->remote_id}");
+  $rdf_subject = _edoweb_storage_entity_get_uri($entity);
   $rdf_serializer = new LibRDF_Serializer('ntriples');
   return _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
 }
@@ -53,6 +53,7 @@ function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serial
       $items = $wrapper->{$field_name}->value();
     } catch (EntityMetadataWrapperException $e) {
       // Field is not available for this entity
+      //drupal_set_message($e->getMessage(), 'error');
       continue;
     }
     if (!is_array($items)) $items = array($items);
@@ -71,7 +72,11 @@ function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serial
       foreach ($items as $item) {
         if (isset($field_mapping['type'])
             and $field_mapping['type'] == 'rel') {
-          $rdf_object = new LibRDF_URINode($item);
+          if (is_object($item)) {
+            $rdf_object = _edoweb_storage_entity_get_uri($item);
+          } else {
+            $rdf_object = new LibRDF_URINode($item);
+          }
         } else {
           $rdf_object = new LibRDF_LiteralNode($item);
         }
@@ -124,18 +129,21 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
               $wrapper->{$field_name}[] = (string) $value;
             }
           } else {
-            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-              $wrapper->{$field_name} = substr($value, 1, -1);
+            //FIXME: hardcoded translation of uuid-uri to local id
+            if ('<uuid:' === substr($value, 0, 6)) {
+              $value = substr($value, strpos($value, ':') + 1, -1);
             } else {
-              $wrapper->{$field_name}[] = substr($value, 1, -1);
+              $value = substr($value, 1, -1);
+            }
+            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+              $wrapper->{$field_name} = $value;
+            } else {
+              $wrapper->{$field_name}[] = $value;
             }
           }
-          drupal_set_message("Populated $field_name.");
+          //drupal_set_message("Populated $field_name.");
         } catch (EntityMetadataWrapperException $e) {
-          drupal_set_message("An error occurred populating $field_name.");
-          //TODO: handle errors
-          //print_r($wrapper->getPropertyInfo());
-          die;
+          //drupal_set_message($e->getMessage(), 'error');
         }
       }
     }
