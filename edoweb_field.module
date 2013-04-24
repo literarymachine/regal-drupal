@@ -10,6 +10,7 @@ function edoweb_field_field_info() {
       'description' => t('This field holds the URI of a linked data resource'),
       'default_widget' => 'edoweb_autocomplete',
       'default_formatter' => 'edoweb_ld_format',
+      'property_type' => 'uri',
     ),
   );
 }
