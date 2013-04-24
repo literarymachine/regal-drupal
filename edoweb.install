@@ -155,15 +155,21 @@ function _edoweb_installed_fields() {
       'type'        => 'file',
     ),
     array(
-      'field_name' => 'field_edoweb_volume',
+      'field_name' => 'field_edoweb_child',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'entityreference',
       'settings'    => array(
         'target_type' => 'edoweb_basic',
-        'handler' => 'base',
-        'handler_settings' => array(
-          'target_bundles' => array('volume' => 'volume'),
-        ),
+        'handler_settings' => array('target_bundles' => null),
+      ),
+    ),
+    array(
+      'field_name' => 'field_edoweb_parent',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'entityreference',
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array('target_bundles' => null),
       ),
     ),
   );
@@ -250,9 +256,15 @@ function _edoweb_installed_instances() {
       'bundle'      => 'ejournal',
     ),
     array(
-      'field_name'  => 'field_edoweb_volume',
+      'field_name'  => 'field_edoweb_child',
       'label'       => $t('Volume'),
       'bundle'      => 'ejournal',
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array('volume' => 'volume'),
+        ),
+      ),
     ),
     /**
      * Field instances in the volume bundle
@@ -261,6 +273,17 @@ function _edoweb_installed_instances() {
       'field_name'  => 'field_edoweb_title',
       'label'       => $t('Titel'),
       'bundle'      => 'volume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_parent',
+      'label'       => $t('eJournal'),
+      'bundle'      => 'volume',
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array('ejournal' => 'ejournal'),
+        ),
+      ),
     ),
   );
 }

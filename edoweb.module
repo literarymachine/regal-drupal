@@ -666,6 +666,14 @@ function edoweb_rdf_mapping() {
         'field_edoweb_file' => array(
           'predicates' => array('ore:aggregates'),
         ),
+        'field_edoweb_child' => array(
+          'predicates' => array('dc:hasPart'),
+          'type' => 'rel',
+        ),
+        'field_edoweb_parent' => array(
+          'predicates' => array('dc:isPartOf'),
+          'type' => 'rel',
+        ),
       ),
     ),
   );
