@@ -34,10 +34,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
     $http_response = $this->_http_get($http_url);
-    $rdf_subject = _edoweb_storage_entity_get_uri($entity);
-    $rdf_data = $http_response->data;
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    if (500 != $http_response['code']) {
+      $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+      $rdf_data = $http_response->data;
+      $rdf_parser = new LibRDF_Parser('ntriples');
+      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    }
   }
 
   /*
