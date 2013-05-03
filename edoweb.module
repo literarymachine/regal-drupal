@@ -159,7 +159,7 @@ function edoweb_basic_uri($basic) {
  */
 function edoweb_menu() {
   $items['edoweb/resource'] = array(
-    'title' => t('Welcome to Edoweb'),
+    'title' => t('Edoweb'),
     'page callback' => 'edoweb_info_page',
     'access arguments' => array('view any edoweb_basic entity'),
   );
@@ -253,7 +253,7 @@ function edoweb_menu() {
   // GND Autocompletion
   $items['edoweb/autocomplete'] = array(
     'page callback' => '_edoweb_gnd_autocomplete',
-    'access arguments' => array('access edoweb autocomplete'),
+    'access arguments' => array('edit any edoweb_basic entity'),
     'type' => MENU_CALLBACK
   );
   return $items;
