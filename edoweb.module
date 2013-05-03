@@ -83,12 +83,12 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'volume' => array(
+      'ejournalVolume' => array(
         'label' => t('Volume'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/volume/manage',
+          'path' => 'admin/structure/edoweb_basic/ejournalVolume/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -177,7 +177,7 @@ function edoweb_menu() {
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
   );
-  $items['admin/structure/edoweb_basic/volume/manage'] = array(
+  $items['admin/structure/edoweb_basic/ejournalVolume/manage'] = array(
     'title' => 'Administer Volume Bundle',
     'page callback' => 'edoweb_basic_admin_page',
     'access arguments' => array('administer edoweb_basic entities'),
@@ -528,7 +528,7 @@ function edoweb_basic_children($entity) {
   }
   $content[] = array(
     '#type' => 'item',
-    '#markup' => l(t('Add child'), current_path() . '/add/volume'),
+    '#markup' => l(t('Add child'), current_path() . '/add/ejournalVolume'),
   );
   return $content;
 }

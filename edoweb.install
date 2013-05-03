@@ -108,7 +108,6 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_creator',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      // TODO: Create and set entity reference type
       'type'        => 'edoweb_ld_reference',
     ),
     array(
@@ -262,27 +261,35 @@ function _edoweb_installed_instances() {
       'settings'    => array(
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
-          'target_bundles' => array('volume' => 'volume'),
+          'target_bundles' => array('ejournalVolume' => 'ejournalVolume'),
         ),
       ),
     ),
     /**
-     * Field instances in the volume bundle
+     * Field instances in the ejournalVolume bundle
      */
     array(
       'field_name'  => 'field_edoweb_title',
       'label'       => $t('Titel'),
-      'bundle'      => 'volume',
+      'bundle'      => 'ejournalVolume',
     ),
     array(
       'field_name'  => 'field_edoweb_parent',
       'label'       => $t('eJournal'),
-      'bundle'      => 'volume',
+      'bundle'      => 'ejournalVolume',
       'settings'    => array(
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
           'target_bundles' => array('ejournal' => 'ejournal'),
         ),
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_file',
+      'label'       => $t('Datei'),
+      'bundle'      => 'ejournalVolume',
+      'settings'    => array(
+        'file_extensions' => 'pdf',
       ),
     ),
   );
@@ -335,7 +342,7 @@ function edoweb_uninstall() {
   // Delete bundles
   field_attach_delete_bundle('edoweb_basic', 'monograph');
   field_attach_delete_bundle('edoweb_basic', 'ejournal');
-  field_attach_delete_bundle('edoweb_basic', 'volume');
+  field_attach_delete_bundle('edoweb_basic', 'ejournalVolume');
 
   // Delete field instances for now.
   // Check status of http://drupal.org/node/1015846
