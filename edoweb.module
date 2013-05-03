@@ -1083,7 +1083,7 @@ class LinkedDataClient {
     $rdf_data = $http_response->data;
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     $entity->remote_id = $resource_uri;
     return TRUE;
   }
