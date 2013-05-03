@@ -490,7 +490,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
-    $wrapper->field_edoweb_parent = array(_edoweb_storage_entity_get_id($parent));
+    $wrapper->field_edoweb_parent[] = _edoweb_storage_entity_get_id($parent);
   }
   return drupal_get_form('edoweb_basic_form', $entity);
 }
