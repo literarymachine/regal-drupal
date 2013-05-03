@@ -58,7 +58,7 @@ function edoweb_storage_field_storage_delete_field($field) {
  * Implements hook_field_storage_load().
  */
 function edoweb_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
-  $api = new EdowebAPIClientLocal();
+  $api = new EdowebAPIClient();
   foreach ($entities as $entity) {
     $api->load($entity);
   }
@@ -71,7 +71,7 @@ function edoweb_storage_field_storage_load($entity_type, $entities, $age, $field
  * Implements hook_field_storage_write().
  */
 function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
-  $api = new EdowebAPIClientLocal();
+  $api = new EdowebAPIClient();
   $api->save($entity);
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
