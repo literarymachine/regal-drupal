@@ -159,7 +159,7 @@ function edoweb_basic_uri($basic) {
  */
 function edoweb_menu() {
   $items['edoweb/resource'] = array(
-    'title' => 'Edoweb',
+    'title' => t('Welcome to Edoweb'),
     'page callback' => 'edoweb_info_page',
     'access arguments' => array('view any edoweb_basic entity'),
   );
@@ -167,21 +167,21 @@ function edoweb_menu() {
   // This provides a place for Field API to hang its own
   // interface and has to be the same as what was defined
   // in basic_entity_info() above.
-  $items['admin/structure/edoweb_basic/monograph/manage'] = array(
-    'title' => 'Administer Monograph Bundle',
-    'page callback' => 'edoweb_basic_admin_page',
-    'access arguments' => array('administer edoweb_basic entities'),
-  );
-  $items['admin/structure/edoweb_basic/ejournal/manage'] = array(
-    'title' => 'Administer eJournal Bundle',
-    'page callback' => 'edoweb_basic_admin_page',
-    'access arguments' => array('administer edoweb_basic entities'),
-  );
-  $items['admin/structure/edoweb_basic/ejournalVolume/manage'] = array(
-    'title' => 'Administer Volume Bundle',
-    'page callback' => 'edoweb_basic_admin_page',
-    'access arguments' => array('administer edoweb_basic entities'),
-  );
+  //$items['admin/structure/edoweb_basic/monograph/manage'] = array(
+  //  'title' => 'Administer Monograph Bundle',
+  //  'page callback' => 'edoweb_basic_admin_page',
+  //  'access arguments' => array('administer edoweb_basic entities'),
+  //);
+  //$items['admin/structure/edoweb_basic/ejournal/manage'] = array(
+  //  'title' => 'Administer eJournal Bundle',
+  //  'page callback' => 'edoweb_basic_admin_page',
+  //  'access arguments' => array('administer edoweb_basic entities'),
+  //);
+  //$items['admin/structure/edoweb_basic/ejournalVolume/manage'] = array(
+  //  'title' => 'Administer Volume Bundle',
+  //  'page callback' => 'edoweb_basic_admin_page',
+  //  'access arguments' => array('administer edoweb_basic entities'),
+  //);
 
   // The page to view our entities - needs to follow what
   // is defined in basic_uri and will use load_basic to retrieve
@@ -223,7 +223,7 @@ function edoweb_menu() {
   // Add Child for entities that can have children.
   $items['edoweb/resource/%/%edoweb_basic/children/add/%'] = array(
     'title callback' => 'edoweb_basic_bundle_name',
-    'title arguments' => array(3),
+    'title arguments' => array(6),
     'page callback' => 'edoweb_basic_add',
     'page arguments' => array(6, 3),
     'access callback' => '_edoweb_child_access',
@@ -233,7 +233,7 @@ function edoweb_menu() {
 
   // Add entities.
   $items['edoweb/resource/%/add'] = array(
-    'title callback' => FALSE,
+    'title callback' => 'edoweb_basic_bundle_name',
     'title arguments' => array(2),
     'page callback' => 'edoweb_basic_add',
     'page arguments' => array(2),
@@ -263,15 +263,23 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
+  $content['add monograph'] = array(
+    '#type' => 'item',
+    '#markup' => l(t('Add a monograph'), 'edoweb/resource/monograph/add'),
+  );
+  $content['add ejournal'] = array(
+    '#type' => 'item',
+    '#markup' => l(t('Add an eJournal'), 'edoweb/resource/ejournal/add'),
+  );
   $content['preface'] = array(
     '#type' => 'item',
-    '#markup' => t('List of Edoweb entities')
+    '#markup' => t('List of all Edoweb entities')
   );
-  if (user_access('administer edoweb_basic entities')) {
-    $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
-      array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal/manage'))
-    );
-  }
+  //if (user_access('administer edoweb_basic entities')) {
+  //  $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
+  //    array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal/manage'))
+  //  );
+  //}
   $content['table'] = edoweb_basic_list_entities();
 
   return $content;
@@ -374,8 +382,8 @@ function edoweb_basic_title($entity) {
 /**
  * Call back to display bundle name.
  */
-function edoweb_basic_bundle_name($entity) {
-  return $entity->bundle_type;
+function edoweb_basic_bundle_name($bundle_name) {
+  return $bundle_name;
 }
 
 /**
@@ -783,12 +791,12 @@ function edoweb_rdf_namespaces() {
  * Implements hook_help().
  */
 function edoweb_help($path, $arg) {
-  switch ($path) {
-    case 'edoweb/resource':
-      return "<p>" . t(
-        'This Module implements Edoweb functionality'
-      ) . "</p>";
-  }
+  //switch ($path) {
+  //  case 'edoweb/resource':
+  //    return "<p>" . t(
+  //      'This Module implements Edoweb functionality'
+  //    ) . "</p>";
+  //}
 }
 
 /**
