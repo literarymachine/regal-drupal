@@ -265,11 +265,17 @@ function edoweb_menu() {
 function edoweb_info_page() {
   $content['add monograph'] = array(
     '#type' => 'item',
-    '#markup' => l(t('Add a monograph'), 'edoweb/resource/monograph/add'),
+    '#markup' => t('!add or !import a monograph', array(
+      '!add' => l(t('Add'), 'edoweb/resource/monograph/add'),
+      '!import' => l(t('import'), 'edoweb/resource/monograph/import'),
+    )),
   );
   $content['add ejournal'] = array(
     '#type' => 'item',
-    '#markup' => l(t('Add an eJournal'), 'edoweb/resource/ejournal/add'),
+    '#markup' => t('!add or !import an eJournal', array(
+      '!add' => l(t('Add'), 'edoweb/resource/ejournal/add'),
+      '!import' => l(t('import'), 'edoweb/resource/ejournal/import'),
+    )),
   );
   $content['preface'] = array(
     '#type' => 'item',
