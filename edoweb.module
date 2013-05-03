@@ -57,10 +57,10 @@ function edoweb_entity_info() {
     ),
 
     // FALSE disables caching. Caching functionality is handled by Drupal core.
-    'static cache' => FALSE,
+    // 'static cache' => FALSE,
 
     // FALSE disables caching. Caching functionality is handled by Drupal core.
-    'field cache' => FALSE,
+    // 'field cache' => FALSE,
 
     // Bundles are alternative groups of fields or configuration
     // associated with a base entity type.
