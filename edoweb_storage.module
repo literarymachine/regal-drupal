@@ -84,6 +84,8 @@ function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields,
  *
  */
 function edoweb_storage_field_storage_delete($entity_type, $entity, $fields) {
+  $api = new EdowebAPIClient();
+  $api->delete($entity);
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;

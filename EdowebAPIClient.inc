@@ -82,6 +82,31 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_response = $this->_http_post($http_url, $http_post_data);
   }
 
+  /*
+   * Delete an entity via the API
+   *
+   * @param $entity
+   *   The drupal entity to delete
+   *
+   */
+  public function delete($entity) {
+    // Delete resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/resources/edoweb:%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    //TODO: Delete children
+    //$children = field_get_items('edoweb_basic', $entity, 'field_edoweb_child');
+    //if (FALSE !== $children) {
+    //  $local_id = $children[0]['target_id'];
+    //}
+    $http_response = $this->_http_delete($http_url);
+  }
+
   protected function _http_put($request_url, $request_body = '', $content_type='text/plain') {
     $http_options = array(
       'method' => 'PUT',
@@ -103,6 +128,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _http_get($request_url) {
     $http_options = array(
       'method' => 'GET',
+    );
+    return _edoweb_http_request($request_url, $http_options);
+  }
+
+  protected function _http_delete($request_url) {
+    $http_options = array(
+      'method' => 'DELETE',
     );
     return _edoweb_http_request($request_url, $http_options);
   }
