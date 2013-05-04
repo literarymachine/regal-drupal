@@ -255,6 +255,21 @@ function _edoweb_installed_instances() {
       'bundle'      => 'ejournal',
     ),
     array(
+      'field_name'  => 'field_edoweb_issued',
+      'label'       => $t('Erscheinungsjahr'),
+      'bundle'      => 'ejournal',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_publication_place',
+      'label'       => $t('Erscheinungsort'),
+      'bundle'      => 'ejournal',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_language',
+      'label'       => $t('Sprache'),
+      'bundle'      => 'ejournal',
+    ),
+    array(
       'field_name'  => 'field_edoweb_child',
       'label'       => $t('Volume'),
       'bundle'      => 'ejournal',
