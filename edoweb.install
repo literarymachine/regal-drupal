@@ -112,9 +112,8 @@ function _edoweb_installed_fields() {
     ),
     array(
       'field_name' => 'field_edoweb_contributor',
-      'cardinality' => 1,
-      // TODO: Create and set entity reference type
-      'type'        => 'text',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'edoweb_ld_reference',
     ),
     array(
       'field_name' => 'field_edoweb_issued',

@@ -744,6 +744,7 @@ function edoweb_rdf_mapping() {
         ),
         'field_edoweb_contributor' => array(
           'predicates' => array('dc:contributor'),
+          'type' => 'rel',
         ),
         'field_edoweb_issued' => array(
           'predicates' => array('dc:issued'),
