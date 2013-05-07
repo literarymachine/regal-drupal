@@ -284,11 +284,6 @@ function _edoweb_installed_instances() {
      * Field instances in the ejournalVolume bundle
      */
     array(
-      'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'ejournalVolume',
-    ),
-    array(
       'field_name'  => 'field_edoweb_parent',
       'label'       => $t('eJournal'),
       'bundle'      => 'ejournalVolume',
@@ -298,6 +293,56 @@ function _edoweb_installed_instances() {
           'target_bundles' => array('ejournal' => 'ejournal'),
         ),
       ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_title',
+      'label'       => $t('Titel'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_title_other',
+      'label'       => $t('Titelzusatz'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_creator',
+      'label'       => $t('Autor'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_contributor',
+      'label'       => $t('Beteiligte Person'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_issued',
+      'label'       => $t('Erscheinungsjahr'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_language',
+      'label'       => $t('Sprache'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_edition',
+      'label'       => $t('Ausgabe'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_publication_place',
+      'label'       => $t('Erscheinungsort'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_subject',
+      'label'       => $t('Schlagwort'),
+      'bundle'      => 'ejournalVolume',
+    ),
+    array(
+      'field_name'  => 'field_edoweb_publisher',
+      'label'       => $t('Verlag'),
+      'bundle'      => 'ejournalVolume',
     ),
     array(
       'field_name'  => 'field_edoweb_file',
