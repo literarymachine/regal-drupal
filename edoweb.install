@@ -118,7 +118,7 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_issued',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'number_integer',
     ),
     array(
       'field_name' => 'field_edoweb_language',

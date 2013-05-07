@@ -4,6 +4,7 @@ core = 7.x
 package = Edoweb
 dependencies[] = field
 dependencies[] = file
+dependencies[] = number
 dependencies[] = rdf
 dependencies[] = edoweb_storage
 dependencies[] = entityreference
