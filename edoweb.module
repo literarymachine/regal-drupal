@@ -751,6 +751,7 @@ function edoweb_rdf_mapping() {
         ),
         'field_edoweb_language' => array(
           'predicates' => array('dc:language'),
+          'type' => 'rel',
         ),
         'field_edoweb_edition' => array(
           'predicates' => array('bibo:edition'),
@@ -918,6 +919,35 @@ function _edoweb_child_access($entity) {
     }
   }
   return $entity_has_child_field && user_access('create edoweb_basic entities');
+}
+
+function _edoweb_available_languages() {
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_data = file_get_contents(dirname(__FILE__) . '/iso639-2.nt');
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  LibRDF_LiteralNode::setPlainOutput(true);
+  // Create a SPARQL query
+  // FIXME: cache results
+  $query = new LibRDF_Query("
+    PREFIX mads:   <http://www.loc.gov/mads/rdf/v1#>
+    SELECT ?lang ?label
+    WHERE
+      {
+        ?lang a mads:Language .
+        ?lang mads:authoritativeLabel ?label .
+        FILTER(langMatches(lang(?label), 'EN')) .
+      }
+    ORDER BY ?label
+  ", null, 'sparql');
+  // Execute the query. The results of a SPARQL SELECT provide
+  // array access by using the variables used in the query as keys:
+  $languages = array();
+  $results = $query->execute($rdf_model);
+  foreach ($results as $result) {
+    $languages[substr($result['lang'], 1, -1)] = t($result['label']);
+  }
+  return $languages;
 }
 
 

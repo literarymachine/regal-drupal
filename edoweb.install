@@ -124,7 +124,11 @@ function _edoweb_installed_fields() {
       'field_name' => 'field_edoweb_language',
       'cardinality' => 1,
       // TODO: Create and set entity reference type
-      'type'        => 'text',
+      'default_widget' => 'options_select',
+      'type'        => 'list_text',
+      'settings' => array(
+        'allowed_values_function' => '_edoweb_available_languages',
+      ),
     ),
     array(
       'field_name' => 'field_edoweb_edition',

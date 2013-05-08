@@ -5,6 +5,7 @@ package = Edoweb
 dependencies[] = field
 dependencies[] = file
 dependencies[] = number
+dependencies[] = list
 dependencies[] = rdf
 dependencies[] = edoweb_storage
 dependencies[] = entityreference
