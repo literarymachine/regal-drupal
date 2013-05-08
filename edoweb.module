@@ -761,6 +761,7 @@ function edoweb_rdf_mapping() {
         ),
         'field_edoweb_subject' => array(
           'predicates' => array('dc:subject'),
+          'type' => 'rel',
         ),
         'field_edoweb_publisher' => array(
           'predicates' => array('isbd:P1017'),
