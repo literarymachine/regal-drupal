@@ -87,6 +87,11 @@ function edoweb_install() {
     user_save(null, $user);
   }
 
+  // Generate list of available languages
+  _edoweb_generate_available_languages(
+    dirname(__FILE__) . '/iso639-2.nt',
+    drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc'
+  );
 }
 
 /**
@@ -393,6 +398,40 @@ function _edoweb_installed_users() {
       'status' => 1,
     )
   );
+}
+
+/**
+ * Generate an array containing the available languages from ISO 639-2.
+ */
+function _edoweb_generate_available_languages($input_file, $output_file) {
+  require_once dirname(__FILE__) . '/lib/LibRDF/LibRDF/LibRDF.php';
+  LibRDF_LiteralNode::setPlainOutput(true);
+
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_data = file_get_contents($input_file);
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  // Create a SPARQL query
+  $query = new LibRDF_Query("
+    PREFIX mads:   <http://www.loc.gov/mads/rdf/v1#>
+    SELECT ?lang ?label
+    WHERE
+      {
+        ?lang a mads:Language .
+        ?lang mads:authoritativeLabel ?label .
+        FILTER(langMatches(lang(?label), 'EN')) .
+      }
+    ORDER BY ?label
+  ", null, 'sparql');
+  // Execute the query. The results of a SPARQL SELECT provide
+  // array access by using the variables used in the query as keys:
+  $languages = "<?php\n\nreturn array(\n";
+  $results = $query->execute($rdf_model);
+  foreach ($results as $result) {
+    $languages .= "'" . substr($result['lang'], 1, -1) . "' => t(\"" .  $result['label'] . "\"),\n";
+  }
+  $languages .= ');';
+  file_put_contents($output_file, $languages);
 }
 
 /*
