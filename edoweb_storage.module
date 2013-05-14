@@ -310,9 +310,9 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
               $wrapper->{$field_name}[] = (string) $value;
             }
           } else {
-            //FIXME: hardcoded translation of uuid-uri to local id
-            if ('<uuid:' === substr($value, 0, 6)) {
-              $value = substr($value, strpos($value, ':') + 1, -1);
+            //FIXME: hardcoded translation of edoweb-uri to local id
+            if ('<edoweb:' === substr($value, 0, 8)) {
+              $value = _edoweb_storage_entity_get_id($value);
             } else {
               $value = substr($value, 1, -1);
             }
@@ -332,13 +332,24 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
 }
 
 function _edoweb_storage_entity_get_uri($entity) {
-  $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
-  return new LibRDF_URINode("uuid:{$entity_ids[0]}");
+  return new LibRDF_URINode("edoweb:{$entity->remote_id}");
 }
 
 function _edoweb_storage_entity_get_id($entity) {
-  $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
-  return $entity_ids[0];
+  if ($entity instanceof LibRDF_URINode
+             && '<edoweb:' === substr($entity, 0, 8)) {
+    $remote_id = substr($entity, strpos($entity, ':') + 1, -1);
+    $id = db_query(
+      'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+      array(':remote_id' => $remote_id)
+    )->fetchField();
+  } else if (is_object($entity)) {
+    $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
+    $id = $entity_ids[0];
+  } else {
+    $id = FALSE;
+  }
+  return $id;
 }
 
 function _edoweb_storage_entity_get_remote_id($entity) {
