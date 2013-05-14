@@ -70,6 +70,28 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
     $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
 
+    // Store attached files first, as entity metadata has to be
+    // updated with corresponding new file URIs
+    $files = field_get_items('edoweb_basic', $entity, 'field_edoweb_file');
+    if (FALSE !== $files) {
+      foreach ($files as $file) {
+        $file = file_load($file['fid']);
+        $file_path = drupal_realpath($file->uri);
+        $http_url = sprintf(
+          'http://%s:%s@%s/resources/edoweb:%s/data',
+          $this->__edoweb_api_user,
+          $this->__edoweb_api_pass,
+          $this->__edoweb_api_host,
+          $entity->remote_id
+        );
+        if ($this->_http_multipart_put($http_url, $file_path, $file->filemime)) {
+          $file->uri = "http://orthos.hbz-nrw.de/resources/{$entity->remote_id}/data";
+          file_save($file);
+          unlink($file_path);
+        }
+      }
+    }
+
     // Send metadata
     $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
     $http_url = sprintf(
@@ -105,6 +127,25 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     //  $local_id = $children[0]['target_id'];
     //}
     $http_response = $this->_http_delete($http_url);
+  }
+
+  protected function _http_multipart_put($request_url, $file_path, $content_type = 'text/plain') {
+    $data = array(
+      'data' => "@$file_path",
+      'type' => $content_type,
+    );
+    $ch = curl_init($request_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+      drupal_set_message(curl_error($ch));
+      return FALSE;
+    } else {
+      return TRUE;
+    }
   }
 
   protected function _http_put($request_url, $request_body = '', $content_type='text/plain') {
