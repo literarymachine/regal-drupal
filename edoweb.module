@@ -74,21 +74,21 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'ejournal' => array(
-        'label' => t('eJournal'),
+      'journal' => array(
+        'label' => t('Journal'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/ejournal/manage',
+          'path' => 'admin/structure/edoweb_basic/journal/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'ejournalVolume' => array(
+      'volume' => array(
         'label' => t('Volume'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/ejournalVolume/manage',
+          'path' => 'admin/structure/edoweb_basic/volume/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -172,12 +172,12 @@ function edoweb_menu() {
   //  'page callback' => 'edoweb_basic_admin_page',
   //  'access arguments' => array('administer edoweb_basic entities'),
   //);
-  //$items['admin/structure/edoweb_basic/ejournal/manage'] = array(
-  //  'title' => 'Administer eJournal Bundle',
+  //$items['admin/structure/edoweb_basic/journal/manage'] = array(
+  //  'title' => 'Administer Journal Bundle',
   //  'page callback' => 'edoweb_basic_admin_page',
   //  'access arguments' => array('administer edoweb_basic entities'),
   //);
-  //$items['admin/structure/edoweb_basic/ejournalVolume/manage'] = array(
+  //$items['admin/structure/edoweb_basic/volume/manage'] = array(
   //  'title' => 'Administer Volume Bundle',
   //  'page callback' => 'edoweb_basic_admin_page',
   //  'access arguments' => array('administer edoweb_basic entities'),
@@ -270,11 +270,11 @@ function edoweb_info_page() {
       '!import' => l(t('import'), 'edoweb/resource/monograph/import'),
     )),
   );
-  $content['add ejournal'] = array(
+  $content['add journal'] = array(
     '#type' => 'item',
-    '#markup' => t('!add or !import an eJournal', array(
-      '!add' => l(t('Add'), 'edoweb/resource/ejournal/add'),
-      '!import' => l(t('import'), 'edoweb/resource/ejournal/import'),
+    '#markup' => t('!add or !import a journal', array(
+      '!add' => l(t('Add'), 'edoweb/resource/journal/add'),
+      '!import' => l(t('import'), 'edoweb/resource/journal/import'),
     )),
   );
   $content['preface'] = array(
@@ -283,7 +283,7 @@ function edoweb_info_page() {
   );
   //if (user_access('administer edoweb_basic entities')) {
   //  $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
-  //    array('!link' => l(t('here'), 'admin/structure/edoweb_basic/ejournal/manage'))
+  //    array('!link' => l(t('here'), 'admin/structure/edoweb_basic/journal/manage'))
   //  );
   //}
   $content['table'] = edoweb_basic_list_entities();
@@ -490,7 +490,8 @@ function edoweb_field_extra_fields() {
   // for it here.
   // $extra_fields['edoweb_basic']['monograph_bundle']['form'] = $form_elements;
   $extra_fields['edoweb_basic']['monograph']['display'] = $display_elements;
-  $extra_fields['edoweb_basic']['ejournal']['display'] = $display_elements;
+  $extra_fields['edoweb_basic']['journal']['display'] = $display_elements;
+  $extra_fields['edoweb_basic']['volume']['display'] = $display_elements;
 
   return $extra_fields;
 }
@@ -552,7 +553,7 @@ function edoweb_basic_children($entity) {
   }
   $content[] = array(
     '#type' => 'item',
-    '#markup' => l(t('Add child'), current_path() . '/add/ejournalVolume'),
+    '#markup' => l(t('Add child'), current_path() . '/add/volume'),
   );
   return $content;
 }
@@ -876,8 +877,8 @@ function _edoweb_label_callback_set($entity, $entity_type) {
   $label = '';
   switch ($entity->bundle_type) {
     case 'monograph':
-    case 'ejournal':
-    case 'ejournalVolume':
+    case 'journal':
+    case 'volume':
       $items = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
       $label = $items[0]['value'];
       break;
