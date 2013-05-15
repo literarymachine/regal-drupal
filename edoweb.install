@@ -220,6 +220,7 @@ function _edoweb_installed_instances() {
       'field_name'  => 'field_edoweb_language',
       'label'       => $t('Sprache'),
       'bundle'      => 'monograph',
+      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
     ),
     array(
       'field_name'  => 'field_edoweb_edition',
@@ -276,6 +277,7 @@ function _edoweb_installed_instances() {
       'field_name'  => 'field_edoweb_language',
       'label'       => $t('Sprache'),
       'bundle'      => 'journal',
+      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
     ),
     array(
       'field_name'  => 'field_edoweb_child',
@@ -331,6 +333,7 @@ function _edoweb_installed_instances() {
       'field_name'  => 'field_edoweb_language',
       'label'       => $t('Sprache'),
       'bundle'      => 'volume',
+      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
     ),
     array(
       'field_name'  => 'field_edoweb_edition',
