@@ -27,7 +27,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function load($entity) {
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/edoweb:%s/metadata',
+      'http://%s:%s@%s/resources/%s/metadata',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -53,7 +53,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Create resource
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/edoweb:%s',
+      'http://%s:%s@%s/resources/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -66,7 +66,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_parent');
     if (FALSE !== $parents) {
       $local_id = $parents[0]['target_id'];
-      $data['parentPid'] = 'edoweb:' . _edoweb_storage_entity_get_remote_id($local_id);
+      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
     }
     $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
 
@@ -78,7 +78,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $file = file_load($file['fid']);
         $file_path = drupal_realpath($file->uri);
         $http_url = sprintf(
-          'http://%s:%s@%s/resources/edoweb:%s/data',
+          'http://%s:%s@%s/resources/%s/data',
           $this->__edoweb_api_user,
           $this->__edoweb_api_pass,
           $this->__edoweb_api_host,
@@ -95,7 +95,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     // Send metadata
     $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/edoweb:%s/metadata',
+      'http://%s:%s@%s/resources/%s/metadata',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -114,7 +114,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function delete($entity) {
     // Delete resource
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/edoweb:%s',
+      'http://%s:%s@%s/resources/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,

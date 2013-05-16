@@ -332,13 +332,13 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
 }
 
 function _edoweb_storage_entity_get_uri($entity) {
-  return new LibRDF_URINode("edoweb:{$entity->remote_id}");
+  return new LibRDF_URINode("{$entity->remote_id}");
 }
 
 function _edoweb_storage_entity_get_id($entity) {
   if ($entity instanceof LibRDF_URINode
              && '<edoweb:' === substr($entity, 0, 8)) {
-    $remote_id = substr($entity, strpos($entity, ':') + 1, -1);
+    $remote_id = substr($entity, 1, -1);
     $id = db_query(
       'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
       array(':remote_id' => $remote_id)
