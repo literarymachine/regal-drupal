@@ -432,7 +432,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   $entity->content['remote_id'] = array(
     '#type' => 'item',
-    '#markup' => l('View in Edoweb API', "http://orthos.hbz-nrw.de/resources/edoweb:{$entity->remote_id}"),
+    '#markup' => l('View in Edoweb API', "http://orthos.hbz-nrw.de/resources/{$entity->remote_id}"),
     '#weight' => -1,
   );
 
@@ -997,7 +997,7 @@ class EdowebBasicController
     // time of creation.
     if (empty($entity->local_id)) {
       $entity->created = time();
-      $entity->remote_id = self::uuid_v4();
+      $entity->remote_id = 'edoweb:' . self::uuid_v4();
     }
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
