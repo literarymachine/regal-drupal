@@ -382,7 +382,12 @@ function _edoweb_storage_entity_serialize_jsonld($entity) {
   $rdf_subject = _edoweb_storage_entity_get_uri($entity);
   $rdf_serializer = new LibRDF_Serializer('ntriples');
   $rdf_ntriples = _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
-  $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
+  try {
+    $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
+  } catch (JsonLdException $e) {
+    // drupal_set_message("Error reading ntriples\n$rdf_ntriples");
+    $rdf_jsonld = null;
+  }
   return str_replace('\\/', '/', json_encode($rdf_jsonld));
 }
 
