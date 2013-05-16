@@ -432,8 +432,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   $entity->content['remote_id'] = array(
     '#type' => 'item',
-    '#title' => t('Origin'),
-    '#markup' => l($entity->remote_id, $entity->remote_id),
+    '#markup' => l('View in Edoweb API', "http://orthos.hbz-nrw.de/resources/edoweb:{$entity->remote_id}"),
     '#weight' => -1,
   );
 
