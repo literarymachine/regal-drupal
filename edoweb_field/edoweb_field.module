@@ -1,0 +1,116 @@
+<?php
+
+/**
+ * Implements hook_field_info().
+ */
+function edoweb_field_field_info() {
+  return array(
+    'edoweb_ld_reference' => array(
+      'label' => t('A linked data field'),
+      'description' => t('This field holds the URI of a linked data resource'),
+      'default_widget' => 'edoweb_autocomplete',
+      'default_formatter' => 'edoweb_ld_format',
+      'property_type' => 'uri',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function edoweb_field_field_is_empty($item, $field) {
+  if (empty($item['value']) && (string) $item['value'] !== '0') {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * @see field_example_field_widget_form()
+ */
+function edoweb_field_field_widget_info() {
+  return array(
+    'edoweb_autocomplete' => array(
+      'label' => t('Auto-complete'),
+      'field types' => array('edoweb_ld_reference'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function edoweb_field_field_formatter_info() {
+  return array(
+    'edoweb_ld_format' => array(
+      'label' => t('Linked data URI'),
+      'field types' => array('edoweb_ld_reference'),
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function edoweb_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $elements = array();
+  foreach ($items as $delta => $item) {
+    $elements[$delta] = array(
+      '#markup' => l("Label for {$item['value']}", $item['value']),
+    );
+  }
+  return $elements;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * hook_widget_form() is where Drupal tells us to create form elements for
+ * our field's widget.
+ *
+ */
+function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  // Overwrite default autocomplete behaviour
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
+    array('weight' => '100')
+  );
+
+  $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
+  // Check if value was set in form input, e.g. when this function
+  // is called by ajax via the "Add another item" button.
+  $value = isset($form_state['input']['field_edoweb_creator']['und'][$delta]['value']) ?
+    $form_state['input']['field_edoweb_creator']['und'][$delta]['value'] : $value;
+
+  $widget = $element;
+  $widget['#delta'] = $delta;
+
+  switch ($instance['widget']['type']) {
+    case 'edoweb_autocomplete':
+      if ($value != '') {
+        $widget += array(
+          '#type' => 'hidden',
+          '#autocomplete_path' => 'edoweb/autocomplete',
+          '#value' => $value,
+        );
+        $element['label'] = array(
+          '#type' => 'textfield',
+          '#value' => "Label for $value",
+          '#disabled' => TRUE,
+        );
+      } else {
+        $widget += array(
+          '#type' => 'textfield',
+          '#autocomplete_path' => 'edoweb/autocomplete',
+        );
+      }
+      $element['value'] = $widget;
+  }
+
+  return $element;
+}
+

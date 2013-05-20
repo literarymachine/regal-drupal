@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Implements hook_field_schema().
+ */
+function edoweb_field_field_schema($field) {
+  $columns = array(
+      'value' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+  );
+  return array('columns' => $columns);
+}
