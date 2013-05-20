@@ -1,0 +1,410 @@
+<?php
+
+/**
+ * @file
+ * Implementation of the field storage API for Edoweb Storage.
+ * Any data access is logged and discarded.
+ */
+
+/**
+ * Implements hook_field_storage_info().
+ */
+function edoweb_storage_field_storage_info() {
+  return array(
+    'edoweb_storage' => array(
+      'label' => t('Edoweb Storage field storage'),
+      'description' => t('Stores nodes and fields in a Edoweb Storage database.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_storage_details().
+ */
+function edoweb_storage_field_storage_details($field) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_create_field().
+ */
+function edoweb_storage_field_storage_create_field($field) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_update_field().
+ */
+function edoweb_storage_field_storage_update_field($field, $prior_field, $has_data) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_delete_field().
+ */
+function edoweb_storage_field_storage_delete_field($field) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_load().
+ */
+function edoweb_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
+  $api = new EdowebAPIClient();
+  foreach ($entities as $entity) {
+    $api->load($entity);
+  }
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_write().
+ */
+function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
+  $api = new EdowebAPIClient();
+  $api->save($entity);
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+
+/**
+ * Implement hook_field_storage_delete().
+ *
+ */
+function edoweb_storage_field_storage_delete($entity_type, $entity, $fields) {
+  $api = new EdowebAPIClient();
+  $api->delete($entity);
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implement hook_field_storage_delete_revision().
+ *
+ */
+function edoweb_storage_field_storage_delete_revision($entity_type, $entity, $fields) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implement hook_field_storage_delete_instance().
+ *
+ */
+function edoweb_storage_field_storage_delete_instance($instance) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+class DevnullDBStorageException extends Exception {}
+
+/**
+ * Implements hook_entity_query_alter().
+ *
+ * Alter the entity info.
+ */
+function edoweb_storage_entity_query_alter($query) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+function edoweb_storage_field_storage_query($query) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_storage_query().
+ *
+ */
+function edoweb_storage_query($query) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_attach_rename_bundle().
+ */
+function edoweb_storage_field_attach_rename_bundle($entity_type, $bundle_old, $bundle_new) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function edoweb_storage_entity_insert($entity, $entity_type) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function edoweb_storage_entity_update($entity, $entity_type) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_field_attach_delete.
+ */
+function edoweb_storage_field_attach_delete($entity_type, $entity) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function edoweb_storage_entity_info_alter(&$entity_info) {
+  __devnulldb_log(__FUNCTION__ . " called\n");
+  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
+  return;
+}
+
+function __devnulldb_log($message, $target='php://stderr') {
+  file_put_contents($target, $message);
+}
+
+/*************************
+ * Edoweb helper functions
+ *************************/
+
+define('EDOWEB_ENTITY_TYPE', 'edoweb_basic');
+
+function _edoweb_storage_entity_serialize_turtle($entity) {
+  $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+  $rdf_serializer = new LibRDF_Serializer('turtle');
+  return _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+}
+
+function _edoweb_storage_entity_serialize_ntriples($entity) {
+  $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+  $rdf_serializer = new LibRDF_Serializer('ntriples');
+  return _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+}
+
+function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_mapping = rdf_mapping_load(
+    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+  );
+  // First element contains the rdf:type definitions
+  $rdf_type_predicate = new LibRDF_URINode(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+  );
+  foreach (array_shift($rdf_mapping) as $rdf_type_mapping) {
+    $rdf_type_statement = new LibRDF_Statement(
+      $rdf_subject, $rdf_type_predicate,
+      new LibRDF_URINode(_edoweb_expand_curie($rdf_type_mapping))
+    );
+    $rdf_model->addStatement($rdf_type_statement);
+  }
+
+  $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
+  // Following elements contain predicate mappings
+  foreach ($rdf_mapping as $field_name => $field_mapping) {
+    $rdf_predicate = new LibRDF_URINode(
+      _edoweb_expand_curie($field_mapping['predicates'][0])
+    );
+    try {
+      $items = $wrapper->{$field_name}->value();
+    } catch (EntityMetadataWrapperException $e) {
+      // Field is not available for this entity
+      //drupal_set_message($e->getMessage(), 'error');
+      continue;
+    }
+    if (!is_array($items)) $items = array($items);
+    if (TRUE === empty($items)) continue;
+    // Special case: handle file fields
+    if ('field_edoweb_file' == $field_name) {
+      foreach ($items as $item) {
+        $file = file_load($item['fid']);
+        $rdf_object = new LibRDF_URINode($file->uri);
+        $rdf_statement = new LibRDF_Statement(
+          $rdf_subject, $rdf_predicate, $rdf_object
+        );
+        $rdf_model->addStatement($rdf_statement);
+      }
+    } else {
+      foreach ($items as $item) {
+        if (isset($field_mapping['type'])
+            and $field_mapping['type'] == 'rel') {
+          if (is_object($item)) {
+            $rdf_object = _edoweb_storage_entity_get_uri($item);
+          } else {
+            $rdf_object = new LibRDF_URINode($item);
+          }
+        } else {
+          $rdf_object = new LibRDF_LiteralNode($item);
+        }
+        $rdf_statement = new LibRDF_Statement(
+          $rdf_subject, $rdf_predicate, $rdf_object
+        );
+        $rdf_model->addStatement($rdf_statement);
+      }
+    }
+  }
+  foreach (rdf_get_namespaces() as $prefix => $namespace) {
+    _edoweb_log("mapping: $prefix to $namespace\n");
+    $rdf_serializer->setNamespace($namespace, $prefix);
+  }
+  return $rdf_model->serializeStatements($rdf_serializer);
+}
+
+function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser) {
+  $rdf_mapping = rdf_mapping_load(
+    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+  );
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  LibRDF_LiteralNode::setPlainOutput(true);
+
+  // Skip first element, these are the rdf:type definitions
+  unset($rdf_mapping[key($rdf_mapping)]);
+  $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
+  foreach ($rdf_mapping as $field_name => $mapping) {
+    $rdf_predicate = new LibRDF_URINode(
+      _edoweb_expand_curie($mapping['predicates'][0])
+    );
+    // Special case for file field
+    if ('field_edoweb_file' == $field_name) {
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        $file_id = db_query(
+          'SELECT fid FROM {file_managed} WHERE uri = :uri',
+          array(':uri' => substr($value, 1, -1))
+        )->fetchField();
+        $file = file_load($file_id);
+        $wrapper->{$field_name}[] = (array) $file;
+      }
+    } else {
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        try {
+          if ($value instanceOf LibRDF_LiteralNode) {
+            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+              $wrapper->{$field_name} = (string) $value;
+            } else {
+              $wrapper->{$field_name}[] = (string) $value;
+            }
+          } else {
+            //FIXME: hardcoded translation of edoweb-uri to local id
+            if ('<edoweb:' === substr($value, 0, 8)) {
+              $value = _edoweb_storage_entity_get_id($value);
+            } else {
+              $value = substr($value, 1, -1);
+            }
+            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+              $wrapper->{$field_name} = $value;
+            } else {
+              $wrapper->{$field_name}[] = $value;
+            }
+          }
+          //drupal_set_message("Populated $field_name.");
+        } catch (EntityMetadataWrapperException $e) {
+          //drupal_set_message($e->getMessage(), 'error');
+        }
+      }
+    }
+  }
+}
+
+function _edoweb_storage_entity_get_uri($entity) {
+  return new LibRDF_URINode("{$entity->remote_id}");
+}
+
+function _edoweb_storage_entity_get_id($entity) {
+  if ($entity instanceof LibRDF_URINode
+             && '<edoweb:' === substr($entity, 0, 8)) {
+    $remote_id = substr($entity, 1, -1);
+    $id = db_query(
+      'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+      array(':remote_id' => $remote_id)
+    )->fetchField();
+  } else if (is_object($entity)) {
+    $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
+    $id = $entity_ids[0];
+  } else {
+    $id = FALSE;
+  }
+  return $id;
+}
+
+function _edoweb_storage_entity_get_remote_id($entity) {
+  if (is_object($entity)) {
+    $remote_id = $entity->remote_id;
+  } else {
+    $remote_id = db_query(
+      'SELECT remote_id FROM {edoweb_basic} WHERE local_id = :local_id',
+      array(':local_id' => $entity)
+    )->fetchField();
+  }
+  return $remote_id;
+}
+
+function _edoweb_storage_entity_get_bundle($entity) {
+  $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
+  return $entity_ids[2];
+}
+
+function _edoweb_storage_entity_serialize_jsonld($entity) {
+  $rdf_mapping = rdf_mapping_load(
+    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+  );
+  $jsonld_context = new stdClass();
+  $rdf_namespaces = rdf_get_namespaces();
+  foreach ($rdf_namespaces as $prefix => $uri) {
+    $jsonld_context->{$prefix} = $uri;
+  }
+  _edoweb_storage_entity_get_uri($entity);
+  $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+  $rdf_serializer = new LibRDF_Serializer('ntriples');
+  $rdf_ntriples = _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+  try {
+    $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
+  } catch (JsonLdException $e) {
+    // drupal_set_message("Error reading ntriples\n$rdf_ntriples");
+    $rdf_jsonld = null;
+  }
+  return str_replace('\\/', '/', json_encode($rdf_jsonld));
+}
+
+function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_data) {
+  $options = array();
+  $options['format'] = 'application/nquads';
+  $rdf_ntriples = jsonld_to_rdf(json_decode($rdf_data), $options);
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_ntriples, $rdf_parser);
+}
+
+function _edoweb_log($message, $target='php://stderr') {
+  // file_put_contents($target, $message);
+}
+
+function _edoweb_expand_curie($curie) {
+  $rdf_namespaces = rdf_get_namespaces();
+  list($curie_prefix, $curie_local) = explode(':', $curie);
+  return $rdf_namespaces[$curie_prefix] . $curie_local;
+}
