@@ -21,5 +21,6 @@
 interface EdowebAPIClientInterface {
   public function load($entity);
   public function save($entity);
+  public function delete($entity);
 }
 
