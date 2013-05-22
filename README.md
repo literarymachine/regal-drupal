@@ -1,0 +1,27 @@
+# About
+
+regal-drupal is a collection of Drupal 7 modules that provide a front
+end for [regal](https://github.com/edoweb/regal) (repository and
+graph-based api for library data).
+
+# Installation
+
+Clone the repository to Drupal's module directory:
+
+    $ cd sites/all/modules
+    $ git clone https://github.com/edoweb/regal-drupal.git
+
+Clone libraries:
+
+    $ cd sites/all/modules/regal-drupal/edoweb/lib
+    $ git clone https://github.com/literarymachine/LibRDF.git
+    $ git clone https://github.com/digitalbazaar/php-json-ld.git
+
+Download non Drupal-core dependency modules:
+
+    $ curl http://ftp.drupal.org/files/projects/entity-7.x-1.1.tar.gz | tar xz
+    $ curl http://ftp.drupal.org/files/projects/entityreference-7.x-1.0.tar.gz | tar xz
+
+Activate "Edoweb Entities" module at (e.g. at
+<http://localhost/drupal/?q=admin/modules>) and confirm activation of
+dependency modules.
