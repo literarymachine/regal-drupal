@@ -1,20 +1,26 @@
 <?php
+/**
+ * Copyright 2013 hbz NRW (http://www.hbz-nrw.de/)
+ *
+ * This file is part of regal-drupal.
+ *
+ * regal-drupal is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * regal-drupal is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with regal-drupal.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * @file
  * Implements the basic functionality required to create and display an entity.
- *
- * This example does not use the
- * @link http://drupal.org/project/entity Entity API module @endlink, which is
- * used by many entity implementations and is recommended by many.
- *
- * An example of use of creating and managing entities using the Entity API
- * module is provided in the
- * @link http://drupal.org/project/model Model Entity module @endlink.
- *
- * @todo: Reference the ronald_istos article series
- * @todo: Reference the Drupal module development book
- * @todo: Add a single field
  */
 
 require_once dirname(__FILE__) . '/lib/LibRDF/LibRDF/LibRDF.php';
@@ -25,8 +31,8 @@ require_once dirname(__FILE__) . '/lib/php-json-ld/jsonld.php';
  *
  * This is the fundamental description of the entity.
  *
- * It provides a single entity with a single bundle and without revision
- * support.
+ * It provides a single entity with multiple bundles
+ * and without revision support.
  */
 function edoweb_entity_info() {
   $info['edoweb_basic'] = array(
@@ -45,12 +51,13 @@ function edoweb_entity_info() {
     // IF fieldable == FALSE, we can't attach fields.
     'fieldable' => TRUE,
 
-    // entity_keys tells the controller what database fields are used for key
-    // functions. It is not required if we don't have bundles or revisions.
-    // Here we do not support a revision, so that entity key is omitted.
+    // entity_keys tells the controller what database fields are used
+    // for key functions
     'entity keys' => array(
-      'id' => 'local_id' , // The 'id' (local_id here) is the unique id.
-      'bundle' => 'bundle_type' // Bundle will be determined by the 'bundle_type' field
+      // The 'id' (local_id here) is the unique id.
+      'id' => 'local_id',
+      // Bundle will be determined by the 'bundle_type' field
+      'bundle' => 'bundle_type'
     ),
     'bundle keys' => array(
       'bundle' => 'bundle_type',
@@ -94,8 +101,6 @@ function edoweb_entity_info() {
       ),
     ),
     // View modes allow entities to be displayed differently based on context.
-    // As a demonstration we'll support "Tweaky", but we could have and support
-    // multiple display modes.
     'view modes' => array(
       'tweaky' => array(
         'label' => t('Tweaky'),
@@ -142,6 +147,8 @@ function edoweb_basic_load($local_id = NULL, $reset = FALSE) {
  * will in turn call the load() method of our entity controller class.
  */
 function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $reset = FALSE) {
+  // TODO: Determine whether to $reset by checking HTTP header
+  // of resource in Edoweb API
   return entity_load('edoweb_basic', $local_ids, $conditions, $reset);
 }
 
@@ -163,25 +170,6 @@ function edoweb_menu() {
     'page callback' => 'edoweb_info_page',
     'access arguments' => array('view any edoweb_basic entity'),
   );
-
-  // This provides a place for Field API to hang its own
-  // interface and has to be the same as what was defined
-  // in basic_entity_info() above.
-  //$items['admin/structure/edoweb_basic/monograph/manage'] = array(
-  //  'title' => 'Administer Monograph Bundle',
-  //  'page callback' => 'edoweb_basic_admin_page',
-  //  'access arguments' => array('administer edoweb_basic entities'),
-  //);
-  //$items['admin/structure/edoweb_basic/journal/manage'] = array(
-  //  'title' => 'Administer Journal Bundle',
-  //  'page callback' => 'edoweb_basic_admin_page',
-  //  'access arguments' => array('administer edoweb_basic entities'),
-  //);
-  //$items['admin/structure/edoweb_basic/volume/manage'] = array(
-  //  'title' => 'Administer Volume Bundle',
-  //  'page callback' => 'edoweb_basic_admin_page',
-  //  'access arguments' => array('administer edoweb_basic entities'),
-  //);
 
   // The page to view our entities - needs to follow what
   // is defined in basic_uri and will use load_basic to retrieve
@@ -220,7 +208,7 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // Add Child for entities that can have children.
+  // 'Add Child' for entities that can have children.
   $items['edoweb/resource/%/%edoweb_basic/children/add/%'] = array(
     'title callback' => 'edoweb_basic_bundle_name',
     'title arguments' => array(6),
@@ -281,11 +269,6 @@ function edoweb_info_page() {
     '#type' => 'item',
     '#markup' => t('List of all Edoweb entities')
   );
-  //if (user_access('administer edoweb_basic entities')) {
-  //  $content['preface']['#markup'] =  t('You can administer these and add fields and change the view !link.',
-  //    array('!link' => l(t('here'), 'admin/structure/edoweb_basic/journal/manage'))
-  //  );
-  //}
   $content['table'] = edoweb_basic_list_entities();
 
   return $content;
@@ -337,13 +320,7 @@ function edoweb_basic_admin_page() {
 /**
  * Returns a render array with all edoweb_basic entities.
  *
- * In this basic example we know that there won't be many entities,
- * so we'll just load them all for display. See pager_example.module
- * to implement a pager. Most implementations would probably do this
- * with the contrib Entity API module, or a view using views module,
- * but we avoid using non-core features in the Examples project.
- *
- * @see pager_example.module
+ * TODO: implement a pager
  */
 function edoweb_basic_list_entities() {
   $content = array();
@@ -371,7 +348,7 @@ function edoweb_basic_list_entities() {
     // There were no entities. Tell the user.
     $content[] = array(
       '#type' => 'item',
-      '#markup' => t('No edoweb_basic entities currently exist.'),
+      '#markup' => t('No Edoweb entities currently exist.'),
     );
   }
   return $content;
@@ -471,23 +448,15 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
  * This exposes the "extra fields" (usually properties that can be configured
  * as if they were fields) of the entity as pseudo-fields
  * so that they get handled by the Entity and Field core functionality.
- * Node titles get treated in a similar manner.
  */
 function edoweb_field_extra_fields() {
-  //$form_elements['item_description'] = array(
-  //  'label' => t('Item Description'),
-  //   'description' => t('Item Description (an extra form field)'),
-  //   'weight' => -5,
-  //);
   $display_elements['created'] = array(
     'label' => t('Creation date'),
     'description' => t('Creation date (an extra display field)'),
     'weight' => 0,
   );
 
-  // Since we have only one bundle type, we'll just provide the extra_fields
-  // for it here.
-  // $extra_fields['edoweb_basic']['monograph_bundle']['form'] = $form_elements;
+  // Attach extra_fields to all bundles
   $extra_fields['edoweb_basic']['monograph']['display'] = $display_elements;
   $extra_fields['edoweb_basic']['journal']['display'] = $display_elements;
   $extra_fields['edoweb_basic']['volume']['display'] = $display_elements;
@@ -547,7 +516,7 @@ function edoweb_basic_children($entity) {
     // There were no entities. Tell the user.
     $content[] = array(
       '#type' => 'item',
-      '#markup' => t('No edoweb_basic entities currently exist.'),
+      '#markup' => t('No child entities currently exist.'),
     );
   }
   $content[] = array(
@@ -691,7 +660,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
 /**
  * Form deletion handler.
  *
- * @todo: 'Are you sure?' message.
+ * @TODO: Confirm deletion
  */
 function edoweb_basic_edit_delete( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
@@ -723,7 +692,7 @@ function edoweb_basic_delete($entity) {
  * bundle that has been defined by this module. On installation, this mapping
  * will be saved to the database. To alter anything in this mapping after module
  * installation (or to alter bundles defined in another module), the RDF CRUD
- * functions should be used, as shown below.
+ * functions should be used.
  */
 function edoweb_rdf_mapping() {
   return array(
@@ -983,6 +952,9 @@ class EdowebBasicController
     return $entity;
   }
 
+  /**
+   * Load an edoweb_basic entity.
+   */
   public function load($ids = array(), $conditions = array()) {
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
@@ -991,6 +963,8 @@ class EdowebBasicController
 
   /**
    * Saves the custom fields using drupal_write_record()
+   * Storage of attached fields is handled by a custom
+   * field storage (module edoweb_storage).
    */
   public function save($entity) {
     // If our entity has no local_id, then we need to give it a
@@ -1025,9 +999,6 @@ class EdowebBasicController
     }
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
-    // Store entity via Edoweb API
-    //$edoweb_api_client = new EdowebAPIClientLocal();
-    //$edoweb_api_client->save($entity);
     return $entity;
   }
 
@@ -1042,9 +1013,6 @@ class EdowebBasicController
 
   /**
    * Delete one or more edoweb_basic entities.
-   *
-   * Deletion is unfortunately not supported in the base
-   * DrupalDefaultEntityController class.
    *
    * @param $local_ids
    *   An array of entity IDs or a single numeric ID.
@@ -1075,7 +1043,8 @@ class EdowebBasicController
 }
 
 /*
- * An interface to lobid.org
+ * An interface to lobid.org (and potentially other linked data
+ * systems).
  */
 class LinkedDataClient {
 
@@ -1101,4 +1070,3 @@ class LinkedDataClient {
   }
 
 }
-
