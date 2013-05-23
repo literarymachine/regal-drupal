@@ -313,11 +313,16 @@ function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serial
       $items = $wrapper->{$field_name}->value();
     } catch (EntityMetadataWrapperException $e) {
       // Field is not available for this entity
-      //drupal_set_message($e->getMessage(), 'error');
       continue;
     }
-    if (!is_array($items)) $items = array($items);
-    if (TRUE === empty($items)) continue;
+    if (is_null($items) || empty($items)) {
+      // Field is available for this entity,
+      // but does not have value(s).
+      continue;
+    }
+    if (!is_array($items)) {
+      $items = array($items);
+    }
     // Special case: handle file fields
     if ('field_edoweb_file' == $field_name) {
       foreach ($items as $item) {
@@ -359,7 +364,12 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
     EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
   );
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  try {
+    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+  } catch (LibRDF_Error $e) {
+    // TODO: log errors
+    // drupal_set_message($e->getMessage(), 'error');
+  }
   LibRDF_LiteralNode::setPlainOutput(true);
 
   // Skip first element, these are the rdf:type definitions
@@ -377,7 +387,12 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
           array(':uri' => substr($value, 1, -1))
         )->fetchField();
         $file = file_load($file_id);
-        $wrapper->{$field_name}[] = (array) $file;
+        try {
+          $wrapper->{$field_name}[] = (array) $file;
+        } catch (EntityMetadataWrapperException $e) {
+          // TODO: log errors
+          // drupal_set_message($e->getMessage(), 'error');
+        }
       }
     } else {
       foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
