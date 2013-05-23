@@ -188,10 +188,17 @@ function edoweb_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  // Module landing page
+  // Module landing page, list entities
   $items['edoweb/resource'] = array(
     'title' => t('Edoweb'),
     'page callback' => 'edoweb_info_page',
+    'page arguments' => array('0'),
+    'access arguments' => array('view any edoweb_basic entity'),
+  );
+  $items['edoweb/resource/%'] = array(
+    'title' => t('Edoweb'),
+    'page callback' => 'edoweb_info_page',
+    'page arguments' => array(2),
     'access arguments' => array('view any edoweb_basic entity'),
   );
 
@@ -274,7 +281,7 @@ function edoweb_menu() {
 /**
  * Basic information for the page.
  */
-function edoweb_info_page() {
+function edoweb_info_page($page = 0) {
   $content['add monograph'] = array(
     '#type' => 'item',
     '#markup' => t('!add or !import a monograph', array(
@@ -293,7 +300,7 @@ function edoweb_info_page() {
     '#type' => 'item',
     '#markup' => t('List of all Edoweb entities')
   );
-  $content['table'] = edoweb_basic_list_entities();
+  $content['table'] = edoweb_basic_list_entities($page);
 
   return $content;
 }
@@ -321,42 +328,32 @@ function edoweb_permission() {
 
 
 /**
- * Provides a list of existing entities and the ability to add more. Tabs
- * provide field and display management.
- */
-function edoweb_basic_admin_page() {
-  $content = array();
-  $content[] = array(
-    '#type' => 'item',
-    '#markup' => t('Administration page for Edoweb Basic Entities.')
-  );
-
-  $content[] = array(
-    '#type' => 'item',
-    '#markup' => l(t('Add an edoweb_basic entity'), 'edoweb/resource/basic/add'),
-  );
-
-  $content['table'] = edoweb_basic_list_entities();
-
-  return $content;
-}
-
-/**
  * Returns a render array with all edoweb_basic entities.
  *
  * TODO: implement a pager
  */
-function edoweb_basic_list_entities() {
+function edoweb_basic_list_entities($page) {
   $content = array();
   // Load all of our entities.
-  $entities = edoweb_basic_load_multiple();
+  $query = new EntityFieldQuery();
+  $query
+    ->entityCondition('entity_type', 'edoweb_basic')
+    ->range($page * 10, 10);
+  $result = $query->execute();
+  if (!array_key_exists('edoweb_basic', $result)) {
+    $entities = array();
+  } else {
+    $entity_ids = array_keys($result['edoweb_basic']);
+    $entities = edoweb_basic_load_multiple($entity_ids);
+  }
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
       // Create tabular rows for our entities.
+      $title = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
       $rows[] = array(
         'data' => array(
           'id' => l($entity->local_id, "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}"),
-          'title' => $entity->field_edoweb_title['und'][0]['value'],
+          'title' => $title ? $title : "Untitled {$entity->bundle_type}",
           'bundle' => $entity->bundle_type,
         ),
       );
@@ -367,6 +364,14 @@ function edoweb_basic_list_entities() {
       '#rows' => $rows,
       '#header' => array(t('ID'), t('Title'), t('Bundle')),
     );
+    $content['pager'] = array(
+      '#type' => 'item',
+      '#markup' => '',
+    );
+    if ($page > 0) {
+      $content['pager']['#markup']  .= l('<< ', 'edoweb/resource/' . ($page - 1));
+    }
+    $content['pager']['#markup']  .= l('>>', 'edoweb/resource/' . ($page +1));
   }
   else {
     // There were no entities. Tell the user.
