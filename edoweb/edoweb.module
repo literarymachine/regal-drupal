@@ -178,6 +178,16 @@ function edoweb_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
 
+  // Bulk import
+  $items['admin/config/edoweb/import'] = array(
+    'title' => 'Bulk Import',
+    'description' => 'Import objects from the Edoweb API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('edoweb_bulk_import_form'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   // Module landing page
   $items['edoweb/resource'] = array(
     'title' => t('Edoweb'),
@@ -598,6 +608,52 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
 }
 
 /**
+* Create and display the bulk import form.
+*/
+function edoweb_bulk_import_form($form, &$form_state) {
+
+  // Drop-down list for resource type.
+  $form['edoweb_bundle_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Resource Type'),
+    '#description' => t('The type of the resources to import.'),
+    '#options' => array(
+      'monograph' => t('Monograph'),
+      'journal' => t('eJournal'),
+    ),
+    '#required' => TRUE,
+  );
+
+  $form['edoweb_bundle_type_import_mode'] = array(
+    '#title' => t('Import mode'),
+    '#type' => 'radios',
+    '#options' => array(
+      'append' => t('Append'),
+      'overwrite' => t('Overwrite'),
+      'clear' => t('Clear all'),
+    ),
+    '#default_value' => 'append',
+  );
+
+  // Submit button
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+  return $form;
+}
+
+/*
+ * Bulk import resources of the given bundle type.
+ */
+function edoweb_bulk_import_form_submit($form, &$form_state) {
+  $bundle_type = $form_state['values']['edoweb_bundle_type'];
+  $import_mode = $form_state['values']['edoweb_bundle_type_import_mode'];
+  $api = new EdowebAPIClient();
+  $api->import($bundle_type, $import_mode);
+}
+
+/**
  * Form function to create an edoweb_basic entity.
  *
  * The pattern is:
@@ -986,6 +1042,9 @@ class EdowebBasicController
     // time of creation.
     if (empty($entity->local_id)) {
       $entity->created = time();
+    }
+    // If our entity has no remote_id, create one.
+    if (empty($entity->remote_id)) {
       $entity->remote_id = 'edoweb:' . self::uuid_v4();
     }
     // Invoke hook_entity_presave().
