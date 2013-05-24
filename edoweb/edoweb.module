@@ -811,17 +811,19 @@ function edoweb_rdf_mapping() {
         'field_edoweb_publisher' => array(
           'predicates' => array('isbd:P1017'),
         ),
-        'field_edoweb_file' => array(
-          'predicates' => array('ore:aggregates'),
-        ),
-        'field_edoweb_child' => array(
-          'predicates' => array('dc:hasPart'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_parent' => array(
-          'predicates' => array('dc:isPartOf'),
-          'type' => 'rel',
-        ),
+        // Files and parent/child relations not mapped as
+        // they are not part of the descriptive metadata.
+        //'field_edoweb_file' => array(
+        //  'predicates' => array('ore:aggregates'),
+        //),
+        //'field_edoweb_child' => array(
+        //  'predicates' => array('dc:hasPart'),
+        //  'type' => 'rel',
+        //),
+        //'field_edoweb_parent' => array(
+        //  'predicates' => array('dc:isPartOf'),
+        //  'type' => 'rel',
+        //),
       ),
     ),
   );

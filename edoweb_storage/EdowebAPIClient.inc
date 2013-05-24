@@ -51,6 +51,61 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
+    // Fetch and add relations and files
+    $http_url = sprintf(
+      'http://%s:%s@%s/resources/%s/about',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_get($http_url);
+    if (500 != $http_response->code) {
+      $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
+      $repository_data = json_decode($http_response->data);
+      // Fetch and add children
+      if (property_exists($repository_data, 'hasPart')) {
+        if (!is_array($repository_data->hasPart)) {
+          $children = array($repository_data->hasPart);
+        } else {
+          $children = $repository_data->hasPart;
+        }
+        foreach ($children as $remote_url) {
+          $remote_id = substr($remote_url, strrpos($remote_url, '/') + 1);
+          $local_id = db_query(
+            'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+            array(':remote_id' => $remote_id)
+          )->fetchField();
+          try {
+            if ($wrapper->field_edoweb_child instanceOf EntityValueWrapper) {
+              $wrapper->field_edoweb_child = $local_id;
+            } else {
+              $wrapper->field_edoweb_child[] = $local_id;
+            }
+          } catch (EntityMetadataWrapperException $e) {
+            // TODO: log errors
+            //drupal_set_message($e->getMessage(), 'error');
+          }
+        }
+      }
+      // Fetch and add files.
+      if (property_exists($repository_data, 'pdfUrl')) {
+        $file_url = $repository_data->pdfUrl;
+        $file_id = db_query(
+          'SELECT fid FROM {file_managed} WHERE uri = :uri',
+          array(':uri' => $file_url)
+        )->fetchField();
+        $file = file_load($file_id);
+        try {
+          $wrapper->field_edoweb_file[] = (array) $file;
+        } catch (EntityMetadataWrapperException $e) {
+          // TODO: log errors
+          // drupal_set_message($e->getMessage(), 'error');
+        }
+      }
+    }
+
+    // Fetch and add descriptive metadata
     $http_url = sprintf(
       'http://%s:%s@%s/resources/%s/metadata',
       $this->__edoweb_api_user,
