@@ -527,10 +527,11 @@ function edoweb_basic_children($entity) {
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
       // Create tabular rows for our entities.
+      $title = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
       $rows[] = array(
         'data' => array(
           'id' => l($entity->local_id, "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}"),
-          'title' => $entity->field_edoweb_title['und'][0]['value'],
+          'title' => $title ? $title : "Untitled {$entity->bundle_type}",
           'bundle' => $entity->bundle_type,
         ),
       );
