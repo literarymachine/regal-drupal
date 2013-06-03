@@ -212,7 +212,21 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   /*
    * Import an entity based on its remote id.
    */
-  public function importEntity($remote_id, $import_mode = 'append') {
+  public function importEntity($remote_id, $import_mode = 'append', $metadata_required = FALSE) {
+
+    // Check for metadata
+    $http_url = sprintf(
+      'http://%s:%s@%s/resources/%s/metadata',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $remote_id
+    );
+    $http_response = $this->_http_get($http_url);
+    // TODO: Check for HTTP 404 instead when API supports this
+    if (500 == $http_response->code && 1 == $metadata_required) {
+      return;
+    }
 
     // Import the entity itself
     $http_url = sprintf(
@@ -255,7 +269,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
       foreach ($children as $remote_url) {
         $remote_id = substr($remote_url, strrpos($remote_url, '/') + 1);
-        $this->importEntity($remote_id, $import_mode);
+        $this->importEntity($remote_id, $import_mode, $metadata_required);
       }
     }
 
@@ -289,7 +303,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   /*
    * Import entities of a given bundle type.
    */
-  public function import($bundle_type, $import_mode = 'append') {
+  public function import($bundle_type, $import_mode = 'append', $metadata_required = FALSE) {
     // Build resource list url
     $http_url = sprintf(
       'http://%s:%s@%s/%s/',
@@ -313,7 +327,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     // Process resource list
     $resource_list = json_decode($http_response->data)->list;
     foreach ($resource_list as $remote_id) {
-      $this->importEntity($remote_id, $import_mode);
+      $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
   }
 

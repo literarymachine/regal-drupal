@@ -630,6 +630,7 @@ function edoweb_bulk_import_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Radio buttons for import mode
   $form['edoweb_bundle_type_import_mode'] = array(
     '#title' => t('Import mode'),
     '#type' => 'radios',
@@ -640,6 +641,13 @@ function edoweb_bulk_import_form($form, &$form_state) {
     ),
     '#default_value' => 'append',
   );
+
+  // Checkbox for descriptive metadata dependency
+  $form['edoweb_bundle_type_metadata_required'] = array(
+    '#title' => t('Only import entities with descriptive metadata'),
+    '#type' => 'checkbox',
+  );
+
 
   // Submit button
   $form['submit'] = array(
@@ -655,8 +663,9 @@ function edoweb_bulk_import_form($form, &$form_state) {
 function edoweb_bulk_import_form_submit($form, &$form_state) {
   $bundle_type = $form_state['values']['edoweb_bundle_type'];
   $import_mode = $form_state['values']['edoweb_bundle_type_import_mode'];
+  $metadata_required = $form_state['values']['edoweb_bundle_type_metadata_required'];
   $api = new EdowebAPIClient();
-  $api->import($bundle_type, $import_mode);
+  $api->import($bundle_type, $import_mode, $metadata_required);
 }
 
 /**
