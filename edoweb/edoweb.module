@@ -891,23 +891,25 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   // Display response in UI
-  $status_type = 'error';
-  switch ($http_response->code[0]) {
-    case '2':
-      $status_type = 'status';
-      break;
-    case '3':
-      $status_type = 'warning';
-      break;
+  if (1 == variable_get('edoweb_api_debug')) {
+    $status_type = 'error';
+    switch ($http_response->code[0]) {
+      case '2':
+        $status_type = 'status';
+        break;
+      case '3':
+        $status_type = 'warning';
+        break;
+    }
+    drupal_set_message(
+      sprintf(
+        'API call responded with HTTP %s.<pre>{%s}</pre>',
+        $http_response->code,
+        htmlentities(print_r($http_response, TRUE))
+      ),
+      $status_type
+    );
   }
-  drupal_set_message(
-    sprintf(
-      'API call responded with HTTP %s.<pre>{%s}</pre>',
-      $http_response->code,
-      htmlentities(print_r($http_response, TRUE))
-    ),
-    $status_type
-  );
 
   return $http_response;
 }

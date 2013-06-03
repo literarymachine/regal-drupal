@@ -82,6 +82,13 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Checkbox for debugging mode
+  $form['edoweb_api_debug'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('edoweb_api_debug'),
+    '#title' => t('Show debugging output'),
+  );
+
   return system_settings_form($form);
 }
 

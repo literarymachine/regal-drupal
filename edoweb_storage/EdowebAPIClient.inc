@@ -328,12 +328,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
     $response = curl_exec($ch);
-    if (curl_errno($ch)) {
+    if (curl_errno($ch) && 1 == variable_get('edoweb_api_debug')) {
       drupal_set_message(curl_error($ch));
-      return FALSE;
     } else {
       return TRUE;
     }
+    return FALSE;
   }
 
   protected function _http_put($request_url, $request_body = '', $content_type='text/plain') {
