@@ -134,8 +134,10 @@ function edoweb_entity_info() {
  * @see edoweb_basic_load_multiple()
  * @see edoweb_menu()
  */
-function edoweb_basic_load($local_id = NULL, $reset = FALSE) {
-  $local_ids = (isset($local_id) ? array($local_id) : array());
+function edoweb_basic_load($remote_id = NULL, $reset = FALSE) {
+  $local_ids = isset($remote_id)
+    ? array(_edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id)))
+    : array();
   $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
   return $basic ? reset($basic) : FALSE;
 }
@@ -157,7 +159,7 @@ function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $
  */
 function edoweb_basic_uri($basic) {
   return array(
-    'path' => "resource/{$basic->local_id}",
+    'path' => "resource/{$basic->remote_id}",
   );
 }
 
@@ -346,7 +348,7 @@ function edoweb_basic_list_entities($page) {
       // Create tabular rows for our entities.
       $rows[] = array(
         'data' => array(
-          'id' => l($entity->local_id, "resource/{$entity->local_id}"),
+          'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
           'title' => edoweb_basic_title($entity),
           'bundle' => $entity->bundle_type,
         ),
@@ -532,7 +534,7 @@ function edoweb_basic_children($entity) {
       // Create tabular rows for our entities.
       $rows[] = array(
         'data' => array(
-          'id' => l($entity->local_id, "resource/{$entity->local_id}"),
+          'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
           'title' => edoweb_basic_title($entity),
           'bundle' => $entity->bundle_type,
         ),
@@ -740,7 +742,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
       cache_clear_all("field:edoweb_basic:{$parent['target_id']}", 'cache_field');
     }
   }
-  $form_state['redirect'] = "resource/{$entity->local_id}";
+  $form_state['redirect'] = "resource/{$entity->remote_id}";
 }
 
 /**
@@ -752,7 +754,7 @@ function edoweb_basic_edit_delete( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   edoweb_basic_delete($entity);
   drupal_set_message(t('The entity %id has been deleted',
-    array('%id' => $entity->local_id))
+    array('%id' => $entity->remote_id))
   );
   $form_state['redirect'] = 'resource';
 }
