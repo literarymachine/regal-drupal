@@ -188,18 +188,11 @@ function edoweb_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  // Module landing page, first page of entity list
+  // Module landing page, list entities
   $items['resource'] = array(
     'title' => t('Edoweb'),
     'page callback' => 'edoweb_info_page',
     'page arguments' => array('0'),
-    'access arguments' => array('view any edoweb_basic entity'),
-  );
-  // Module landing page, page n of entity list
-  $items['resource/%'] = array(
-    'title' => t('Edoweb'),
-    'page callback' => 'edoweb_info_page',
-    'page arguments' => array(1),
     'access arguments' => array('view any edoweb_basic entity'),
   );
 
@@ -282,7 +275,8 @@ function edoweb_menu() {
 /**
  * Basic information for the page.
  */
-function edoweb_info_page($page = 0) {
+function edoweb_info_page() {
+  $page = array_key_exists('page', $_GET) ? $_GET['page'] : 0;
   $content['add monograph'] = array(
     '#type' => 'item',
     '#markup' => t('!add or !import a monograph', array(
@@ -369,9 +363,13 @@ function edoweb_basic_list_entities($page) {
       '#markup' => '',
     );
     if ($page > 0) {
-      $content['pager']['#markup']  .= l('<< ', 'resource/' . ($page - 1));
+      $content['pager']['#markup']  .= l(
+        '<< ', 'resource', array('query' => array('page' => ($page - 1)))
+      );
     }
-    $content['pager']['#markup']  .= l('>>', 'resource/' . ($page +1));
+    $content['pager']['#markup']  .= l(
+      '>>', 'resource', array('query' => array('page' => ($page + 1)))
+    );
   }
   else {
     // There were no entities. Tell the user.
