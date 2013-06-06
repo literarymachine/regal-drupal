@@ -349,11 +349,10 @@ function edoweb_basic_list_entities($page) {
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
       // Create tabular rows for our entities.
-      $title = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
       $rows[] = array(
         'data' => array(
           'id' => l($entity->local_id, "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}"),
-          'title' => $title ? $title : "Untitled {$entity->bundle_type}",
+          'title' => edoweb_basic_title($entity),
           'bundle' => $entity->bundle_type,
         ),
       );
@@ -387,8 +386,13 @@ function edoweb_basic_list_entities($page) {
  * Callback for a page title when this entity is displayed.
  */
 function edoweb_basic_title($entity) {
-  $title_items = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
-  return t('@title', array('@title' => $title_items[0]['value']));
+  $title_items = field_get_items(
+    'edoweb_basic', $entity, 'field_edoweb_title'
+  );
+  $title = $title_items[0]['value']
+    ? $title_items[0]['value']
+    : "Untitled {$entity->bundle_type}";
+  return t($title);
 }
 
 /**
@@ -527,11 +531,10 @@ function edoweb_basic_children($entity) {
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
       // Create tabular rows for our entities.
-      $title = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
       $rows[] = array(
         'data' => array(
           'id' => l($entity->local_id, "edoweb/resource/{$entity->bundle_type}/{$entity->local_id}"),
-          'title' => $title ? $title : "Untitled {$entity->bundle_type}",
+          'title' => edoweb_basic_title($entity),
           'bundle' => $entity->bundle_type,
         ),
       );
