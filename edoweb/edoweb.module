@@ -736,10 +736,8 @@ function edoweb_basic_form_submit($form, &$form_state) {
   $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_parent');
   if (FALSE !== $parents) {
     foreach($parents as $parent) {
-      $parent_entity = edoweb_basic_load($parent['target_id']);
-      $wrapper = entity_metadata_wrapper('edoweb_basic', $parent_entity);
-      $wrapper->field_edoweb_child[] = _edoweb_storage_entity_get_id($entity);
-      edoweb_basic_save($parent_entity);
+      // Reset cache to force reload of structural metadata from API
+      cache_clear_all("field:edoweb_basic:{$parent['target_id']}", 'cache_field');
     }
   }
   $form_state['redirect'] = "resource/{$entity->local_id}";
