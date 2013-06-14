@@ -227,8 +227,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $remote_id
     );
     $http_response = $this->_http_get($http_url);
-    // TODO: Check for HTTP 404 instead when API supports this
-    if (500 == $http_response->code && 1 == $metadata_required) {
+    if (404 == $http_response->code && 1 == $metadata_required) {
       return;
     }
 
