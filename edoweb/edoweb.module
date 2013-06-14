@@ -134,10 +134,9 @@ function edoweb_entity_info() {
  * @see edoweb_basic_load_multiple()
  * @see edoweb_menu()
  */
-function edoweb_basic_load($remote_id = NULL, $reset = FALSE) {
-  $local_ids = isset($remote_id)
-    ? array(_edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id)))
-    : array();
+function edoweb_basic_load($remote_id, $reset = FALSE) {
+  $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
+  $local_ids = $local_id ? array($local_id) : array();
   $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
   return $basic ? reset($basic) : FALSE;
 }

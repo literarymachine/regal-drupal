@@ -95,12 +95,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           'SELECT fid FROM {file_managed} WHERE uri = :uri',
           array(':uri' => $file_url)
         )->fetchField();
-        $file = file_load($file_id);
-        try {
-          $wrapper->field_edoweb_file[] = (array) $file;
-        } catch (EntityMetadataWrapperException $e) {
-          // TODO: log errors
-          // drupal_set_message($e->getMessage(), 'error');
+        if ($file_id) {
+          $file = file_load($file_id);
+          try {
+            $wrapper->field_edoweb_file[] = (array) $file;
+          } catch (EntityMetadataWrapperException $e) {
+            // TODO: log errors
+            // drupal_set_message($e->getMessage(), 'error');
+          }
+        } else {
+          // FIXME: why is the file not present?
         }
       }
     }
