@@ -1161,7 +1161,8 @@ class LinkedDataClient {
     $rdf_subject = new LibRDF_URINode($resource_uri);
     $rdf_parser = new LibRDF_Parser('rdfxml');
     _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    $entity->remote_id = $resource_uri;
+    // TODO: Incorporate origin into database scheme
+    //$entity->origin = $resource_uri;
     return TRUE;
   }
 
