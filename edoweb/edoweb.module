@@ -948,7 +948,7 @@ function _edoweb_label_callback_set($entity, $entity_type) {
 }
 
 function _edoweb_gnd_autocomplete($string) {
-  $autocomplete_url = "http://api.lobid.org/person?name=$string";
+  $autocomplete_url = "http://api.lobid.org/person?name=" . urlencode($string);
   $http_options = array(
     'method' => 'GET',
     'headers' => array('Accept' => 'application/json'),
