@@ -1004,17 +1004,18 @@ function _edoweb_label_callback_set($entity, $entity_type) {
 }
 
 function _edoweb_gnd_autocomplete($string) {
-  $autocomplete_url = "http://api.lobid.org/person?name=" . urlencode($string);
+  $autocomplete_url = "http://api.lobid.org/person?name=";
+  $autocomplete_url .= urlencode($string);
+  $autocomplete_url .= "&format=ids";
   $http_options = array(
     'method' => 'GET',
     'headers' => array('Accept' => 'application/json'),
   );
   $http_response = drupal_http_request($autocomplete_url, $http_options);
   $json_data = json_decode($http_response->data);
-  $label_property = "http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson";
   $matches = array();
   foreach($json_data as $match) {
-    $matches[$match->{'@id'}] = $match->{$label_property};
+    $matches[$match->{'value'}] = $match->{'label'};
   }
   drupal_json_output($matches);
 }
