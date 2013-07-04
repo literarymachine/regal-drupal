@@ -1133,7 +1133,13 @@ class EdowebBasicController
     // local_id as the key.
     $primary_keys = $entity->local_id ? 'local_id' : array();
     // Write out the entity record.
-    drupal_write_record('edoweb_basic', $entity, $primary_keys);
+    try {
+      drupal_write_record('edoweb_basic', $entity, $primary_keys);
+    } catch (PDOException $e) {
+      drupal_set_message(
+        "Failed to write record for {$entity->remote_id}.", 'error'
+      );
+    }
     // We're going to invoke either hook_entity_update() or
     // hook_entity_insert(), depending on whether or not this is a
     // new entity. We'll just store the name of hook_entity_insert()
