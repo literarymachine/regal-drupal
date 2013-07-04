@@ -532,7 +532,7 @@ function _edoweb_file_save(stdClass $file, $entity) {
       module_invoke_all('entity_update', $file, 'file');
     }
   } catch (PDOException $e) {
-    drupal_set_message("Could not write file record for {$entity->remote_id}", 'error');
+    drupal_set_message("Could not write file record for {$file->filename}", 'error');
   }
 
   return $file;
