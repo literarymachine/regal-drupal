@@ -85,7 +85,12 @@ function edoweb_install() {
   // http://api.drupal.org/api/function/field_create_instance/7
   foreach (_edoweb_installed_instances() as $instance) {
     $instance['entity_type'] = 'edoweb_basic';
-    field_create_instance($instance);
+    $bundles = $instance['bundles'];
+    unset($instance['bundles']);
+    foreach ($bundles as $bundle) {
+      $instance['bundle'] = $bundle;
+      field_create_instance($instance);
+    }
   }
 
   // Create roles and permissions
@@ -120,13 +125,23 @@ function _edoweb_installed_fields() {
   $t = get_t();
   return array(
     array(
+      'field_name' => 'field_edoweb_identifier',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_volume',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
       'field_name' => 'field_edoweb_title',
       'cardinality' => 1,
       'type'        => 'text',
     ),
     array(
       'field_name' => 'field_edoweb_title_other',
-      'cardinality' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'text',
     ),
     array(
@@ -140,9 +155,74 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
     ),
     array(
+      'field_name' => 'field_edoweb_editor',
+      'cardinality' => 1,
+      'type'        => 'edoweb_ld_reference',
+    ),
+    array(
+      'field_name' => 'field_edoweb_edition',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_publication_place',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_publisher',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+    ),
+    array(
       'field_name' => 'field_edoweb_issued',
       'cardinality' => 1,
-      'type'        => 'number_integer',
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_issued_since',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_issued_until',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_publication_freq',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_is_like',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_urn',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_isbn10',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_isbn13',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_issn',
+      'cardinality' => 1,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_doi',
+      'cardinality' => 1,
+      'type'        => 'text',
     ),
     array(
       'field_name' => 'field_edoweb_language',
@@ -154,14 +234,14 @@ function _edoweb_installed_fields() {
       ),
     ),
     array(
-      'field_name' => 'field_edoweb_edition',
+      'field_name' => 'field_edoweb_extent',
       'cardinality' => 1,
       'type'        => 'text',
     ),
     array(
-      'field_name' => 'field_edoweb_publication_place',
+      'field_name' => 'field_edoweb_description',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'text_long',
     ),
     array(
       'field_name' => 'field_edoweb_subject',
@@ -170,8 +250,18 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
     ),
     array(
-      'field_name' => 'field_edoweb_publisher',
+      'field_name' => 'field_edoweb_abstract',
       'cardinality' => 1,
+      'type'        => 'text_long',
+    ),
+    array(
+      'field_name' => 'field_edoweb_parallel',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+    ),
+    array(
+      'field_name' => 'field_edoweb_homepage',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'text',
     ),
     array(
@@ -206,101 +296,288 @@ function _edoweb_installed_fields() {
 function _edoweb_installed_instances() {
   $t = get_t();
   return array(
-    /**
-     * Field instances in the monograph bundle
-     */
+    array(
+      'field_name'  => 'field_edoweb_identifier',
+      'label' => 'Identifikator',
+      'description' => 'Der Hauptidentifikator für diesen Datensatz; z.B. eine Aleph-ID',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_volume',
+      'label' => 'Band',
+      'description' => 'Die Bandbezeichnung einer Zeitschrift oder eines Gesamtwerkes; bei Zeitschriften eine Zusammenfassung mehrere Hefte; z.B. "2012"',
+      'bundles'      => array(
+        'monograph',
+        'volume',
+      ),
+    ),
     array(
       'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'monograph',
+      'label' => 'Titel',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'issue',
+        'article',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_title_other',
-      'label'       => $t('Titelzusatz'),
-      'bundle'      => 'monograph',
+      'label' => 'Untertitel',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_creator',
-      'label'       => $t('Autor'),
-      'bundle'      => 'monograph',
+      'label' => 'Autor oder Körperschaft',
+      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat; Auswahl aus GND',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_contributor',
-      'label'       => $t('Beteiligte Person'),
-      'bundle'      => 'monograph',
+      'label' => 'Mitwirkende/r',
+      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat; Auswahl aus GND',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
     ),
     array(
-      'field_name'  => 'field_edoweb_issued',
-      'label'       => $t('Erscheinungsjahr'),
-      'bundle'      => 'monograph',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_language',
-      'label'       => $t('Sprache'),
-      'bundle'      => 'monograph',
-      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
+      'field_name'  => 'field_edoweb_editor',
+      'label' => 'Editor',
+      'description' => 'Editor, Herausgeber oder Redakteur',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_edition',
-      'label'       => $t('Ausgabe'),
-      'bundle'      => 'monograph',
+      'label' => 'Ausgabe',
+      'description' => 'Ausgabe oder Auflage, z.B. "2. Aufl. 2012"',
+      'bundles'      => array(
+        'monograph',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_publication_place',
-      'label'       => $t('Erscheinungsort'),
-      'bundle'      => 'monograph',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_subject',
-      'label'       => $t('Schlagwort'),
-      'bundle'      => 'monograph',
+      'label' => 'Erscheinungsort',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_publisher',
-      'label'       => $t('Verlag'),
-      'bundle'      => 'monograph',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_file',
-      'label'       => $t('Datei'),
-      'bundle'      => 'monograph',
-      'settings'    => array(
-        'file_extensions' => 'pdf',
+      'label' => 'Verlag',
+      'description' => 'Verleger, Drucker, Vertrieb, Auslieferer; eine Person, Organisation oder ein Dienst',
+      'bundles'      => array(
+        'monograph',
+        'journal',
       ),
-    ),
-    /**
-     * Field instances in the journal bundle
-     */
-    array(
-      'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'journal',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_creator',
-      'label'       => $t('Autor'),
-      'bundle'      => 'journal',
     ),
     array(
       'field_name'  => 'field_edoweb_issued',
-      'label'       => $t('Erscheinungsjahr'),
-      'bundle'      => 'journal',
+      'label' => 'Erscheinungsdatum',
+      'description' => 'Datum der formellen Herausgabe, Veröffentlichung; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein',
+      'bundles'      => array(
+        'monograph',
+        'volume',
+        'issue',
+        'article',
+      ),
     ),
     array(
-      'field_name'  => 'field_edoweb_publication_place',
-      'label'       => $t('Erscheinungsort'),
-      'bundle'      => 'journal',
+      'field_name'  => 'field_edoweb_issued_since',
+      'label' => 'erscheint seit',
+      'description' => 'Datum des ersten Erscheinens / des ersten Bandes; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein',
+      'bundles'      => array(
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_issued_until',
+      'label' => 'eingestellt am/in',
+      'description' => 'Datum des letzten Erscheinens bei eingestellter Ausgabe; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein',
+      'bundles'      => array(
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_publication_freq',
+      'label' => 'Erscheinungsweise',
+      'description' => 'In welchem zeitlichen Abstand erscheinen die einzelnen Ausgaben dieser Veröffentlichung ? Z.B. "erscheint wöchentlich"',
+      'bundles'      => array(
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_is_like',
+      'label' => 'URI',
+      'description' => 'Ein "Uniform Ressource Identifier", z.B. "http://lobid.org/resource/TT001152974"',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+        'issue',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_urn',
+      'label' => 'URN',
+      'description' => 'Ein "Uniform Ressource Name", z.B. "urn:nbn:de:hbz:929:02-1058"',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_isbn10',
+      'label' => 'ISBN-10',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_isbn13',
+      'label' => 'ISBN-13',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_issn',
+      'label' => 'ISSN',
+      'description' => '',
+      'bundles'      => array(
+        'journal',
+        'volume',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_doi',
+      'label' => 'DOI',
+      'description' => 'Ein "Digital Object Identifier", z.B. "10.4126/38m-002470993"',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+        'issue',
+        'article',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_language',
-      'label'       => $t('Sprache'),
-      'bundle'      => 'journal',
+      'label' => 'Sprache',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
       'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_extent',
+      'label' => 'Umfang',
+      'description' => 'z.B. "103 S. : Ill., graph. Darst."',
+      'bundles'      => array(
+        'monograph',
+        'issue',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_description',
+      'label' => 'Beschreibung',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+        'issue',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_subject',
+      'label' => 'Schlagwort',
+      'description' => 'Stichwörter oder Schlagwörter in einem kontrollierten Vokabular (GND, DDC, rheinland-pfälzische Bibliographie)',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_abstract',
+      'label' => 'Abriss',
+      'description' => 'Abstract',
+      'bundles'      => array(
+        'monograph',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_parallel',
+      'label' => 'Parallele Ausgabe',
+      'description' => 'Angabe eines Identifikators, z.B. URI',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_homepage',
+      'label' => 'Homepage',
+      'description' => '',
+      'bundles'      => array(
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_file',
+      'label' => 'Datei',
+      'description' => '',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'volume',
+        'issue',
+        'article',
+      ),
+      'settings'    => array(
+        'file_extensions' => 'pdf',
+        'max_filesize' => '104857600',
+      ),
     ),
     array(
       'field_name'  => 'field_edoweb_child',
       'label'       => $t('Child'),
-      'bundle'      => 'journal',
+      'bundles'     => array(
+        'journal',
+      ),
       'settings'    => array(
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -311,133 +588,29 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-    ),
-    /**
-     * Field instances in the volume bundle
-     */
-    array(
-      'field_name'  => 'field_edoweb_parent',
-      'label'       => $t('Parent'),
-      'bundle'      => 'volume',
-      'settings'    => array(
-        'target_type' => 'edoweb_basic',
-        'handler_settings' => array(
-          'target_bundles' => array(
-            'journal' => 'journal',
-          ),
-        ),
-      ),
-    ),
-    array(
-      'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_title_other',
-      'label'       => $t('Titelzusatz'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_creator',
-      'label'       => $t('Autor'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_contributor',
-      'label'       => $t('Beteiligte Person'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_issued',
-      'label'       => $t('Erscheinungsjahr'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_language',
-      'label'       => $t('Sprache'),
-      'bundle'      => 'volume',
-      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
-    ),
-    array(
-      'field_name'  => 'field_edoweb_edition',
-      'label'       => $t('Ausgabe'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_publication_place',
-      'label'       => $t('Erscheinungsort'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_subject',
-      'label'       => $t('Schlagwort'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_publisher',
-      'label'       => $t('Verlag'),
-      'bundle'      => 'volume',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_file',
-      'label'       => $t('Datei'),
-      'bundle'      => 'volume',
-      'settings'    => array(
-        'file_extensions' => 'pdf',
-      ),
-    ),
-    array(
-      'field_name'  => 'field_edoweb_child',
-      'label'       => $t('Children'),
-      'bundle'      => 'volume',
-      'settings'    => array(
-        'target_type' => 'edoweb_basic',
-        'handler_settings' => array(
-          'target_bundles' => array(
-            'issue' => 'issue',
-            'article' => 'article',
-          ),
-        ),
-      ),
-    ),
-    /**
-     * Field instances in the issue bundle
-     */
-    array(
-      'field_name'  => 'field_edoweb_parent',
-      'label'       => $t('Parent'),
-      'bundle'      => 'issue',
-      'settings'    => array(
-        'target_type' => 'edoweb_basic',
-        'handler_settings' => array(
-          'target_bundles' => array(
-            'journal' => 'journal',
-            'volume' => 'volume',
-          ),
-        ),
-      ),
-    ),
-    array(
-      'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'issue',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_issued',
-      'label'       => $t('Erscheinungsjahr'),
-      'bundle'      => 'issue',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_language',
-      'label'       => $t('Sprache'),
-      'bundle'      => 'issue',
-      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
     ),
     array(
       'field_name'  => 'field_edoweb_child',
       'label'       => $t('Child'),
-      'bundle'      => 'issue',
+      'bundles'     => array(
+        'volume',
+      ),
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'issue' => 'issue',
+            'article' => 'article',
+          ),
+        ),
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_child',
+      'label'       => $t('Child'),
+      'bundles'     => array(
+        'issue',
+      ),
       'settings'    => array(
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -447,13 +620,27 @@ function _edoweb_installed_instances() {
         ),
       ),
     ),
-    /**
-     * Field instances in the article bundle
-     */
     array(
       'field_name'  => 'field_edoweb_parent',
       'label'       => $t('Parent'),
-      'bundle'      => 'article',
+      'bundles'     => array(
+        'volume',
+      ),
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'journal' => 'journal',
+          ),
+        ),
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_parent',
+      'label'       => $t('Parent'),
+      'bundles'     => array(
+        'article',
+      ),
       'settings'    => array(
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -464,22 +651,6 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-    ),
-    array(
-      'field_name'  => 'field_edoweb_title',
-      'label'       => $t('Titel'),
-      'bundle'      => 'article',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_issued',
-      'label'       => $t('Erscheinungsjahr'),
-      'bundle'      => 'article',
-    ),
-    array(
-      'field_name'  => 'field_edoweb_language',
-      'label'       => $t('Sprache'),
-      'bundle'      => 'article',
-      'default_value' => array(array('value' => 'http://id.loc.gov/vocabulary/iso639-2/ger')),
     ),
   );
 }
@@ -572,8 +743,14 @@ function edoweb_uninstall() {
   // Delete field instances for now.
   // Check status of http://drupal.org/node/1015846
   $instances = _edoweb_installed_instances();
-  foreach ($instances as $instance_name => $instance) {
-    field_delete_instance($instance);
+  foreach ($instances as $instance) {
+    $instance['entity_type'] = 'edoweb_basic';
+    $bundles = $instance['bundles'];
+    unset($instance['bundles']);
+    foreach ($bundles as $bundle) {
+      $instance['bundle'] = $bundle;
+      field_delete_instance($instance);
+    }
   }
 
   // Delete users

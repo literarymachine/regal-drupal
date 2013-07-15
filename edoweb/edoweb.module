@@ -860,6 +860,12 @@ function edoweb_rdf_mapping() {
       'bundle' => RDF_DEFAULT_BUNDLE,
       'mapping' => array(
         'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
+        'field_edoweb_identifier' => array(
+          'predicates' => array('dc:identifier'),
+        ),
+        'field_edoweb_volume' => array(
+          'predicates' => array('bibo:volume'),
+        ),
         'field_edoweb_title' => array(
           'predicates' => array('isbd:P1004'),
         ),
@@ -871,11 +877,58 @@ function edoweb_rdf_mapping() {
           'type' => 'rel',
         ),
         'field_edoweb_contributor' => array(
-          'predicates' => array('dc:contributor'),
+          'predicates' => array('dce:contributor'),
+          'type' => 'rel',
+        ),
+        'field_edoweb_editor' => array(
+          'predicates' => array('bibo:editor'),
           'type' => 'rel',
         ),
         'field_edoweb_issued' => array(
           'predicates' => array('dc:issued'),
+        ),
+        // TODO: Decide on mapping
+        //'field_edoweb_issued_since' => array(
+        //  'predicates' => array(''),
+        //),
+        //'field_edoweb_issued_until' => array(
+        //  'predicates' => array(''),
+        //),
+        //'field_edoweb_publication_freq' => array(
+        //  'predicates' => array(''),
+        //),
+        //'field_edoweb_urn' => array(
+        //  'predicates' => array(''),
+        //),
+        'field_edoweb_is_like' => array(
+          'predicates' => array('umbel:isLike'),
+        ),
+        'field_edoweb_doi' => array(
+          'predicates' => array('bibo:doi'),
+        ),
+        'field_edoweb_isbn10' => array(
+          'predicates' => array('bibo:isbn10'),
+        ),
+        'field_edoweb_isbn13' => array(
+          'predicates' => array('bibo:isbn13'),
+        ),
+        'field_edoweb_issn' => array(
+          'predicates' => array('bibo:issn'),
+        ),
+        'field_edoweb_extent' => array(
+          'predicates' => array('dc:extent'),
+        ),
+        'field_edoweb_description' => array(
+          'predicates' => array('dc:description'),
+        ),
+        'field_edoweb_abstract' => array(
+          'predicates' => array('dc:abstract'),
+        ),
+        'field_edoweb_parallel' => array(
+          'predicates' => array('dc:hasFormat'),
+        ),
+        'field_edoweb_homepage' => array(
+          'predicates' => array('foaf:homepage'),
         ),
         'field_edoweb_language' => array(
           'predicates' => array('dc:language'),
@@ -927,6 +980,8 @@ function edoweb_rdf_namespaces() {
     'bibo' => 'http://purl.org/ontology/bibo/',
     'dce'  => 'http://purl.org/dc/elements/1.1/',
     'ore'  => 'http://www.openarchives.org/ore/terms/',
+    'foaf'  => 'http://xmlns.com/foaf/0.1/',
+    'umbel'  => 'http://umbel.org/umbel#',
   );
 }
 
