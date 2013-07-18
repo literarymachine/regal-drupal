@@ -278,7 +278,11 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_parallel',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
+      'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'parameter' => 'name',
+        'endpoint' => 'resource',
+      ),
     ),
     array(
       'field_name' => 'field_edoweb_homepage',
