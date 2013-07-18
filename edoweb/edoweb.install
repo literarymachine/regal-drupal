@@ -174,11 +174,7 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_editor',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'edoweb_ld_reference',
-      'settings'    => array(
-        'parameter' => 'name',
-        'endpoint' => 'person',
-      ),
+      'type'        => 'text',
     ),
     array(
       'field_name' => 'field_edoweb_edition',

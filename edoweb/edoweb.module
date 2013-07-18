@@ -904,7 +904,6 @@ function edoweb_rdf_mapping() {
         ),
         'field_edoweb_editor' => array(
           'predicates' => array('bibo:editor'),
-          'type' => 'rel',
         ),
         'field_edoweb_issued' => array(
           'predicates' => array('dc:issued'),
