@@ -148,16 +148,28 @@ function _edoweb_installed_fields() {
       'field_name' => 'field_edoweb_creator',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'parameter' => 'name',
+        'endpoint' => 'person',
+      ),
     ),
     array(
       'field_name' => 'field_edoweb_contributor',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'parameter' => 'name',
+        'endpoint' => 'person',
+      ),
     ),
     array(
       'field_name' => 'field_edoweb_editor',
       'cardinality' => 1,
       'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'parameter' => 'name',
+        'endpoint' => 'person',
+      ),
     ),
     array(
       'field_name' => 'field_edoweb_edition',

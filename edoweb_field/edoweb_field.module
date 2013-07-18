@@ -107,12 +107,15 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
   $widget = $element;
   $widget['#delta'] = $delta;
 
+  $endpoint = $field['settings']['endpoint'];
+  $parameter = $field['settings']['parameter'];
+
   switch ($instance['widget']['type']) {
     case 'edoweb_autocomplete':
       if ($value != '') {
         $widget += array(
           '#type' => 'hidden',
-          '#autocomplete_path' => 'edoweb/autocomplete',
+          '#autocomplete_path' => "edoweb/autocomplete/$endpoint/$parameter",
           '#value' => $value,
         );
         $element['label'] = array(
@@ -123,7 +126,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       } else {
         $widget += array(
           '#type' => 'textfield',
-          '#autocomplete_path' => 'edoweb/autocomplete',
+          '#autocomplete_path' => "edoweb/autocomplete/$endpoint/$parameter",
         );
       }
       $element['value'] = $widget;
