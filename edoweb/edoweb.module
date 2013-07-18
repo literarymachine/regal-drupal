@@ -298,17 +298,11 @@ function edoweb_info_page() {
   $page = array_key_exists('page', $_GET) ? $_GET['page'] : 0;
   $content['add monograph'] = array(
     '#type' => 'item',
-    '#markup' => t('!add or !import a monograph', array(
-      '!add' => l(t('Add'), 'resource/add/monograph'),
-      '!import' => l(t('import'), 'resource/import/monograph'),
-    )),
+    '#markup' => l(t('Add a monograph'), 'resource/add/monograph'),
   );
   $content['add journal'] = array(
     '#type' => 'item',
-    '#markup' => t('!add or !import a journal', array(
-      '!add' => l(t('Add'), 'resource/add/journal'),
-      '!import' => l(t('import'), 'resource/import/journal'),
-    )),
+    '#markup' => l(t('Import a journal'), 'resource/import/journal'),
   );
   $content['preface'] = array(
     '#type' => 'item',
