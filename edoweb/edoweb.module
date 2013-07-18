@@ -636,8 +636,7 @@ function edoweb_basic_import_form($form, &$form_state, $entity) {
     '#type' => 'select',
     '#weight' => 75,
     '#options' => array(
-      'http://lobid.org/resource/%s' => 'HT Nummer',
-      'http://ld.zdb-services.de/resource/%s' => 'ZDB ID',
+      'http://lobid.org/resource/%s' => 'HT-Nummer oder ZDB-ID',
       '%s' => 'Linked Data URI',
     ),
   );
