@@ -771,6 +771,13 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     '#value' => t('Save'),
     '#weight' => 100,
   );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+    '#submit' => array('edoweb_basic_edit_cancel'),
+    '#weight' => 150,
+    '#limit_validation_errors' => array(),
+  );
   $form['delete'] = array(
     '#type' => 'submit',
     '#value' => t('Delete'),
@@ -821,6 +828,19 @@ function edoweb_basic_edit_delete( $form , &$form_state ) {
     array('%id' => $entity->remote_id))
   );
   $form_state['redirect'] = 'resource';
+}
+
+/**
+ * Form cancel handler.
+ *
+ */
+function edoweb_basic_edit_cancel($form , &$form_state) {
+  $entity = $form['basic_entity']['#value'];
+  if (property_exists($entity, 'remote_id')) {
+    $form_state['redirect'] = "resource/{$entity->remote_id}";
+  } else {
+    $form_state['redirect'] = 'resource';
+  }
 }
 
 /**
