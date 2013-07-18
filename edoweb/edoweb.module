@@ -398,13 +398,18 @@ function edoweb_basic_list_entities($page) {
  * Callback for a page title when this entity is displayed.
  */
 function edoweb_basic_title($entity) {
+  if ($entity->bundle_type == 'volume') {
+    $label_field = 'field_edoweb_volume';
+  } else {
+    $label_field = 'field_edoweb_title';
+  }
   $title_items = field_get_items(
-    'edoweb_basic', $entity, 'field_edoweb_title'
+    'edoweb_basic', $entity, $label_field
   );
   $title = $title_items[0]['value']
     ? $title_items[0]['value']
     : "Untitled {$entity->bundle_type}";
-  return t($title);
+  return $title;
 }
 
 /**
