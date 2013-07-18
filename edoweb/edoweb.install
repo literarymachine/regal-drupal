@@ -538,6 +538,7 @@ function _edoweb_installed_instances() {
       'description' => 'z.B. "103 S. : Ill., graph. Darst."',
       'bundles'      => array(
         'monograph',
+        'journal',
         'issue',
         'article',
       ),
@@ -665,6 +666,22 @@ function _edoweb_installed_instances() {
         'handler_settings' => array(
           'target_bundles' => array(
             'journal' => 'journal',
+          ),
+        ),
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_struct_parent',
+      'label'       => $t('Parent'),
+      'bundles'     => array(
+        'issue',
+      ),
+      'settings'    => array(
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'journal' => 'journal',
+            'volume' => 'volume',
           ),
         ),
       ),
