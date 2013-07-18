@@ -130,6 +130,15 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
     ),
     array(
+      'field_name' => 'field_edoweb_parent',
+      'cardinality' => 1,
+      'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'parameter' => 'name',
+        'endpoint' => 'resource',
+      ),
+    ),
+    array(
       'field_name' => 'field_edoweb_volume',
       'cardinality' => 1,
       'type'        => 'text',
@@ -312,6 +321,15 @@ function _edoweb_installed_instances() {
       'field_name'  => 'field_edoweb_identifier',
       'label' => 'Identifikator',
       'description' => 'Der Hauptidentifikator für diesen Datensatz; z.B. eine Aleph-ID',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_parent',
+      'label' => 'Überordnung',
+      'description' => 'Übergeordnetes Werk; z.B. Zeitschrift bei einem Zeitschriftenband; Angabe eines Identifikators, z.B. einer URI: "http://lobid.org/resource/HT015490187"',
       'bundles'      => array(
         'monograph',
         'journal',

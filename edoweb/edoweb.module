@@ -857,6 +857,10 @@ function edoweb_rdf_mapping() {
         'field_edoweb_identifier' => array(
           'predicates' => array('dc:identifier'),
         ),
+        'field_edoweb_parent' => array(
+          'predicates' => array('dc:isPartOf'),
+          'type' => 'rel',
+        ),
         'field_edoweb_volume' => array(
           'predicates' => array('bibo:volume'),
         ),
