@@ -361,7 +361,7 @@ function edoweb_basic_list_entities($page) {
         'data' => array(
           'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
           'title' => edoweb_basic_title($entity),
-          'bundle' => $entity->bundle_type,
+          'bundle' => edoweb_basic_bundle_name($entity->bundle_type),
         ),
       );
     }
@@ -369,7 +369,7 @@ function edoweb_basic_list_entities($page) {
     $content['entity_table'] = array(
       '#theme' => 'table',
       '#rows' => $rows,
-      '#header' => array(t('ID'), t('Title'), t('Bundle')),
+      '#header' => array(t('ID'), t('Title'), t('Type')),
     );
     $content['pager'] = array(
       '#type' => 'item',
@@ -413,10 +413,14 @@ function edoweb_basic_title($entity) {
 }
 
 /**
- * Call back to display bundle name.
+ * Callback to display bundle name.
  */
-function edoweb_basic_bundle_name($bundle_name) {
-  return $bundle_name;
+function edoweb_basic_bundle_name($bundle) {
+  $info = entity_get_info('edoweb_basic');
+  $label = !empty($info['bundles'][$bundle]['label'])
+    ? $info['bundles'][$bundle]['label']
+    : 'Untitled bundle';
+  return $label;
 }
 
 /**
@@ -584,7 +588,7 @@ function edoweb_basic_children($entity) {
         'data' => array(
           'id' => l($child_entity->remote_id, "resource/{$child_entity->remote_id}"),
           'title' => edoweb_basic_title($child_entity),
-          'bundle' => $child_entity->bundle_type,
+          'bundle' => edoweb_basic_bundle_name($child_entity->bundle_type),
         ),
       );
     }
@@ -592,7 +596,7 @@ function edoweb_basic_children($entity) {
     $content['entity_table'] = array(
       '#theme' => 'table',
       '#rows' => $rows,
-      '#header' => array(t('ID'), t('Title'), t('Bundle')),
+      '#header' => array(t('ID'), t('Title'), t('Type')),
     );
   }
   else {
@@ -609,9 +613,10 @@ function edoweb_basic_children($entity) {
   );
   $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
   foreach ($child_bundles as $child_bundle) {
+    $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
     $content[] = array(
       '#type' => 'item',
-      '#markup' => l(t("Add $child_bundle"), current_path() .  "/add/$child_bundle"),
+      '#markup' => l(t("Add $child_bundle_label"), current_path() .  "/add/$child_bundle"),
     );
   }
 
