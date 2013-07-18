@@ -282,7 +282,7 @@ function _edoweb_installed_fields() {
       'type'        => 'file',
     ),
     array(
-      'field_name' => 'field_edoweb_child',
+      'field_name' => 'field_edoweb_struct_child',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'entityreference',
       'settings'    => array(
@@ -291,7 +291,7 @@ function _edoweb_installed_fields() {
       ),
     ),
     array(
-      'field_name' => 'field_edoweb_parent',
+      'field_name' => 'field_edoweb_struct_parent',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'entityreference',
       'settings'    => array(
@@ -585,7 +585,7 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_child',
+      'field_name'  => 'field_edoweb_struct_child',
       'label'       => $t('Child'),
       'bundles'     => array(
         'journal',
@@ -602,7 +602,7 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_child',
+      'field_name'  => 'field_edoweb_struct_child',
       'label'       => $t('Child'),
       'bundles'     => array(
         'volume',
@@ -618,7 +618,7 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_child',
+      'field_name'  => 'field_edoweb_struct_child',
       'label'       => $t('Child'),
       'bundles'     => array(
         'issue',
@@ -633,7 +633,7 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_parent',
+      'field_name'  => 'field_edoweb_struct_parent',
       'label'       => $t('Parent'),
       'bundles'     => array(
         'volume',
@@ -648,7 +648,7 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_parent',
+      'field_name'  => 'field_edoweb_struct_parent',
       'label'       => $t('Parent'),
       'bundles'     => array(
         'article',

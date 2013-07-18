@@ -506,7 +506,7 @@ function _edoweb_build_breadcrumb($entity, $trail = NULL) {
     $current_entity = array_pop($trail);
   }
   // Recursively add parents to breadcrumb trail
-  $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_parent');
+  $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
   if (FALSE !== $parents) {
     $local_id = $parents[0]['target_id'];
     $parent = edoweb_basic_load(_edoweb_storage_entity_get_remote_id($local_id));
@@ -550,7 +550,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
-    $wrapper->field_edoweb_parent[] = _edoweb_storage_entity_get_id($parent);
+    $wrapper->field_edoweb_struct_parent[] = _edoweb_storage_entity_get_id($parent);
   }
   _edoweb_build_breadcrumb($entity);
   return drupal_get_form('edoweb_basic_form', $entity);
@@ -560,7 +560,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_children($entity) {
-  $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_child');
+  $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
   if (FALSE === $children) {
     $entities = array();
   } else {
@@ -600,7 +600,7 @@ function edoweb_basic_children($entity) {
 
   // Fetch and link to add possible child bundles
   $field_info_instance = field_info_instance(
-    'edoweb_basic', 'field_edoweb_child', $entity->bundle_type
+    'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
   );
   $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
   foreach ($child_bundles as $child_bundle) {
@@ -800,7 +800,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   $entity = $form_state['values']['basic_entity'];
   field_attach_submit('edoweb_basic', $entity, $form, $form_state);
   $entity = edoweb_basic_save($entity);
-  $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_parent');
+  $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
   if (FALSE !== $parents) {
     foreach($parents as $parent) {
       // Reset cache to force reload of structural metadata from API
@@ -946,11 +946,11 @@ function edoweb_rdf_mapping() {
         //'field_edoweb_file' => array(
         //  'predicates' => array('ore:aggregates'),
         //),
-        //'field_edoweb_child' => array(
+        //'field_edoweb_struct_child' => array(
         //  'predicates' => array('dc:hasPart'),
         //  'type' => 'rel',
         //),
-        //'field_edoweb_parent' => array(
+        //'field_edoweb_struct_parent' => array(
         //  'predicates' => array('dc:isPartOf'),
         //  'type' => 'rel',
         //),
@@ -1089,14 +1089,14 @@ function _edoweb_is_uri($string) {
 }
 
 function _edoweb_child_access($entity) {
-  // Check that the entity has at least one field_edoweb_child
+  // Check that the entity has at least one field_edoweb_struct_child
   // and that the user has the proper permission.
   $field_instances_info = field_info_instances(
     'edoweb_basic', $entity->bundle_type
   );
   $entity_has_child_field = FALSE;
   foreach ($field_instances_info as $field_name => $instance_settings) {
-    if ('field_edoweb_child' == $field_name) {
+    if ('field_edoweb_struct_child' == $field_name) {
       $entity_has_child_field = TRUE;
       break;
     }
