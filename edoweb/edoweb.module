@@ -186,24 +186,24 @@ function edoweb_basic_uri($basic) {
 function edoweb_menu() {
 
   // Configuration section for Edoweb modules
-  $items['admin/config/edoweb'] = array(
-    'title' => 'Edoweb',
+  $items['edoweb/config'] = array(
+    'title' => 'Configuration',
     'description' => 'Configuration options for the Edoweb modules',
     'position' => 'left',
     'weight' => -100,
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer edoweb configuration'),
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
   );
 
   // Bulk import
-  $items['admin/config/edoweb/import'] = array(
+  $items['edoweb/config/import'] = array(
     'title' => 'Bulk Import',
     'description' => 'Import objects from the Edoweb API.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edoweb_bulk_import_form'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer edoweb configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -319,7 +319,7 @@ function edoweb_info_page() {
 function edoweb_permission() {
   $permissions = array(
     'administer edoweb_basic entities' =>  array(
-      'title' => t('Administer edoweb_basic entities'),
+      'title' => t('Administer Edoweb Basic entities'),
     ),
     'view any edoweb_basic entity' => array(
       'title' => t('View any Edoweb Basic entity'),
@@ -330,6 +330,9 @@ function edoweb_permission() {
     'create edoweb_basic entities' => array(
       'title' => t('Create Edoweb Basic Entities'),
     ),
+    'administer edoweb configuration' => array(
+      'title' => t('Administer Edoweb Configuration'),
+    ),
   );
   return $permissions;
 }
@@ -338,7 +341,6 @@ function edoweb_permission() {
 /**
  * Returns a render array with all edoweb_basic entities.
  *
- * TODO: implement a pager
  */
 function edoweb_basic_list_entities($page) {
   $content = array();

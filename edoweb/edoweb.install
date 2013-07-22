@@ -94,19 +94,24 @@ function edoweb_install() {
   }
 
   // Create roles and permissions
-  $role_ids = array();
+  $permissions = _edoweb_installed_permissions();
   foreach (_edoweb_installed_roles() as $role_desc) {
     $role = new stdClass();
     $role->name = $role_desc['name'];
     user_role_save($role);
-    // Fetch from DB to get role id
-    $role = user_role_load_by_name($role->name);
-    user_role_grant_permissions($role->rid, _edoweb_installed_permissions());
-    $role_ids[$role->rid] = $role->name;
+    user_role_grant_permissions($role->rid, $permissions[$role->name]);
   }
 
   // Create users
   foreach (_edoweb_installed_users() as $user) {
+    // Fetch from DB to get role id
+    $role_ids = array();
+    foreach ($user['roles'] as $role_name) {
+      $role = user_role_load_by_name($role_name);
+      if (FALSE !== $role) {
+        $role_ids[$role->rid] = $role->name;
+      }
+    }
     $user['roles'] = $role_ids;
     user_save(null, $user);
   }
@@ -707,9 +712,18 @@ function _edoweb_installed_instances() {
  */
 function _edoweb_installed_permissions() {
   return array(
-    'view any edoweb_basic entity',
-    'edit any edoweb_basic entity',
-    'create edoweb_basic entities',
+    'edoweb_backend_user' => array(
+      'view any edoweb_basic entity',
+      'edit any edoweb_basic entity',
+      'create edoweb_basic entities',
+    ),
+    'edoweb_backend_admin' => array(
+      'administer edoweb_basic entities',
+      'view any edoweb_basic entity',
+      'edit any edoweb_basic entity',
+      'create edoweb_basic entities',
+      'administer edoweb configuration',
+    ),
   );
 }
 
@@ -720,6 +734,9 @@ function _edoweb_installed_roles() {
   return array(
     array(
       'name' => 'edoweb_backend_user',
+    ),
+    array(
+      'name' => 'edoweb_backend_admin',
     ),
   );
 }
@@ -735,6 +752,19 @@ function _edoweb_installed_users() {
       'mail' => 'edoweb@localhost.localdomain',
       'init' => 'edoweb@localhost.localdomain',
       'status' => 1,
+      'roles' => array(
+        'edoweb_backend_user'
+      ),
+    ),
+    array(
+      'name' => 'edoweb_admin',
+      'pass' => 'edoweb2013',
+      'mail' => 'edoweb@localhost.localdomain',
+      'init' => 'edoweb@localhost.localdomain',
+      'status' => 1,
+      'roles' => array(
+        'edoweb_backend_admin'
+      ),
     )
   );
 }
