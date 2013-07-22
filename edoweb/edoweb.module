@@ -905,9 +905,15 @@ function edoweb_rdf_mapping() {
           'predicates' => array('dce:creator'),
           'type' => 'rel',
         ),
+        'field_edoweb_creator_new' => array(
+          'predicates' => array('dc:creator'),
+        ),
         'field_edoweb_contributor' => array(
           'predicates' => array('dce:contributor'),
           'type' => 'rel',
+        ),
+        'field_edoweb_contributor_new' => array(
+          'predicates' => array('dc:contributor'),
         ),
         'field_edoweb_editor' => array(
           'predicates' => array('bibo:editor'),

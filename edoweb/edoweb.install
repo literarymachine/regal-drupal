@@ -168,6 +168,11 @@ function _edoweb_installed_fields() {
       ),
     ),
     array(
+      'field_name' => 'field_edoweb_creator_new',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+    ),
+    array(
       'field_name' => 'field_edoweb_contributor',
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'edoweb_ld_reference',
@@ -175,6 +180,11 @@ function _edoweb_installed_fields() {
         'parameter' => 'name',
         'endpoint' => 'person',
       ),
+    ),
+    array(
+      'field_name' => 'field_edoweb_contributor_new',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
     ),
     array(
       'field_name' => 'field_edoweb_editor',
@@ -381,9 +391,29 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
+      'field_name'  => 'field_edoweb_creator_new',
+      'label' => 'Autor oder Körperschaft',
+      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat.',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
+    ),
+    array(
       'field_name'  => 'field_edoweb_contributor',
       'label' => 'Mitwirkende/r',
       'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat; Auswahl aus GND',
+      'bundles'      => array(
+        'monograph',
+        'journal',
+        'article',
+      ),
+    ),
+    array(
+      'field_name'  => 'field_edoweb_contributor_new',
+      'label' => 'Mitwirkende/r',
+      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat.',
       'bundles'      => array(
         'monograph',
         'journal',
