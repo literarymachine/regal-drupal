@@ -348,6 +348,7 @@ function edoweb_basic_list_entities($page) {
   $query = new EntityFieldQuery();
   $query
     ->entityCondition('entity_type', 'edoweb_basic')
+    ->propertyOrderBy('created', 'DESC')
     ->range($page * 10, 10);
   $result = $query->execute();
   if (!array_key_exists('edoweb_basic', $result)) {
