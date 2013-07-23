@@ -209,17 +209,17 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_issued',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'edoweb_date',
     ),
     array(
       'field_name' => 'field_edoweb_issued_since',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'edoweb_date',
     ),
     array(
       'field_name' => 'field_edoweb_issued_until',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'edoweb_date',
     ),
     array(
       'field_name' => 'field_edoweb_publication_freq',

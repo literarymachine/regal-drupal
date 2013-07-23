@@ -30,7 +30,34 @@ function edoweb_field_field_info() {
       'default_formatter' => 'edoweb_ld_format',
       'property_type' => 'uri',
     ),
+    'edoweb_date' => array(
+      'label' => t('A field for dates'),
+      'description' => t('This field holds can hold dates of the format DD.MM.YYYY, MM/YYYY or YYYY'),
+      'settings' => array('max_length' => 10),
+      'instance_settings' => array('text_processing' => 0),
+      'default_widget' => 'text_textfield',
+      'default_formatter' => 'text_default',
+      'property_type' => 'text',
+    ),
   );
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  switch ($field['type']) {
+    case 'edoweb_date':
+      foreach ($items as $delta => $item) {
+        if (!edoweb_field_field_is_empty($item, $field) &&
+            !preg_match('/^(\d\d\.\d\d\.\d\d\d\d|\d\d\/\d\d\d\d|\d\d\d\d)$/', $item['value'])) {
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'edoweb_field_date_invalid',
+            'message' => t('Dates must be of the form DD.MM.YYY, MM/YYYY or YYYY.'),
+          );
+        }
+      }
+  }
 }
 
 /**
