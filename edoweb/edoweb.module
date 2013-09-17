@@ -470,7 +470,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   $edoweb_api_host = variable_get('edoweb_api_host');
   $entity->content['remote_id'] = array(
     '#type' => 'item',
-    '#markup' => l('View in Edoweb API', "http://{$edoweb_api_host}/resources/{$entity->remote_id}"),
+    '#markup' => l('View in Edoweb API', "http://{$edoweb_api_host}/resource/{$entity->remote_id}"),
     '#weight' => -1,
   );
 

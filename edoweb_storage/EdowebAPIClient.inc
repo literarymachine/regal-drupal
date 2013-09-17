@@ -53,7 +53,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function load($entity) {
     // Fetch and add relations and files
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s/about',
+      'http://%s:%s@%s/resource/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -136,7 +136,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Fetch and add descriptive metadata
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s/metadata',
+      'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -162,7 +162,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Create resource
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s',
+      'http://%s:%s@%s/resource/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -187,14 +187,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $file = file_load($file['fid']);
         $file_path = drupal_realpath($file->uri);
         $http_url = sprintf(
-          'http://%s:%s@%s/resources/%s/data',
+          'http://%s:%s@%s/resource/%s/data',
           $this->__edoweb_api_user,
           $this->__edoweb_api_pass,
           $this->__edoweb_api_host,
           $entity->remote_id
         );
         if (file_exists($file_path) && $this->_http_multipart_put($http_url, $file_path, $file->filemime)) {
-          $file->uri = "http://{$this->__edoweb_api_host}/resources/{$entity->remote_id}/data";
+          $file->uri = "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
           _edoweb_file_save($file, $entity);
           unlink($file_path);
         }
@@ -204,7 +204,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     // Send metadata
     $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s/metadata',
+      'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -223,7 +223,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function delete($entity) {
     // Delete resource
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s',
+      'http://%s:%s@%s/resource/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -245,7 +245,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Check for metadata
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s/metadata',
+      'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -258,7 +258,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Import the entity itself
     $http_url = sprintf(
-      'http://%s:%s@%s/resources/%s/about',
+      'http://%s:%s@%s/resource/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
