@@ -59,58 +59,55 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-    $http_response = $this->_http_get($http_url);
+    $http_response = $this->_http_get($http_url, 'application/rdf+xml');
     if (500 != $http_response->code) {
       $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-      $repository_data = json_decode($http_response->data);
+      $repository_data = new LibRDF_Model(new LibRDF_Storage());
+      $repository_data->loadStatementsFromString(
+        new LibRDF_Parser('rdfxml'), $http_response->data
+      );
       // Fetch and add children
-      if (property_exists($repository_data, 'hasPart')) {
-        if (!is_array($repository_data->hasPart)) {
-          $children = array($repository_data->hasPart);
-        } else {
-          $children = $repository_data->hasPart;
-        }
-        foreach ($children as $remote_url) {
-          $remote_id = substr($remote_url, strrpos($remote_url, '/') + 1);
-          $local_id = db_query(
-            'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-            array(':remote_id' => $remote_id)
-          )->fetchField();
-          try {
-            if ($wrapper->field_edoweb_struct_child instanceOf EntityValueWrapper) {
-              $wrapper->field_edoweb_struct_child = $local_id;
-            } else {
-              $wrapper->field_edoweb_struct_child[] = $local_id;
-            }
-          } catch (EntityMetadataWrapperException $e) {
-            // TODO: log errors
-            //drupal_set_message($e->getMessage(), 'error');
+      $children = $repository_data->getTargets(
+        new LibRDF_URINode($entity->remote_id),
+        new LibRDF_URINode('http://purl.org/dc/terms/hasPart')
+      );
+      foreach ($children as $child) {
+        $remote_id = substr($child, 1, -1);
+        $local_id = db_query(
+          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+          array(':remote_id' => $remote_id)
+        )->fetchField();
+        try {
+          if ($wrapper->field_edoweb_struct_child instanceOf EntityValueWrapper) {
+            $wrapper->field_edoweb_struct_child = $local_id;
+          } else {
+            $wrapper->field_edoweb_struct_child[] = $local_id;
           }
+        } catch (EntityMetadataWrapperException $e) {
+          // TODO: log errors
+          //drupal_set_message($e->getMessage(), 'error');
         }
       }
       // Fetch and add parents
-      if (property_exists($repository_data, 'isPartOf')) {
-        if (!is_array($repository_data->isPartOf)) {
-          $parents = array($repository_data->isPartOf);
-        } else {
-          $parents = $repository_data->isPartOf;
-        }
-        foreach ($parents as $remote_url) {
-          $remote_id = substr($remote_url, strrpos($remote_url, '/') + 1);
-          $local_id = db_query(
-            'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-            array(':remote_id' => $remote_id)
-          )->fetchField();
-          try {
-            if ($wrapper->field_edoweb_struct_parent instanceOf EntityValueWrapper) {
-              $wrapper->field_edoweb_struct_parent = $local_id;
-            } else {
-              $wrapper->field_edoweb_struct_parent[] = $local_id;
-            }
-          } catch (EntityMetadataWrapperException $e) {
-            // TODO: log errors
-            //drupal_set_message($e->getMessage(), 'error');
+      $parents = $repository_data->getTargets(
+        new LibRDF_URINode($entity->remote_id),
+        new LibRDF_URINode('http://purl.org/dc/terms/isPartOf')
+      );
+      foreach ($parents as $parent) {
+        $remote_id = substr($parent, 1, -1);
+        $local_id = db_query(
+          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+          array(':remote_id' => $remote_id)
+        )->fetchField();
+        try {
+          if ($wrapper->field_edoweb_struct_parent instanceOf EntityValueWrapper) {
+            $wrapper->field_edoweb_struct_parent = $local_id;
+          } else {
+            $wrapper->field_edoweb_struct_parent[] = $local_id;
           }
+        } catch (EntityMetadataWrapperException $e) {
+          // TODO: log errors
+          //drupal_set_message($e->getMessage(), 'error');
         }
       }
       // Fetch and add files.
@@ -264,12 +261,19 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $remote_id
     );
-    $http_response = $this->_http_get($http_url);
+    $http_response = $this->_http_get($http_url, 'application/rdf+xml');
     if (200 != $http_response->code) {
       return;
     }
-    $repository_data = json_decode($http_response->data);
-    $bundle_type = $repository_data->contentType;
+    $repository_data = new LibRDF_Model(new LibRDF_Storage());
+    $repository_data->loadStatementsFromString(
+      new LibRDF_Parser('rdfxml'), $http_response->data
+    );
+    LibRDF_LiteralNode::setPlainOutput(true);
+    $bundle_type = (string) $repository_data->getTarget(
+      new LibRDF_URINode($remote_id),
+      new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
+    );
     $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
     if ('overwrite' == $import_mode) {
       $local_id = db_select('edoweb_basic')
@@ -294,16 +298,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Fetch and add child relations.
-    if (property_exists($repository_data, 'hasPart')) {
-      if (!is_array($repository_data->hasPart)) {
-        $children = array($repository_data->hasPart);
-      } else {
-        $children = $repository_data->hasPart;
-      }
-      foreach ($children as $remote_url) {
-        $remote_id = substr($remote_url, strrpos($remote_url, '/') + 1);
-        $this->importEntity($remote_id, $import_mode, $metadata_required);
-      }
+    $children = $repository_data->getTargets(
+      new LibRDF_URINode($entity->remote_id),
+      new LibRDF_URINode('http://purl.org/dc/terms/hasPart')
+    );
+    foreach ($children as $child) {
+      $remote_id = substr($child, 1, -1);
+      $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
 
     // Fetch and add files.
@@ -414,7 +415,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _http_get($request_url, $content_type = 'text/plain') {
     $http_options = array(
       'method' => 'GET',
-      'headers' => array('Content-Type' => $content_type),
+      'headers' => array('Accept' => $content_type),
     );
     return _edoweb_http_request($request_url, $http_options);
   }
