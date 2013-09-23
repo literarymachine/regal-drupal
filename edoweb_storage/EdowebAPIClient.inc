@@ -60,7 +60,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
     $http_response = $this->_http_get($http_url, 'application/rdf+xml');
-    if (500 != $http_response->code) {
+    if ((200 == $http_response->code) && isset($http_response->data)) {
       $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
       $repository_data = new LibRDF_Model(new LibRDF_Storage());
       $repository_data->loadStatementsFromString(
@@ -129,6 +129,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           // FIXME: why is the file not present?
         }
       }
+    } else {
+      watchdog('edoweb_storage', 'Unable to load data for @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
     }
 
     // Fetch and add descriptive metadata
@@ -140,11 +147,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
     $http_response = $this->_http_get($http_url);
-    if (500 != $http_response->code) {
+    if ((200 == $http_response->code) && isset($http_response->data)) {
       $rdf_subject = _edoweb_storage_entity_get_uri($entity);
       $rdf_data = $http_response->data;
       $rdf_parser = new LibRDF_Parser('ntriples');
       _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+    } else {
+      watchdog('edoweb_storage', 'Unable to load metadata for @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
     }
   }
 
@@ -175,6 +189,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
     }
     $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to save @id to @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return;
+    }
 
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
@@ -208,6 +231,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
     $http_response = $this->_http_post($http_url, $http_post_data);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to save metadata for @id to @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return;
+    }
   }
 
   /*
@@ -233,6 +265,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     //  $local_id = $children[0]['target_id'];
     //}
     $http_response = $this->_http_delete($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to delete @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return;
+    }
   }
 
   /*
@@ -250,6 +291,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
     $http_response = $this->_http_get($http_url);
     if (404 == $http_response->code && 1 == $metadata_required) {
+      watchdog('edoweb_storage', 'Unable to import required metadata for @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
       return;
     }
 
@@ -262,7 +309,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $remote_id
     );
     $http_response = $this->_http_get($http_url, 'application/rdf+xml');
-    if (200 != $http_response->code) {
+    if (200 != $http_response->code || !isset($http_response->data)) {
+      watchdog('edoweb_storage', 'Unable to import @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
       return;
     }
     $repository_data = new LibRDF_Model(new LibRDF_Storage());
@@ -348,8 +401,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $bundle_type
     );
 
-    // Fetch response
+    // Fetch resource list
     $http_response = $this->_http_get($http_url, 'application/json');
+    if ((200 != $http_response->code) || !isset($http_response->data)) {
+      watchdog('edoweb_storage', 'Unable to import @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return;
+    }
 
     // Wipe existing records if requested
     if ('clear' == $import_mode) {

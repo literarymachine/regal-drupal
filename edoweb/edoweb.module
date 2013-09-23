@@ -1076,7 +1076,7 @@ function _edoweb_http_request($request_url, $http_options) {
       case '2':
         $status_type = 'status';
         break;
-      case '3':
+      case '5':
         $status_type = 'warning';
         break;
     }
@@ -1123,10 +1123,14 @@ function _edoweb_gnd_autocomplete($endpoint, $parameter, $term) {
     'headers' => array('Accept' => 'application/json'),
   );
   $http_response = drupal_http_request($autocomplete_url, $http_options);
-  $json_data = json_decode($http_response->data);
   $matches = array();
-  foreach($json_data as $match) {
-    $matches[$match->{'value'}] = $match->{'label'};
+  if ((200 == $http_response->code) && isset($http_response->data)) {
+    $json_data = json_decode($http_response->data);
+    foreach($json_data as $match) {
+      $matches[$match->{'value'}] = $match->{'label'};
+    }
+  } else {
+    watchdog('edoweb', 'Unable to retrieve result from api.lobid.org');
   }
   drupal_json_output($matches);
 }
@@ -1339,13 +1343,19 @@ class LinkedDataClient {
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
     $http_response = _edoweb_http_request($request_url, $http_options);
-    $rdf_data = $http_response->data;
-    $rdf_subject = new LibRDF_URINode($resource_uri);
-    $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    // TODO: Incorporate origin into database scheme
-    //$entity->origin = $resource_uri;
-    return TRUE;
+    if ((200 == $http_response->code) && isset($http_response->data)) {
+      $rdf_data = $http_response->data;
+      $rdf_subject = new LibRDF_URINode($resource_uri);
+      $rdf_parser = new LibRDF_Parser('rdfxml');
+      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
+      // TODO: Incorporate origin into database scheme
+      //$entity->origin = $resource_uri;
+    } else {
+      watchdog('edoweb', 'Unable to retrieve Linked Data from @url',
+        array('@url' => $request_url)
+      );
+      throw new LibRDF_Error();
+    }
   }
 
 }

@@ -168,7 +168,14 @@ function _edoweb_field_field_get_label($resource_uri) {
     'headers' => array('Accept' => 'application/rdf+xml'),
   );
   $http_response = _edoweb_http_request($resource_uri, $http_options);
-  $rdf_data = $http_response->data;
+  if ((200 == $http_response->code) && isset($http_response->data)) {
+    $rdf_data = $http_response->data;
+  } else {
+    watchdog('edoweb_field', 'Unable to fetch label for @uri',
+      array('@uri' => $resource_uri)
+    );
+    $rdf_data = '';
+  }
   $rdf_subject = new LibRDF_URINode($resource_uri);
   $rdf_parser = new LibRDF_Parser('rdfxml');
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
