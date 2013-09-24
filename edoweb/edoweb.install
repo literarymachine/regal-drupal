@@ -78,6 +78,9 @@ function edoweb_install() {
   // Create all the fields we are adding to our entity type.
   // http://api.drupal.org/api/function/field_create_field/7
   foreach (_edoweb_installed_fields() as $field) {
+    $field['storage'] = array(
+      'type' => 'edoweb_storage',
+    );
     field_create_field($field);
   }
 
