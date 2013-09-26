@@ -117,6 +117,15 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'file' => array(
+        'label' => t('File'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/file/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
     ),
     // View modes allow entities to be displayed differently based on context.
     'view modes' => array(
@@ -988,6 +997,9 @@ function edoweb_rdf_mapping() {
         'field_edoweb_publisher' => array(
           'predicates' => array('isbd:P1017'),
         ),
+        'field_edoweb_label' => array(
+          'predicates' => array('rdfs:label'),
+        ),
         // Files and parent/child relations not mapped as
         // they are not part of the descriptive metadata.
         //'field_edoweb_file' => array(
@@ -1024,6 +1036,7 @@ function edoweb_rdf_namespaces() {
     'foaf'  => 'http://xmlns.com/foaf/0.1/',
     'umbel'  => 'http://umbel.org/umbel#',
     'lv'  => 'http://purl.org/lobid/lv#',
+    'rdfs'  => 'http://www.w3.org/2000/01/rdf-schema#',
   );
 }
 
