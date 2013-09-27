@@ -409,6 +409,7 @@ function _edoweb_installed_instances() {
         'journal',
         'issue',
         'article',
+        'file',
       ),
     ),
     array(

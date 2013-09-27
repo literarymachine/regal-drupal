@@ -110,24 +110,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           //drupal_set_message($e->getMessage(), 'error');
         }
       }
-      // Fetch and add files.
-      if (property_exists($repository_data, 'pdfUrl')) {
-        $file_url = $repository_data->pdfUrl;
-        $file_id = db_query(
-          'SELECT fid FROM {file_managed} WHERE uri = :uri',
-          array(':uri' => $file_url)
-        )->fetchField();
-        if ($file_id) {
-          $file = file_load($file_id);
-          try {
-            $wrapper->field_edoweb_file[] = (array) $file;
-          } catch (EntityMetadataWrapperException $e) {
-            // TODO: log errors
-            // drupal_set_message($e->getMessage(), 'error');
-          }
-        } else {
-          // FIXME: why is the file not present?
-        }
+      // FIXME: hardcoded URL for datastreams
+      // TODO: decide on explicit rdf property for datastream links
+      if (_edoweb_field_access($entity, array('field_edoweb_datastream'))) {
+        $wrapper->field_edoweb_datastream =
+          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
       }
     } else {
       watchdog('edoweb_storage', 'Unable to load data for @id from @api.',
@@ -140,7 +127,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Fetch and add descriptive metadata
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/metadata',
+      'http://%s:%s@%s/resource/%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
@@ -201,23 +188,20 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    $files = field_get_items('edoweb_basic', $entity, 'field_edoweb_file');
-    if (FALSE !== $files) {
-      foreach ($files as $file) {
-        $file = file_load($file['fid']);
-        $file_path = drupal_realpath($file->uri);
-        $http_url = sprintf(
-          'http://%s:%s@%s/resource/%s/data',
-          $this->__edoweb_api_user,
-          $this->__edoweb_api_pass,
-          $this->__edoweb_api_host,
-          $entity->remote_id
-        );
-        if (file_exists($file_path) && $this->_http_multipart_put($http_url, $file_path, $file->filemime)) {
-          $file->uri = "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
-          _edoweb_file_save($file, $entity);
-          unlink($file_path);
-        }
+    if (property_exists($entity, 'field_edoweb_datastream')) {
+      $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
+    }
+    if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
+      $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
+      $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
+      $file_path = drupal_realpath($file_url);
+      if ($this->_http_multipart_put("$http_url/data", $file_path, $file_mime, $file_name)) {
+        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
+          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
+        unlink($file_path);
+        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
+      } else {
+        watchdog('edoweb_storage', 'Unable to upload file to API');
       }
     }
 
@@ -312,7 +296,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to import @id from @api.',
         array(
-          '@id' => $entity->remote_id,
+          '@id' => $remote_id,
           '@api' => variable_get('edoweb_api_host'),
         )
       );
@@ -350,6 +334,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return;
     }
 
+    // TODO: Load entity so that it is cached.
+    // $this->load($entity);
+
     // Fetch and add child relations.
     $children = $repository_data->getTargets(
       new LibRDF_URINode($entity->remote_id),
@@ -360,32 +347,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
 
-    // Fetch and add files.
-    _edoweb_entity_files_remove($entity);
-    if (property_exists($repository_data, 'pdfUrl')) {
-      $file_url = $repository_data->pdfUrl;
-      $parsed_url = parse_url($file_url);
-      $auth_file_url = sprintf(
-        '%s://%s:%s@%s%s',
-        $parsed_url['scheme'],
-        $this->__edoweb_api_user,
-        $this->__edoweb_api_pass,
-        $parsed_url['host'],
-        $parsed_url['path']
-      );
-      $file_metadata = $this->_http_head($auth_file_url);
-      $file = new stdClass();
-      $file->filemime = $file_metadata->headers['content-type'];
-      $matches = array();
-      $res = preg_match('/.*filename="(.*)"/', $file_metadata->headers['content-disposition'], $matches);
-      if ($res and array_key_exists(1, $matches)) {
-        $file->filename = $matches[1];
-      } else {
-        $file->filename = t('Unnamed file');
-      }
-      $file->uri = $file_url;
-      _edoweb_file_save($file, $entity);
-    }
   }
 
   /*
@@ -415,14 +376,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Wipe existing records if requested
     if ('clear' == $import_mode) {
-      // Delete corresponding file records
-      $entities = db_select('edoweb_basic', 'e')
-        ->fields('e')
-        ->condition('bundle_type', $bundle_type, '=')
-        ->execute();
-      foreach ($entities as $entity) {
-        _edoweb_entity_files_remove($entity);
-      }
       // Delete entity records
       $num_deleted = db_delete('edoweb_basic')
         ->condition('bundle_type', $bundle_type)
@@ -437,10 +390,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
   }
 
-  protected function _http_multipart_put($request_url, $file_path, $content_type = 'text/plain') {
+  protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
     $data = array(
       'data' => "@$file_path",
       'type' => $content_type,
+      'label' => $file_name,
     );
     $ch = curl_init($request_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
