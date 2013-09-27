@@ -328,26 +328,17 @@ function _edoweb_installed_fields() {
     array(
       'field_name' => 'field_edoweb_datastream',
       'cardinality' => 1,
-      'type'        => 'text',
+      'type'        => 'edoweb_datastream',
     ),
     array(
       'field_name' => 'field_edoweb_filesize',
       'cardinality' => 1,
-      'type'        => 'int',
+      'type'        => 'number_integer',
     ),
     array(
       'field_name' => 'field_edoweb_filetype',
       'cardinality' => 1,
       'type'        => 'text',
-    ),
-    array(
-      'field_name' => 'field_edoweb_file',
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'entityreference',
-      'settings'    => array(
-        'target_type' => 'edoweb_basic',
-        'handler_settings' => array('target_bundles' => null),
-      ),
     ),
     array(
       'field_name' => 'field_edoweb_struct_child',
@@ -705,15 +696,10 @@ function _edoweb_installed_instances() {
       ),
     ),
     array(
-      'field_name'  => 'field_edoweb_file',
-      'label' => 'Datei',
-      'description' => '',
-      'bundles'      => array(
+      'field_name'  => 'field_edoweb_struct_child',
+      'label'       => $t('Child'),
+      'bundles'     => array(
         'monograph',
-        'journal',
-        'volume',
-        'issue',
-        'article',
       ),
       'settings'    => array(
         'target_type' => 'edoweb_basic',
@@ -737,6 +723,7 @@ function _edoweb_installed_instances() {
             'volume' => 'volume',
             'issue' => 'issue',
             'article' => 'article',
+            'file' => 'file',
           ),
         ),
       ),
@@ -753,6 +740,7 @@ function _edoweb_installed_instances() {
           'target_bundles' => array(
             'issue' => 'issue',
             'article' => 'article',
+            'file' => 'file',
           ),
         ),
       ),
@@ -768,6 +756,7 @@ function _edoweb_installed_instances() {
         'handler_settings' => array(
           'target_bundles' => array(
             'article' => 'article',
+            'file' => 'file',
           ),
         ),
       ),

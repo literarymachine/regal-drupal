@@ -780,10 +780,21 @@ function edoweb_basic_form($form, &$form_state, $entity) {
   $fields_info = field_info_instances(
     'edoweb_basic', $entity->bundle_type
   );
+  // Set fields holding machine-generated data to read-only
+  $readonly_fields = array(
+    'field_edoweb_label',
+    'field_edoweb_filesize',
+    'field_edoweb_filetype',
+  );
   foreach ($fields_info as $field_name => $value) {
     $field_info = field_info_field($field_name);
     if ('entityreference' == $field_info['type']) {
       unset($form[$field_name]);
+    }
+    if (in_array($field_name, $readonly_fields)) {
+      $form[$field_name]['und'][0]['value']['#attributes']['readonly'] = 'readonly';
+      $form_state['values'][$field_name]['und'][0]['value'] =
+        $form[$field_name]['und'][0]['value']['#default_value'];
     }
   }
 
