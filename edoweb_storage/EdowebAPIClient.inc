@@ -116,6 +116,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $wrapper->field_edoweb_datastream =
           "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
       }
+      // Load remaining (descriptive) metadata into fields
+      $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+      $rdf_data = $http_response->data;
+      $rdf_parser = new LibRDF_Parser('rdfxml');
+      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
     } else {
       watchdog('edoweb_storage', 'Unable to load data for @id from @api.',
         array(
@@ -125,28 +130,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
     }
 
-    // Fetch and add descriptive metadata
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_get($http_url);
-    if ((200 == $http_response->code) && isset($http_response->data)) {
-      $rdf_subject = _edoweb_storage_entity_get_uri($entity);
-      $rdf_data = $http_response->data;
-      $rdf_parser = new LibRDF_Parser('ntriples');
-      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    } else {
-      watchdog('edoweb_storage', 'Unable to load metadata for @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-    }
   }
 
   /*
