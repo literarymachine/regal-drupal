@@ -1048,9 +1048,9 @@ function edoweb_rdf_mapping() {
         //'field_edoweb_publication_freq' => array(
         //  'predicates' => array(''),
         //),
-        //'field_edoweb_urn' => array(
-        //  'predicates' => array(''),
-        //),
+        'field_edoweb_urn' => array(
+          'predicates' => array('orca:hasUrn'),
+        ),
         'field_edoweb_is_like' => array(
           'predicates' => array('umbel:isLike'),
         ),
@@ -1141,6 +1141,7 @@ function edoweb_rdf_namespaces() {
     'umbel'  => 'http://umbel.org/umbel#',
     'lv'  => 'http://purl.org/lobid/lv#',
     'rdfs'  => 'http://www.w3.org/2000/01/rdf-schema#',
+    'orca'  => 'http://geni-orca.renci.org/owl/topology.owl#',
   );
 }
 
