@@ -479,11 +479,16 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   $entity->content += field_attach_view($entity_type, $entity, $view_mode);
 
   // OK, Field API done, now we can set up some of our own data.
-  $entity->content['created'] = array(
+  $entity->content['bundle_type'] = array(
     '#type' => 'item',
-    '#title' => t('Created date'),
-    '#markup' => format_date($entity->created),
+    '#markup' => '<h1>'.edoweb_basic_bundle_name($entity->bundle_type).'</h1>',
     '#weight' => -1,
+  );
+
+  $entity->content['_created'] = array(
+    '#type' => 'item',
+    '#markup' => '<small>' . format_date($entity->created) . '</small>',
+    '#weight' => 1000,
   );
 
   $edoweb_api_host = variable_get('edoweb_api_host');
