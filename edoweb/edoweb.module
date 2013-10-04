@@ -290,7 +290,7 @@ function edoweb_menu() {
     'page callback' => 'edoweb_basic_add',
     'page arguments' => array(4, 1),
     'access callback' => '_edoweb_field_access',
-    'access arguments' => array(1, array('field_edoweb_struct_child')),
+    'access arguments' => array(1, array('field_edoweb_struct_child'), 'create edoweb_basic entities'),
     'type' => MENU_CALLBACK,
   );
 
@@ -642,17 +642,19 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
     );
   }
 
-  // Fetch and link to add possible child bundles
-  $field_info_instance = field_info_instance(
-    'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
-  );
-  $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
-  foreach ($child_bundles as $child_bundle) {
-    $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
-    $content[] = array(
-      '#type' => 'item',
-      '#markup' => l(t("Add $child_bundle_label"), current_path() .  "/add/$child_bundle"),
+  if (user_access('create edoweb_basic entities')) {
+    // Fetch and link to add possible child bundles
+    $field_info_instance = field_info_instance(
+      'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
     );
+    $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
+    foreach ($child_bundles as $child_bundle) {
+      $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
+      $content[] = array(
+        '#type' => 'item',
+        '#markup' => l(t("Add $child_bundle_label"), current_path() .  "/add/$child_bundle"),
+      );
+    }
   }
 
   _edoweb_build_breadcrumb($entity);
@@ -1318,7 +1320,7 @@ function _edoweb_field_has_value_type($entity, $field_name, $bundle_type) {
   return $field_has_value_type;
 }
 
-function _edoweb_field_access($entity, $fields = array()) {
+function _edoweb_field_access($entity, $fields = array(), $permissions = null) {
   // Check that the entity has at least one of the provided
   // fields and that the user has the proper permission.
   $field_instances_info = field_info_instances(
@@ -1331,7 +1333,11 @@ function _edoweb_field_access($entity, $fields = array()) {
       break;
     }
   }
-  return $entity_has_field && user_access('create edoweb_basic entities');
+  if (isset($permission)) {
+    return $entity_has_field && user_access($permissions);
+  } else {
+    return $entity_has_field;
+  }
 }
 
 function _edoweb_available_languages() {
