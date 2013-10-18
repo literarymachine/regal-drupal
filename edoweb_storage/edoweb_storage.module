@@ -51,7 +51,7 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get(
       'edoweb_api_host',
-      'orthos.hbz-nrw.de'
+      'api.localhost'
     ),
     '#title' => t('API host'),
     '#description' => t('The hostname or IP address of the API, without leading http://'),
@@ -63,7 +63,10 @@ function edoweb_storage_configuration_form($form, &$form_state) {
   // Text field for api user.
   $form['edoweb_api_user'] = array(
     '#type' => 'textfield',
-    '#default_value' => variable_get('edoweb_api_user'),
+    '#default_value' => variable_get(
+      'edoweb_api_user',
+      'admin'
+    ),
     '#title' => t('API user'),
     '#description' => t('The username to authorize with.'),
     '#size' => 40,
@@ -74,7 +77,10 @@ function edoweb_storage_configuration_form($form, &$form_state) {
   // Password field for api user.
   $form['edoweb_api_password'] = array(
     '#type' => 'password',
-    '#default_value' => variable_get('edoweb_api_password'),
+    '#default_value' => variable_get(
+      'edoweb_api_password',
+      'admin'
+    ),
     '#title' => t('API password'),
     '#description' => t('The password to authorize with.'),
     '#size' => 40,
