@@ -735,6 +735,12 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#type' => 'value',
     '#value' => $entity,
   );
+  $form['index'] = array(
+    '#type' => 'submit',
+    '#value' => t('Index'),
+    '#submit' => array('edoweb_basic_admin_index'),
+    '#weight' => 50,
+  );
   $form['reload'] = array(
     '#type' => 'submit',
     '#value' => t('Reload'),
@@ -749,6 +755,25 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
   );
   _edoweb_build_breadcrumb($entity);
   return $form;
+}
+
+/**
+ * Form reset handler.
+ *
+ */
+function edoweb_basic_admin_index( $form , &$form_state ) {
+  $entity = $form_state['values']['basic_entity'];
+  $api = new EdowebAPIClient();
+  if ($api->index($entity)) {
+    drupal_set_message(t('The entity %id has been indexed.',
+      array('%id' => $entity->remote_id))
+    );
+  } else {
+    drupal_set_message(t('Failed to index entity %id.',
+      array('%id' => $entity->remote_id))
+    );
+  }
+  $form_state['redirect'] = 'resource/' . $entity->remote_id;
 }
 
 /**

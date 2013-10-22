@@ -367,6 +367,29 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
   }
 
+  public function index($entity) {
+    // Index resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/utils/index/%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_post($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to index @id on @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
+  }
+
   protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
     $data = array(
       'data' => "@$file_path",
