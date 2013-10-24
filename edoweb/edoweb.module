@@ -330,11 +330,16 @@ function edoweb_info_page() {
   if (user_access('create edoweb_basic entities')) {
     $content['add monograph'] = array(
       '#type' => 'item',
-      '#markup' => l(t('Add a monograph'), 'resource/add/monograph'),
+      '#markup' => t('!add or !import a monograph', array(
+        '!add' => l(t('Add'), 'resource/add/monograph'),
+        '!import' => l(t('import'), 'resource/import/monograph'),
+      )),
     );
     $content['add journal'] = array(
       '#type' => 'item',
-      '#markup' => l(t('Import a journal'), 'resource/import/journal'),
+      '#markup' => t('!import a journal', array(
+        '!import' => l(t('Import'), 'resource/import/journal'),
+      )),
     );
   }
   $content['preface'] = array(
