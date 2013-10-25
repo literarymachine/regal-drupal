@@ -162,6 +162,10 @@ function edoweb_entity_info() {
  * @see edoweb_menu()
  */
 function edoweb_basic_load($remote_id, $reset = FALSE) {
+  if (false == $remote_id) {
+    //FIXME: remote id not available on incomplete data from api
+    return false;
+  }
   $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
   $local_ids = $local_id ? array($local_id) : array();
   $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
@@ -600,7 +604,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
-    $wrapper->field_edoweb_struct_parent[] = _edoweb_storage_entity_get_id($parent);
+    $wrapper->field_edoweb_struct_parent[] = $parent;
   }
   _edoweb_build_breadcrumb($entity);
   return drupal_get_form('edoweb_basic_form', $entity);
@@ -743,6 +747,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#submit' => array('edoweb_basic_admin_delete'),
     '#weight' => 200,
   );
+  _edoweb_build_breadcrumb($entity);
   return $form;
 }
 
@@ -1381,6 +1386,8 @@ class EdowebBasicController
   extends DrupalDefaultEntityController
   implements EdowebBasicControllerInterface {
 
+  private $__entity_loaded = array();
+
   /**
    * 
    * Generate v4 UUID
@@ -1412,6 +1419,14 @@ class EdowebBasicController
    * Load an edoweb_basic entity.
    */
   public function load($ids = array(), $conditions = array()) {
+    if (1 == variable_get('edoweb_api_nocache')) {
+      foreach ($ids as $id) {
+        if (!isset($this->__entity_loaded[$id])) {
+          cache_clear_all("field:edoweb_basic:{$id}", 'cache_field');
+          $this->__entity_loaded[$id] = true;
+        }
+      }
+    }
     LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($ids, $conditions);
     return $entities;
@@ -1490,9 +1505,11 @@ class EdowebBasicController
         foreach ($entities as $entity) {
           $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
           if (FALSE !== $children) {
-            foreach($children as $child_id) {
-              $child = edoweb_basic_load(_edoweb_storage_entity_get_remote_id($child_id));
-              $this->delete($child);
+            foreach($children as $child) {
+              $child_entity = edoweb_basic_load(
+                _edoweb_storage_entity_get_remote_id($child['target_id'])
+              );
+              $this->delete($child_entity);
             }
           }
           // Invoke hook_entity_delete().
@@ -1503,8 +1520,7 @@ class EdowebBasicController
         db_delete('edoweb_basic')
           ->condition('local_id', $local_ids, 'IN')
           ->execute();
-      }
-      catch (Exception $e) {
+      } catch (Exception $e) {
         $transaction->rollback();
         watchdog_exception('edoweb', $e);
         throw $e;
