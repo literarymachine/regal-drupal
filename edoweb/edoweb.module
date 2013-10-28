@@ -330,7 +330,8 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-  $page = array_key_exists('page', $_GET) ? $_GET['page'] : 0;
+  $sort = array_key_exists('sort', $_GET) ? $_GET['sort'] : false;
+  $order = array_key_exists('order', $_GET) ? $_GET['order'] : 'asc';
   if (user_access('create edoweb_basic entities')) {
     $content['add monograph'] = array(
       '#type' => 'item',
@@ -350,7 +351,11 @@ function edoweb_info_page() {
     '#type' => 'item',
     '#markup' => t('List of all Edoweb entities')
   );
-  $content['table'] = edoweb_basic_list_entities($page);
+
+  $content['table'] = drupal_get_form('edoweb_basic_search_entities');
+  unset($content['table']['form_build_id']);
+  unset($content['table']['form_id']);
+  unset($content['table']['form_token']);
 
   return $content;
 }
@@ -379,25 +384,44 @@ function edoweb_permission() {
   return $permissions;
 }
 
+function edoweb_basic_search_entities($form, &$form_state) {
+  $form['query'] = array(
+    '#type' => 'textfield',
+  );
+  $form['search_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+  );
+  $form['#method'] = 'get';
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  if (array_key_exists('query', $_GET) && !empty($_GET['query'])) {
+    $term = $_GET['query'];
+    $form['query']['#default_value'] = $term;
+    $query->propertyCondition('*', $term);
+  }
+  $form['results'] = edoweb_basic_list_entities($query, 1);
+  $form_state['redirect'] = false;
+  return $form;
+}
+
+function edoweb_basic_search_entities_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+}
 
 /**
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities($page) {
+function edoweb_basic_list_entities(EntityFieldQuery $query) {
   $content = array();
+
   // Load all of our entities.
-  $query = new EntityFieldQuery();
-  $query
-    ->entityCondition('entity_type', 'edoweb_basic')
-    ->propertyOrderBy('created', 'DESC')
-    ->range($page * 10, 10);
   $result = $query->execute();
   if (!array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
-    $entity_ids = array_keys($result['edoweb_basic']);
-    $entities = edoweb_basic_load_multiple($entity_ids);
+    $entities = $result['edoweb_basic'];
   }
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
@@ -417,16 +441,8 @@ function edoweb_basic_list_entities($page) {
       '#header' => array(t('ID'), t('Title'), t('Type')),
     );
     $content['pager'] = array(
-      '#type' => 'item',
-      '#markup' => '',
-    );
-    if ($page > 0) {
-      $content['pager']['#markup']  .= l(
-        '<< ', 'resource', array('query' => array('page' => ($page - 1)))
-      );
-    }
-    $content['pager']['#markup']  .= l(
-      '>>', 'resource', array('query' => array('page' => ($page + 1)))
+      '#markup' => theme('pager'),
+      '#weight' => 10,
     );
   }
   else {

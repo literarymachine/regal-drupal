@@ -390,6 +390,77 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return TRUE;
   }
 
+  public function query(EntityFieldQuery $efq) {
+    // Search resources
+    $http_url = sprintf(
+      'http://%s:%s@%s:9200/edoweb/_search',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host
+    );
+    $query = $this->_efq_to_es($efq);
+    $http_response = $this->_http_post(
+      $http_url, $query, 'application/json'
+    );
+    if (200 != $http_response->code || !isset($http_response->data)) {
+      watchdog('edoweb_storage', 'Unable to execute query on @api.',
+        array(
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    $hits = json_decode($http_response->data)->hits;
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    pager_default_initialize($hits->total, $results_per_page);
+    $results = array();
+    foreach ($hits->hits as $hit) {
+      $data = $hit->_source->{'@graph'}[0];
+      $type = $hit->_source->{'@graph'}[0]
+        ->{'http://hbz-nrw.de/regal#contentType'}[0]->{'@value'};
+      $entity = new stdClass();
+      $entity->bundle_type = $type;
+      $entity->remote_id = $data->{'@id'};
+      $rdf_subject = new LibRDF_URINode($data->{'@id'});
+      $entity->local_id = _edoweb_storage_entity_get_id($rdf_subject);
+      _edoweb_storage_entity_deserialize_jsonld(
+        $entity, $rdf_subject, json_encode($data)
+      );
+      $results['edoweb_basic'][$entity->local_id] = $entity;
+    }
+    return $results;
+  }
+
+  protected function _efq_to_es(EntityFieldQuery $efq) {
+    $query = array();
+    $page = pager_find_page();
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    $query['from'] = $results_per_page * $page;
+    $query['size'] = $results_per_page;
+
+    $conditions = false;
+    foreach($efq->propertyConditions as $property_condition) {
+      $conditions = true;
+      $query['query']['query_string']['query'] = $property_condition['value'];
+    }
+
+    if(!$conditions) {
+      $query['query'] = array("match_all" => new stdClass());
+      $query['query'] = array("term" => array("_type" => "titel"));
+    }
+
+    $query['sort'] = array();
+    foreach($efq->order as $sort) {
+      $fieldname = $sort['specifier'];
+      $order = $sort['direction'];
+      $query['sort'][]["@graph.$fieldname.@value"] = array(
+        'order' => $order,
+        'ignore_unmapped' => TRUE,
+      );
+    }
+    return json_encode($query);
+  }
+
   protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
     $data = array(
       'data' => "@$file_path",
