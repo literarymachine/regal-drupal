@@ -370,11 +370,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function index($entity) {
     // Index resource
     $http_url = sprintf(
-      'http://%s:%s@%s/utils/index/%s',
+      'http://%s:%s@%s/utils/index/%s?type=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
-      $entity->remote_id
+      $entity->remote_id,
+      $entity->bundle_type
     );
 
     $http_response = $this->_http_post($http_url);
@@ -446,7 +447,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     if(!$conditions) {
       $query['query'] = array("match_all" => new stdClass());
-      $query['query'] = array("term" => array("_type" => "titel"));
     }
 
     $query['sort'] = array();
