@@ -439,13 +439,48 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $query['from'] = $results_per_page * $page;
     $query['size'] = $results_per_page;
 
-    $conditions = false;
+    // Since all values are in fields, propertyConditions are used
+    // for special queries such as fulltext search over all fields
     foreach($efq->propertyConditions as $property_condition) {
-      $conditions = true;
-      $query['query']['query_string']['query'] = $property_condition['value'];
+      switch ($property_condition['column']) {
+        case '*':
+          $query['query']['bool']['must'][]['query_string']['query'] = $property_condition['value'];
+          break;
+        case 'type':
+          $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"] = "\"file\"";
+          break;
+        default:
+          break;
+      }
     }
 
-    if(!$conditions) {
+    $rdf_mapping = rdf_mapping_load(EDOWEB_ENTITY_TYPE);
+    $rdf_namespaces = rdf_get_namespaces();
+    foreach($efq->fieldConditions as $field_condition) {
+      $field_name = $field_condition['field']['field_name'];
+      $field_value = $field_condition['value'];
+      // Special cases for unmapped structural fields
+      switch ($field_name) {
+        case 'field_edoweb_struct_parent':
+          $field_property = 'http://purl.org/dc/terms/isPartOf';
+          $value_type = 'id';
+          break;
+        case 'field_edoweb_struct_child':
+          $field_property = 'http://purl.org/dc/terms/hasPart';
+          $value_type = 'id';
+        default:
+          // Map field name to full property URI
+          $curie = $rdf_mapping[$field_name]['predicates'][0];
+          list($prefix, $local) = explode(':', $curie);
+          $field_property = $rdf_namespaces[$prefix] . $local;
+          $value_type =
+            (isset($rdf_mapping['type']) && $rdf_mapping['type'] == 'rel') ? 'id' : 'value';
+          break;
+      }
+      $query['query']['bool']['must'][]['field']["@graph.$field_property.@$value_type"] = "\"$field_value\"";
+    }
+
+    if (!isset($query['query'])) {
       $query['query'] = array("match_all" => new stdClass());
     }
 
