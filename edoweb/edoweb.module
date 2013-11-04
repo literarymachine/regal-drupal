@@ -775,7 +775,14 @@ function edoweb_basic_admin_delete( $form , &$form_state ) {
   drupal_set_message(t('The entity %id has been deleted',
     array('%id' => $entity->remote_id))
   );
-  $form_state['redirect'] = 'resource';
+  $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
+  $parent_id = '';
+  if (FALSE !== $parents) {
+    foreach($parents as $parent) {
+      $parent_id = _edoweb_storage_entity_get_remote_id($parent['target_id']);
+    }
+  }
+  $form_state['redirect'] = "resource/$parent_id";
 }
 
 /**
