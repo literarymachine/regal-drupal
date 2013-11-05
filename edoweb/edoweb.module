@@ -1114,7 +1114,7 @@ function edoweb_rdf_mapping() {
         //  'predicates' => array(''),
         //),
         'field_edoweb_urn' => array(
-          'predicates' => array('orca:hasUrn'),
+          'predicates' => array('orca:hasURN'),
         ),
         'field_edoweb_is_like' => array(
           'predicates' => array('umbel:isLike'),
@@ -1571,4 +1571,20 @@ class LinkedDataClient {
     }
   }
 
+}
+
+/**
+ * Fix RDF mapping of field_edoweb_urn
+ */
+function edoweb_update_7100() {
+  $rdf_mapping = array(
+    'type' => EDOWEB_ENTITY_TYPE,
+    'bundle' => RDF_DEFAULT_BUNDLE,
+    'mapping' => array(
+      'field_edoweb_urn' => array(
+        'predicates' => array('orca:hasURN'),
+      ),
+    ),
+  );
+  rdf_mapping_save($rdf_mapping);
 }
