@@ -226,11 +226,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
 
-    //TODO: Delete children, currently handeled by Edoweb API
-    //$children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-    //if (FALSE !== $children) {
-    //  $local_id = $children[0]['target_id'];
-    //}
     $http_response = $this->_http_delete($http_url);
     if (200 != $http_response->code) {
       watchdog('edoweb_storage', 'Unable to delete @id from @api.',
@@ -348,9 +343,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     // Fetch resource list
     $http_response = $this->_http_get($http_url, 'application/json');
     if ((200 != $http_response->code) || !isset($http_response->data)) {
-      watchdog('edoweb_storage', 'Unable to import @id from @api.',
+      watchdog('edoweb_storage', 'Unable to fetch resource listing from @api.',
         array(
-          '@id' => $entity->remote_id,
           '@api' => variable_get('edoweb_api_host'),
         )
       );
