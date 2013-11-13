@@ -54,18 +54,91 @@ function edoweb_field_field_info() {
  * Implements hook_field_validate().
  */
 function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  // Overwrite default autocomplete behaviour
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
+    array('weight' => '100')
+  );
+
   switch ($field['type']) {
     case 'edoweb_date':
       foreach ($items as $delta => $item) {
         if (!edoweb_field_field_is_empty($item, $field) &&
-            !preg_match('/^(\d\d\.\d\d\.\d\d\d\d|\d\d\/\d\d\d\d|\d\d\d\d)$/', $item['value'])) {
+            !_edoweb_value_is_valid_date($item['value'])) {
           $errors[$field['field_name']][$langcode][$delta][] = array(
             'error' => 'edoweb_field_date_invalid',
             'message' => t('Dates must be of the form DD.MM.YYY, MM/YYYY or YYYY.'),
           );
         }
       }
+      break;
+    case 'edoweb_ld_reference':
+      foreach ($items as $delta => $item) {
+        if (!edoweb_field_field_is_empty($item, $field) &&
+            !_edoweb_value_is_valid_uri($item['value'])) {
+          $errors[$field['field_name']][$langcode][$delta][] = array(
+            'error' => 'edoweb_field_uri_invalid',
+            'message' => t('Value must be a valid, absolute URI.'),
+          );
+        }
+      }
+      break;
   }
+}
+
+function _edoweb_value_is_valid_date($value) {
+  $pattern = '/^(\d\d\.\d\d\.\d\d\d\d|\d\d\/\d\d\d\d|\d\d\d\d)$/';
+  return preg_match($pattern, $value) === 1;
+}
+
+function _edoweb_value_is_valid_uri($value) {
+  /*
+   * URI validation regular expression from
+   * http://jmrware.com/articles/2009/uri_regexp/URI_regex.html#uri-38
+   */
+  $pattern = "`
+    [A-Za-z][A-Za-z0-9+\-.]* :
+    (?: //
+      (?: (?:[A-Za-z0-9\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})* @)?
+      (?:
+        \[
+        (?:
+          (?:
+            (?:                                                    (?:[0-9A-Fa-f]{1,4}:){6}
+            |                                                   :: (?:[0-9A-Fa-f]{1,4}:){5}
+            | (?:                            [0-9A-Fa-f]{1,4})? :: (?:[0-9A-Fa-f]{1,4}:){4}
+            | (?: (?:[0-9A-Fa-f]{1,4}:){0,1} [0-9A-Fa-f]{1,4})? :: (?:[0-9A-Fa-f]{1,4}:){3}
+            | (?: (?:[0-9A-Fa-f]{1,4}:){0,2} [0-9A-Fa-f]{1,4})? :: (?:[0-9A-Fa-f]{1,4}:){2}
+            | (?: (?:[0-9A-Fa-f]{1,4}:){0,3} [0-9A-Fa-f]{1,4})? ::    [0-9A-Fa-f]{1,4}:
+            | (?: (?:[0-9A-Fa-f]{1,4}:){0,4} [0-9A-Fa-f]{1,4})? ::
+            ) (?:
+                [0-9A-Fa-f]{1,4} : [0-9A-Fa-f]{1,4}
+              | (?: (?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?) \.){3}
+                    (?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
+              )
+          |   (?: (?:[0-9A-Fa-f]{1,4}:){0,5} [0-9A-Fa-f]{1,4})? ::    [0-9A-Fa-f]{1,4}
+          |   (?: (?:[0-9A-Fa-f]{1,4}:){0,6} [0-9A-Fa-f]{1,4})? ::
+          )
+        | [Vv][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+
+        )
+        \]
+      | (?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}
+           (?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
+      | (?:[A-Za-z0-9\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*
+      )
+      (?: : [0-9]* )?
+      (?:/ (?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})* )*
+    | /
+      (?:    (?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+
+        (?:/ (?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})* )*
+      )?
+    |        (?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+
+        (?:/ (?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})* )*
+    |
+    )
+    (?:\? (?:[A-Za-z0-9\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})* )?
+    `x";
+  return preg_match($pattern, $value) === 1;
 }
 
 /**
