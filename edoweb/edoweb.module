@@ -837,9 +837,10 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
     drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
   }
   $entity->remote_id = 'edoweb:' . EdowebBasicController::uuid_v4();
-  $form_state['redirect'] = false;
-  $form = drupal_get_form('edoweb_basic_form', $entity);
-  $form['#action'] = url("resource/add/{$entity->bundle_type}");
+  $form_state = array();
+  $form_state['values'] = array();
+  drupal_form_submit('edoweb_basic_form', $form_state, $entity);
+  drupal_goto("resource/{$entity->remote_id}");
 }
 
 /**
