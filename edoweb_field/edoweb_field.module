@@ -276,6 +276,19 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 }
 
 function _edoweb_field_ld_reference_get_label($field, $resource_uri) {
+  $cached_label = _edoweb_field_ld_reference_get_cached_label($resource_uri);
+  if (!$cached_label) {
+    $label = _edoweb_field_ld_reference_fetch_label(
+      $field, $resource_uri
+    );
+    _edoweb_field_ld_reference_set_cached_label($resource_uri, $label);
+  } else {
+    $label = $cached_label;
+  }
+  return $label;
+}
+
+function _edoweb_field_ld_reference_fetch_label($field, $resource_uri) {
   $api = new LinkedDataClient();
   $rdf_model = $api->getRDF($resource_uri);
   $rdf_subject = new LibRDF_URINode($resource_uri);
@@ -299,4 +312,35 @@ function _edoweb_field_ld_reference_get_label($field, $resource_uri) {
     $resource_label = "Label for $resource_uri";
   }
   return "$resource_label";
+}
+
+function _edoweb_field_ld_reference_get_cached_label($resource_uri) {
+  $resource_uri_md5 = md5($resource_uri);
+  return db_query(
+    'SELECT label FROM {edoweb_ld_reference_label_cache}
+     WHERE resource_uri_md5 = :resource_uri_md5',
+    array(':resource_uri_md5' => $resource_uri_md5)
+  )->fetchField();
+}
+
+function _edoweb_field_ld_reference_set_cached_label($resource_uri, $label) {
+  $resource_uri_md5 = md5($resource_uri);
+  $data = array(
+    'resource_uri_md5' => $resource_uri_md5,
+    'label' => $label,
+    'lang' => '',
+    'updated' => time(),
+  );
+  return db_merge('edoweb_ld_reference_label_cache')
+    ->key(array('resource_uri_md5' => $resource_uri_md5, 'lang' => ''))
+    ->fields($data)
+    ->execute();
+}
+
+/**
+ * Add cache table for linked data labels
+ */
+function edoweb_field_update_7100() {
+  $schema = drupal_get_schema('edoweb_ld_reference_label_cache', TRUE);
+  db_create_table('edoweb_ld_reference_label_cache', $schema);
 }
