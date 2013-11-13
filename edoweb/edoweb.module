@@ -1298,24 +1298,75 @@ function _edoweb_label_callback_set($entity, $entity_type) {
   return $label;
 }
 
-function _edoweb_gnd_autocomplete($endpoint, $parameter, $term) {
+function _edoweb_gnd_autocomplete($field_name, $term) {
+  $field_definition = field_info_field($field_name);
+  $endpoint = $field_definition['settings']['endpoint'];
+  $parameter = $field_definition['settings']['parameter'];
   $autocomplete_url = "http://api.lobid.org/$endpoint?$parameter=";
   $autocomplete_url .= urlencode($term);
-  $autocomplete_url .= "&format=ids";
+
   $http_options = array(
     'method' => 'GET',
-    'headers' => array('Accept' => 'application/json'),
+    'headers' => array('Accept' => 'text/plain'),
   );
   $http_response = drupal_http_request($autocomplete_url, $http_options);
   $matches = array();
-  if ((200 == $http_response->code) && isset($http_response->data)) {
-    $json_data = json_decode($http_response->data);
-    foreach($json_data as $match) {
-      $matches[$match->{'value'}] = $match->{'label'};
-    }
-  } else {
+  if (!((200 == $http_response->code) && isset($http_response->data))) {
     watchdog('edoweb', 'Unable to retrieve result from api.lobid.org');
+    drupal_json_output($matches);
+    return;
   }
+
+  $nt_data = $http_response->data;
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  try {
+    $rdf_model->loadStatementsFromString($rdf_parser, $nt_data);
+  } catch (LibRDF_Error $e) {
+    watchdog('edoweb', 'Unable to parse result from api.lobid.org');
+    drupal_json_output($matches);
+    return;
+  }
+
+  $rdf_type_property = new LibRDF_URINode(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+  );
+  $rdf_type_map = array(
+    'resource' => new LibRDF_URINode(
+      'http://purl.org/dc/terms/BibliographicResource'
+    ),
+    'person' => new LibRDF_URINode(
+      'http://d-nb.info/standards/elementset/gnd#DifferentiatedPerson'
+    ),
+  );
+
+  $resources = $rdf_model->getSources(
+    $rdf_type_property, $rdf_type_map[$endpoint]
+  );
+  $rdf_properties = $field_definition['settings']['label_properties'];
+
+  LibRDF_LiteralNode::setPlainOutput(true);
+  foreach ($resources as $rdf_subject) {
+    $label_properties = array();
+    foreach ($rdf_properties as $rdf_property_uri) {
+      $rdf_property = new LibRDF_URINode($rdf_property_uri);
+      try {
+        // Fix escaped unicode characters such as \u00E4
+        $label_properties[] = json_decode(
+          '"'.$rdf_model->getTarget($rdf_subject, $rdf_property).'"'
+        );
+      } catch (LibRDF_LookupError $e) {
+        // Property could not be loaded, ignore
+      }
+    }
+    if (!empty($label_properties)) {
+      $resource_label = implode(', ', $label_properties);
+    } else {
+      $resource_label = "Label for $resource_uri";
+    }
+    $matches[substr($rdf_subject, 1, -1)] = $resource_label;
+  }
+
   drupal_json_output($matches);
 }
 
@@ -1595,4 +1646,25 @@ function edoweb_update_7100() {
     ),
   );
   rdf_mapping_save($rdf_mapping);
+}
+
+/**
+ * Update definitions of linked data fields
+ */
+function edoweb_update_7101() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_parallel',
+  );
+  module_load_install('edoweb');
+  $field_definitions = _edoweb_installed_fields();
+  foreach ($updated_fields as $updated_field) {
+    $field_definition = array();
+    $field_definition['settings']['label_properties'] =
+      $field_definitions[$updated_field]['settings']['label_properties'];
+    $field_definition['field_name'] = $updated_field;
+    field_update_field($field_definition);
+  }
 }

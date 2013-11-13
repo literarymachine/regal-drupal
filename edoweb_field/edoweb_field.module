@@ -196,7 +196,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
     case 'edoweb_ld_format':
       foreach ($items as $delta => $item) {
         $elements[$delta] = array(
-          '#markup' => l(_edoweb_field_field_get_label($item['value']), $item['value']),
+          '#markup' => l(_edoweb_field_ld_reference_get_label($field, $item['value']), $item['value']),
         );
       }
       break;
@@ -243,18 +243,18 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       if ($value != '') {
         $widget += array(
           '#type' => 'hidden',
-          '#autocomplete_path' => "edoweb/autocomplete/$endpoint/$parameter",
+          '#autocomplete_path' => "edoweb/autocomplete/{$field['field_name']}",
           '#value' => $value,
         );
         $element['label'] = array(
           '#type' => 'textfield',
-          '#value' => _edoweb_field_field_get_label($value),
+          '#value' => _edoweb_field_ld_reference_get_label($field, $value),
           '#disabled' => TRUE,
         );
       } else {
         $widget += array(
           '#type' => 'textfield',
-          '#autocomplete_path' => "edoweb/autocomplete/$endpoint/$parameter",
+          '#autocomplete_path' => "edoweb/autocomplete/{$field['field_name']}",
         );
       }
       $element['value'] = $widget;
@@ -275,36 +275,28 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
   return $element;
 }
 
-function _edoweb_field_field_get_label($resource_uri) {
-  $http_options = array(
-    'method' => 'GET',
-    'headers' => array('Accept' => 'application/rdf+xml'),
-  );
-  $http_response = _edoweb_http_request($resource_uri, $http_options);
-  if ((200 == $http_response->code) && isset($http_response->data)) {
-    $rdf_data = $http_response->data;
-  } else {
-    watchdog('edoweb_field', 'Unable to fetch label for @uri',
-      array('@uri' => $resource_uri)
-    );
-    $rdf_data = '';
-  }
+function _edoweb_field_ld_reference_get_label($field, $resource_uri) {
+  $api = new LinkedDataClient();
+  $rdf_model = $api->getRDF($resource_uri);
   $rdf_subject = new LibRDF_URINode($resource_uri);
-  $rdf_parser = new LibRDF_Parser('rdfxml');
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  $rdf_label_uri = new LibRDF_URINode('http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson');
-  $rdf_resource_uri = new LibRDF_URINode($resource_uri);
-  try {
-    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
-    // Fix escaped unicode characters such as \u00E4
-    $resource_label = json_decode(
-      '"'.$rdf_model->getTarget($rdf_resource_uri, $rdf_label_uri).'"'
-    );
-  } catch (LibRDF_Error $e) {
-    $resource_label = "Label for $resource_uri";
-  } catch (LibRDF_LookupError $e) {
+  LibRDF_LiteralNode::setPlainOutput(true);
+  $rdf_properties = $field['settings']['label_properties'];
+  $label_properties = array();
+  foreach ($rdf_properties as $rdf_property_uri) {
+    $rdf_property = new LibRDF_URINode($rdf_property_uri);
+    try {
+      // Fix escaped unicode characters such as \u00E4
+      $label_properties[] = json_decode(
+        '"'.$rdf_model->getTarget($rdf_subject, $rdf_property).'"'
+      );
+    } catch (LibRDF_LookupError $e) {
+      // Property could not be loaded, ignore
+    }
+  }
+  if (!empty($label_properties)) {
+    $resource_label = implode(', ', $label_properties);
+  } else {
     $resource_label = "Label for $resource_uri";
   }
-  LibRDF_LiteralNode::setPlainOutput(true);
   return "$resource_label";
 }
