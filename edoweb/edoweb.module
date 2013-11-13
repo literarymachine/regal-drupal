@@ -1546,25 +1546,37 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($entity, $resource_uri) {
-    $request_url = $resource_uri;
+    $rdf_model = $this->getRDF($resource_uri);
+    $rdf_subject = new LibRDF_URINode($resource_uri);
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, "$rdf_model", $rdf_parser);
+  }
+
+  /*
+   * Load the RDF for a linked data resource
+   */
+  public function getRDF($resource_uri) {
     $http_options = array(
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
-    $http_response = _edoweb_http_request($request_url, $http_options);
+    $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
       $rdf_data = $http_response->data;
-      $rdf_subject = new LibRDF_URINode($resource_uri);
-      $rdf_parser = new LibRDF_Parser('rdfxml');
-      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-      // TODO: Incorporate origin into database scheme
-      //$entity->origin = $resource_uri;
     } else {
-      watchdog('edoweb', 'Unable to retrieve Linked Data from @url',
-        array('@url' => $request_url)
-      );
-      throw new LibRDF_Error();
+      $rdf_data = '';
     }
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    try {
+      $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+    } catch (LibRDF_Error $e) {
+      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri',
+        array('@uri' => $resource_uri)
+      );
+      throw $e;
+    }
+    return $rdf_model;
   }
 
 }
