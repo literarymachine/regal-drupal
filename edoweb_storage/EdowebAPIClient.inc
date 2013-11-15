@@ -171,7 +171,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    if (property_exists($entity, 'field_edoweb_datastream')) {
+    if (property_exists($entity, 'field_edoweb_datastream')
+        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
       $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
     }
     if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
