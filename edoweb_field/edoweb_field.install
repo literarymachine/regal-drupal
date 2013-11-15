@@ -30,3 +30,41 @@ function edoweb_field_field_schema($field) {
   );
   return array('columns' => $columns);
 }
+
+/**
+ * Implements hook_schema().
+ */
+function edoweb_field_schema() {
+  $schema = array();
+  $schema['edoweb_ld_reference_label_cache'] = array(
+    'description' => 'Cache table for the labels of linked data fields',
+    'fields' => array(
+      'resource_uri_md5' => array(
+        'description' => 'The MD5 hash of the URI of the resource',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human readable label for the resource',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'lang' => array(
+        'description' => 'The language of the human readable label',
+        'type' => 'varchar',
+        'length' => 3,
+        'not null' => FALSE,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp of the label update time.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('resource_uri_md5', 'lang'),
+  );
+  return $schema;
+}
