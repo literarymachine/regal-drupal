@@ -697,10 +697,17 @@ function edoweb_basic_file($entity) {
         'data' => array(
           'title' => l(edoweb_basic_title($file_entity), "resource/{$file_entity->remote_id}"),
           'url' => l(
-            $file_entity->field_edoweb_label['und'][0]['value'],
-            $file_entity->field_edoweb_datastream['und'][0]['value']
+            isset($file_entity->field_edoweb_label['und'][0]['value'])
+              ? $file_entity->field_edoweb_label['und'][0]['value']
+              : "Unlabeled file",
+            isset($file_entity->field_edoweb_datastream['und'][0]['value'])
+              ? $file_entity->field_edoweb_datastream['und'][0]['value']
+              : "#"
           ),
-          'filetype' => $file_entity->field_edoweb_filetype['und'][0]['value'],
+          'filetype' =>
+            isset($file_entity->field_edoweb_filetype['und'][0]['value'])
+              ? $file_entity->field_edoweb_filetype['und'][0]['value']
+              : "Unknown file type"
         ),
       );
     }
