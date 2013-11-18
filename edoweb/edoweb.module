@@ -697,10 +697,17 @@ function edoweb_basic_file($entity) {
         'data' => array(
           'title' => l(edoweb_basic_title($file_entity), "resource/{$file_entity->remote_id}"),
           'url' => l(
-            $file_entity->field_edoweb_label['und'][0]['value'],
-            $file_entity->field_edoweb_datastream['und'][0]['value']
+            isset($file_entity->field_edoweb_label['und'][0]['value'])
+              ? $file_entity->field_edoweb_label['und'][0]['value']
+              : "Unlabeled file",
+            isset($file_entity->field_edoweb_datastream['und'][0]['value'])
+              ? $file_entity->field_edoweb_datastream['und'][0]['value']
+              : "#"
           ),
-          'filetype' => $file_entity->field_edoweb_filetype['und'][0]['value'],
+          'filetype' =>
+            isset($file_entity->field_edoweb_filetype['und'][0]['value'])
+              ? $file_entity->field_edoweb_filetype['und'][0]['value']
+              : "Unknown file type"
         ),
       );
     }
@@ -837,9 +844,10 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
     drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
   }
   $entity->remote_id = 'edoweb:' . EdowebBasicController::uuid_v4();
-  $form_state['redirect'] = false;
-  $form = drupal_get_form('edoweb_basic_form', $entity);
-  $form['#action'] = url("resource/add/{$entity->bundle_type}");
+  $form_state = array();
+  $form_state['values'] = array();
+  drupal_form_submit('edoweb_basic_form', $form_state, $entity);
+  drupal_goto("resource/{$entity->remote_id}");
 }
 
 /**
@@ -975,18 +983,7 @@ function edoweb_basic_form($form, &$form_state, $entity) {
  * of the attached fields.
  */
 function edoweb_basic_form_validate($form, &$form_state) {
-  field_attach_form_validate('edoweb_basic', $form_state['values']['basic_entity'], $form, $form_state);
-}
-
-/**
- * Form submit handler: submits basic_add_form information
- */
-function edoweb_basic_form_submit($form, &$form_state) {
-
-  // Set field data from form
   $entity = $form_state['values']['basic_entity'];
-  field_attach_submit('edoweb_basic', $entity, $form, $form_state);
-
   // Handle uploaded files by moving them from the tmp directory
   // and storing the resulting (local) URI
   if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
@@ -1002,7 +999,26 @@ function edoweb_basic_form_submit($form, &$form_state) {
     $entity->field_edoweb_label[LANGUAGE_NONE][]['value'] = $file_name;
     $entity->field_edoweb_filetype[LANGUAGE_NONE][]['value'] = $file_type;
     $entity->field_edoweb_filesize[LANGUAGE_NONE][]['value'] = $file_size;
+    $form_state['values']['field_edoweb_datastream'][LANGUAGE_NONE][0]['value'] = $file_uri;
+    $form_state['values']['field_edoweb_label'][LANGUAGE_NONE][0]['value'] = $file_name;
+    $form_state['values']['field_edoweb_filetype'][LANGUAGE_NONE][0]['value'] = $file_type;
+    $form_state['values']['field_edoweb_filesize'][LANGUAGE_NONE][0]['value'] = $file_size;
+  } else if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
+             && !isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])
+  ) {
+    form_set_error('field_edoweb_datastream', t('File is required.'));
   }
+  field_attach_form_validate('edoweb_basic', $entity, $form, $form_state);
+}
+
+/**
+ * Form submit handler: submits basic_add_form information
+ */
+function edoweb_basic_form_submit($form, &$form_state) {
+
+  // Set field data from form
+  $entity = $form_state['values']['basic_entity'];
+  field_attach_submit('edoweb_basic', $entity, $form, $form_state);
 
   // Save the entity
   $entity = edoweb_basic_save($entity);
@@ -1297,30 +1313,76 @@ function _edoweb_label_callback_set($entity, $entity_type) {
   return $label;
 }
 
-function _edoweb_gnd_autocomplete($endpoint, $parameter, $term) {
+function _edoweb_gnd_autocomplete($field_name, $term) {
+  $field_definition = field_info_field($field_name);
+  $endpoint = $field_definition['settings']['endpoint'];
+  $parameter = $field_definition['settings']['parameter'];
   $autocomplete_url = "http://api.lobid.org/$endpoint?$parameter=";
   $autocomplete_url .= urlencode($term);
-  $autocomplete_url .= "&format=ids";
+
   $http_options = array(
     'method' => 'GET',
-    'headers' => array('Accept' => 'application/json'),
+    'headers' => array('Accept' => 'text/plain'),
   );
   $http_response = drupal_http_request($autocomplete_url, $http_options);
   $matches = array();
-  if ((200 == $http_response->code) && isset($http_response->data)) {
-    $json_data = json_decode($http_response->data);
-    foreach($json_data as $match) {
-      $matches[$match->{'value'}] = $match->{'label'};
-    }
-  } else {
+  if (!((200 == $http_response->code) && isset($http_response->data))) {
     watchdog('edoweb', 'Unable to retrieve result from api.lobid.org');
+    drupal_json_output($matches);
+    return;
   }
-  drupal_json_output($matches);
-}
 
-function _edoweb_is_uri($string) {
-  $pattern = "`^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\d*))?(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?$`";
-  return preg_match($pattern, $string) === 1;
+  $nt_data = $http_response->data;
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  try {
+    $rdf_model->loadStatementsFromString($rdf_parser, $nt_data);
+  } catch (LibRDF_Error $e) {
+    watchdog('edoweb', 'Unable to parse result from api.lobid.org');
+    drupal_json_output($matches);
+    return;
+  }
+
+  $rdf_type_property = new LibRDF_URINode(
+    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+  );
+  $rdf_type_map = array(
+    'resource' => new LibRDF_URINode(
+      'http://purl.org/dc/terms/BibliographicResource'
+    ),
+    'person' => new LibRDF_URINode(
+      'http://d-nb.info/standards/elementset/gnd#DifferentiatedPerson'
+    ),
+  );
+
+  $resources = $rdf_model->getSources(
+    $rdf_type_property, $rdf_type_map[$endpoint]
+  );
+  $rdf_properties = $field_definition['settings']['label_properties'];
+
+  LibRDF_LiteralNode::setPlainOutput(true);
+  foreach ($resources as $rdf_subject) {
+    $label_properties = array();
+    foreach ($rdf_properties as $rdf_property_uri) {
+      $rdf_property = new LibRDF_URINode($rdf_property_uri);
+      try {
+        // Fix escaped unicode characters such as \u00E4
+        $label_properties[] = json_decode(
+          '"'.$rdf_model->getTarget($rdf_subject, $rdf_property).'"'
+        );
+      } catch (LibRDF_LookupError $e) {
+        // Property could not be loaded, ignore
+      }
+    }
+    if (!empty($label_properties)) {
+      $resource_label = implode(', ', $label_properties);
+    } else {
+      $resource_label = "Label for $resource_uri";
+    }
+    $matches[substr($rdf_subject, 1, -1)] = $resource_label;
+  }
+
+  drupal_json_output($matches);
 }
 
 function _edoweb_field_has_value_type($entity, $field_name, $bundle_type) {
@@ -1550,25 +1612,36 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($entity, $resource_uri) {
-    $request_url = $resource_uri;
+    $rdf_model = $this->getRDF($resource_uri);
+    $rdf_subject = new LibRDF_URINode($resource_uri);
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, "$rdf_model", $rdf_parser);
+  }
+
+  /*
+   * Load the RDF for a linked data resource
+   */
+  public function getRDF($resource_uri) {
     $http_options = array(
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
-    $http_response = _edoweb_http_request($request_url, $http_options);
+    $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
       $rdf_data = $http_response->data;
-      $rdf_subject = new LibRDF_URINode($resource_uri);
-      $rdf_parser = new LibRDF_Parser('rdfxml');
-      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-      // TODO: Incorporate origin into database scheme
-      //$entity->origin = $resource_uri;
     } else {
-      watchdog('edoweb', 'Unable to retrieve Linked Data from @url',
-        array('@url' => $request_url)
-      );
-      throw new LibRDF_Error();
+      $rdf_data = '';
     }
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    try {
+      $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
+    } catch (LibRDF_Error $e) {
+      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri',
+        array('@uri' => $resource_uri)
+      );
+    }
+    return $rdf_model;
   }
 
 }
@@ -1587,4 +1660,25 @@ function edoweb_update_7100() {
     ),
   );
   rdf_mapping_save($rdf_mapping);
+}
+
+/**
+ * Update definitions of linked data fields
+ */
+function edoweb_update_7101() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_parallel',
+  );
+  module_load_install('edoweb');
+  $field_definitions = _edoweb_installed_fields();
+  foreach ($updated_fields as $updated_field) {
+    $field_definition = array();
+    $field_definition['settings']['label_properties'] =
+      $field_definitions[$updated_field]['settings']['label_properties'];
+    $field_definition['field_name'] = $updated_field;
+    field_update_field($field_definition);
+  }
 }

@@ -19,13 +19,23 @@
 
 (function($) {
 
+  Drupal.behaviors.edoweb_field = {
+    attach: function (context, settings) {
+      $('body', context).delegate('a.autocomplete-remove', 'click', function(e) {
+        console.log("clicked");
+        $(this).closest('tr').hide();
+        $(this).closest('td').children('input')[0].value = "";
+        return false;
+      });
+    }
+  };
+
+
   /**
    * Puts the currently highlighted suggestion into the autocomplete field.
    */
   Drupal.jsAC.prototype.select = function (node) {
-    this.input.value = $(node).data('autocompleteId');
-    this.input.type = 'hidden';
-    $(this.input).after('<input type="text" class="text-full form-text" size="60" maxlength="255" disabled value="' + $(node).data('autocompleteValue') + '" />');
+    // Selection is handeled by Drupal.jsAC.prototype.hidePopup
   };
 
   /**
@@ -36,6 +46,11 @@
     if (this.selected && ((keycode && keycode != 46 && keycode != 8 && keycode != 27) || !keycode)) {
       this.input.value = $(this.selected).data('autocompleteId');
       this.input.type = 'hidden';
+      var label = $('<input type="text" class="form-text autocomplete-selected" size="60" maxlength="128" disabled value="' + $(this.selected).data('autocompleteValue') + '" />');
+      var remove = $('<div class="form-item form-type-item"><a href="#" class="autocomplete-remove">[remove]</a></div>');
+      $(this.input).after(label);
+      $(this.input).parent().after($(this.input));
+      $(this.input).before(remove);
     }
     // Hide popup.
     var popup = this.popup;
