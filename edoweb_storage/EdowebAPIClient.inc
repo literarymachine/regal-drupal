@@ -71,6 +71,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $entity, $repository_data, array(
           'field_edoweb_struct_child',
           'field_edoweb_struct_parent',
+          'field_edoweb_filesize',
         )
       );
       // FIXME: hardcoded URL for datastreams
