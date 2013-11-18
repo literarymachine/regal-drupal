@@ -66,50 +66,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $repository_data->loadStatementsFromString(
         new LibRDF_Parser('rdfxml'), $http_response->data
       );
-      // Fetch and add children
-      $children = $repository_data->getTargets(
-        new LibRDF_URINode($entity->remote_id),
-        new LibRDF_URINode('http://purl.org/dc/terms/hasPart')
+      // Fetch and add non-descriptive fields
+      $this->_attachUnmappedFields(
+        $entity, $repository_data, array(
+          'field_edoweb_struct_child',
+          'field_edoweb_struct_parent',
+          'field_edoweb_filesize',
+        )
       );
-      foreach ($children as $child) {
-        $remote_id = substr($child, 1, -1);
-        $local_id = db_query(
-          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-          array(':remote_id' => $remote_id)
-        )->fetchField();
-        try {
-          if ($wrapper->field_edoweb_struct_child instanceOf EntityValueWrapper) {
-            $wrapper->field_edoweb_struct_child = $local_id;
-          } else {
-            $wrapper->field_edoweb_struct_child[] = $local_id;
-          }
-        } catch (EntityMetadataWrapperException $e) {
-          // TODO: log errors
-          //drupal_set_message($e->getMessage(), 'error');
-        }
-      }
-      // Fetch and add parents
-      $parents = $repository_data->getTargets(
-        new LibRDF_URINode($entity->remote_id),
-        new LibRDF_URINode('http://purl.org/dc/terms/isPartOf')
-      );
-      foreach ($parents as $parent) {
-        $remote_id = substr($parent, 1, -1);
-        $local_id = db_query(
-          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-          array(':remote_id' => $remote_id)
-        )->fetchField();
-        try {
-          if ($wrapper->field_edoweb_struct_parent instanceOf EntityValueWrapper) {
-            $wrapper->field_edoweb_struct_parent = $local_id;
-          } else {
-            $wrapper->field_edoweb_struct_parent[] = $local_id;
-          }
-        } catch (EntityMetadataWrapperException $e) {
-          // TODO: log errors
-          //drupal_set_message($e->getMessage(), 'error');
-        }
-      }
       // FIXME: hardcoded URL for datastreams
       // TODO: decide on explicit rdf property for datastream links
       if (_edoweb_field_access($entity, array('field_edoweb_datastream'))) {
@@ -130,6 +94,62 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
     }
 
+  }
+
+  protected function _attachUnmappedFields($entity, $data, $field_names) {
+    foreach ($field_names as $field_name) {
+      $this->_attachUnmappedField($entity, $data, $field_name);
+    }
+  }
+
+  /*
+   * Load the value for a field that is not mapped via hook_rdf_mapping
+   * (currently all fields mapped there are written as descriptive
+   * metadata, but some fields are not descriptive).
+   * TODO: Implement metadata roles in hook_rdf_mapping
+   */
+  protected function _attachUnmappedField($entity, $data, $field_name) {
+    $mapping = array(
+      'field_edoweb_struct_parent' =>
+        new LibRDF_URINode('http://purl.org/dc/terms/isPartOf'),
+      'field_edoweb_struct_child' =>
+        new LibRDF_URINode('http://purl.org/dc/terms/hasPart'),
+      'field_edoweb_filesize' =>
+        new LibRDF_URINode('http://downlode.org/Code/RDF/File_Properties/schema#size'),
+    );
+
+    // Fetch and add values
+    $value_nodes = $data->getTargets(
+      _get_rdf_subject($entity, $field_name),
+      $mapping[$field_name]
+    );
+    $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
+    LibRDF_LiteralNode::setPlainOutput(true);
+    foreach ($value_nodes as $value_node) {
+      if ($value_node instanceOf LibRDF_LiteralNode) {
+        $value = "$value_node";
+      } else {
+        $remote_id = substr($value_node, 1, -1);
+        $value = db_query(
+          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+          array(':remote_id' => $remote_id)
+        )->fetchField();
+      }
+      try {
+        if ($wrapper->$field_name instanceOf EntityValueWrapper) {
+          $wrapper->{$field_name} = $value;
+        } else {
+          $wrapper->{$field_name}[] = $value;
+        }
+      } catch (EntityMetadataWrapperException $e) {
+        watchdog('edoweb_storage', 'Unable to attach data for @field_name to @entity_id.',
+          array(
+            '@field_name' => $field_name,
+            '@entity_id' => $entity->remote_id,
+          )
+        );
+      }
+    }
   }
 
   /*
@@ -171,7 +191,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    if (property_exists($entity, 'field_edoweb_datastream')) {
+    if (property_exists($entity, 'field_edoweb_datastream')
+        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
       $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
     }
     if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
