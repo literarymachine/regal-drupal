@@ -92,8 +92,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
+      return FALSE;
     }
-
+    return TRUE;
   }
 
   protected function _attachUnmappedFields($entity, $data, $field_names) {
@@ -161,54 +162,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function save($entity) {
 
-    // Create resource
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-
-    $data = array(
-      'type' => $entity->bundle_type,
-    );
-    $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
-    if (FALSE !== $parents) {
-      $local_id = $parents[0]['target_id'];
-      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
-    }
-    $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to save @id to @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return;
-    }
-
+    $this->saveResource($entity);
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    if (property_exists($entity, 'field_edoweb_datastream')
-        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
-      $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
-    }
-    if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
-      $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
-      $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
-      $file_path = drupal_realpath($file_url);
-      if ($this->_http_multipart_put("$http_url/data", $file_path, $file_mime, $file_name)) {
-        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
-          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
-        unlink($file_path);
-        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
-      } else {
-        watchdog('edoweb_storage', 'Unable to upload file to API');
-      }
-    }
+    $this->saveFiles($entity);
+    $this->saveMetadata($entity);
 
+  }
+
+  public function saveMetadata($entity) {
     // Send metadata
     $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
     $http_url = sprintf(
@@ -226,8 +188,70 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
+    return TRUE;
+  }
+
+  public function saveFiles($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s/data',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    if (property_exists($entity, 'field_edoweb_datastream')
+        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
+      $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
+    }
+    if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
+      $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
+      $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
+      $file_path = drupal_realpath($file_url);
+      if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
+        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
+          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
+        unlink($file_path);
+        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
+      } else {
+        watchdog('edoweb_storage', 'Unable to upload file to API');
+        return FALSE;
+      }
+    }
+    return TRUE;
+  }
+
+  public function saveResource($entity, $transformers = null) {
+    // Create resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $data = array();
+    $data['type'] = $entity->bundle_type;
+    if ($transformers) $data['transformer'] = $transformers;
+
+    $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
+    if (FALSE !== $parents) {
+      $local_id = $parents[0]['target_id'];
+      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
+    }
+    $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to save @id to @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /*
