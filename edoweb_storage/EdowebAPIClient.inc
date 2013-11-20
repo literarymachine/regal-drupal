@@ -351,14 +351,24 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   /*
    * Import entities of a given bundle type.
    */
-  public function import($bundle_type, $import_mode = 'overwrite', $metadata_required = FALSE) {
+  public function import(
+    $bundle_type,
+    $import_mode = 'overwrite',
+    $metadata_required = FALSE,
+    $source = 'repo',
+    $from = 0,
+    $until = 10
+  ){
     // Build resource list url
     $http_url = sprintf(
-      'http://%s:%s@%s/%s/',
+      'http://%s:%s@%s/resource?type=%s&getListingFrom=%s&from=%s&until=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
-      $bundle_type
+      $bundle_type,
+      $source,
+      $from,
+      $until
     );
 
     // Fetch resource list
@@ -373,7 +383,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Wipe existing records if requested
-    if ('clear' == $import_mode) {
+    if (('clear' == $import_mode) && (0 == $from)) {
       // Delete entity records
       $num_deleted = db_delete('edoweb_basic')
         ->condition('bundle_type', $bundle_type)
@@ -382,9 +392,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Process resource list
-    $resource_list = json_decode($http_response->data)->list;
+    $data = json_decode($http_response->data);
+    $resource_list = property_exists($data, 'list') ? $data->list : array();
     foreach ($resource_list as $remote_id) {
       $this->importEntity($remote_id, $import_mode, $metadata_required);
+    }
+    if ((count($resource_list) == 10)) {
+      $this->import(
+        $bundle_type, $import_mode, $metadata_required, $source, $from + 10, $until + 10
+      );
     }
   }
 
