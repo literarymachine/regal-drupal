@@ -218,22 +218,19 @@ class EdowebStorageException extends Exception {}
  * Alter the entity info.
  */
 function edoweb_storage_entity_query_alter($query) {
-  __devnulldb_log(__FUNCTION__ . " called\n");
-  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
-  return;
+  $query->executeCallback = '_edoweb_storage_query';
 }
 
-function edoweb_storage_field_storage_query($query) {
-  __devnulldb_log(__FUNCTION__ . " called\n");
-  __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
-  return;
+function _edoweb_storage_query($query) {
+  $api = new EdowebAPIClient();
+  return $api->query($query);
 }
 
 /**
  * Implements hook_field_storage_query().
  *
  */
-function edoweb_storage_query($query) {
+function edoweb_storage_field_storage_query($query) {
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -285,7 +282,7 @@ function edoweb_storage_entity_info_alter(&$entity_info) {
 }
 
 function __devnulldb_log($message, $target='php://stderr') {
-  // file_put_contents($target, $message);
+  //file_put_contents($target, $message);
 }
 
 /*************************

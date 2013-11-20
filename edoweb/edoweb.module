@@ -330,7 +330,8 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-  $page = array_key_exists('page', $_GET) ? $_GET['page'] : 0;
+  $sort = array_key_exists('sort', $_GET) ? $_GET['sort'] : false;
+  $order = array_key_exists('order', $_GET) ? $_GET['order'] : 'asc';
   if (user_access('create edoweb_basic entities')) {
     $content['add monograph'] = array(
       '#type' => 'item',
@@ -346,11 +347,13 @@ function edoweb_info_page() {
       )),
     );
   }
-  $content['preface'] = array(
-    '#type' => 'item',
-    '#markup' => t('List of all Edoweb entities')
-  );
-  $content['table'] = edoweb_basic_list_entities($page);
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
+  unset($content['resource_list']['form_build_id']);
+  unset($content['resource_list']['form_id']);
+  unset($content['resource_list']['form_token']);
 
   return $content;
 }
@@ -379,25 +382,42 @@ function edoweb_permission() {
   return $permissions;
 }
 
+function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $query) {
+  $form['query'] = array(
+    '#type' => 'textfield',
+  );
+  $form['search_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+  );
+  $form['#method'] = 'get';
+  if (array_key_exists('query', $_GET) && !empty($_GET['query'])) {
+    $term = $_GET['query'];
+    $form['query']['#default_value'] = $term;
+    $query->propertyCondition('*', $term);
+  }
+  $form['results'] = edoweb_basic_list_entities($query);
+  $form_state['redirect'] = false;
+  return $form;
+}
+
+function edoweb_basic_search_entities_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+}
 
 /**
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities($page) {
+function edoweb_basic_list_entities(EntityFieldQuery $query) {
   $content = array();
+
   // Load all of our entities.
-  $query = new EntityFieldQuery();
-  $query
-    ->entityCondition('entity_type', 'edoweb_basic')
-    ->propertyOrderBy('created', 'DESC')
-    ->range($page * 10, 10);
   $result = $query->execute();
   if (!array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
-    $entity_ids = array_keys($result['edoweb_basic']);
-    $entities = edoweb_basic_load_multiple($entity_ids);
+    $entities = $result['edoweb_basic'];
   }
   if (!empty($entities)) {
     foreach ( $entities as $entity ) {
@@ -406,6 +426,10 @@ function edoweb_basic_list_entities($page) {
         'data' => array(
           'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
           'title' => edoweb_basic_title($entity),
+          'issued' => 
+            ($issued = field_get_items(
+              'edoweb_basic', $entity, 'field_edoweb_issued'
+            )) ? $issued[0]['value'] : '',
           'bundle' => edoweb_basic_bundle_name($entity->bundle_type),
         ),
       );
@@ -414,26 +438,18 @@ function edoweb_basic_list_entities($page) {
     $content['entity_table'] = array(
       '#theme' => 'table',
       '#rows' => $rows,
-      '#header' => array(t('ID'), t('Title'), t('Type')),
+      '#header' => array(t('ID'), t('Title'), t('Issued'), t('Type')),
     );
     $content['pager'] = array(
-      '#type' => 'item',
-      '#markup' => '',
-    );
-    if ($page > 0) {
-      $content['pager']['#markup']  .= l(
-        '<< ', 'resource', array('query' => array('page' => ($page - 1)))
-      );
-    }
-    $content['pager']['#markup']  .= l(
-      '>>', 'resource', array('query' => array('page' => ($page + 1)))
+      '#markup' => theme('pager'),
+      '#weight' => 10,
     );
   }
   else {
     // There were no entities. Tell the user.
     $content[] = array(
       '#type' => 'item',
-      '#markup' => t('No Edoweb entities currently exist.'),
+      '#markup' => t('No results.'),
     );
   }
   return $content;
@@ -614,44 +630,14 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_children($entity, $bundle_types = array()) {
-  $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-  if (FALSE === $children) {
-    $entities = array();
-  } else {
-    $child_ids = array();
-    foreach ($children as $child) {
-      if (empty($bundle_types) || in_array($child->bundle_type, $bundle_types))
-        $child_ids[] = $child['target_id'];
-    }
-    $child_entities = edoweb_basic_load_multiple($child_ids);
-  }
-  $content = array();
-  // Load all of our child entities.
-  if (!empty($child_entities)) {
-    foreach ( $child_entities as $child_entity ) {
-      // Create tabular rows for our entities.
-      $rows[] = array(
-        'data' => array(
-          'id' => l($child_entity->remote_id, "resource/{$child_entity->remote_id}"),
-          'title' => edoweb_basic_title($child_entity),
-          'bundle' => edoweb_basic_bundle_name($child_entity->bundle_type),
-        ),
-      );
-    }
-    // Put our entities into a themed table. See theme_table() for details.
-    $content['entity_table'] = array(
-      '#theme' => 'table',
-      '#rows' => $rows,
-      '#header' => array(t('ID'), t('Title'), t('Type')),
-    );
-  }
-  else {
-    // There were no entities. Tell the user.
-    $content[] = array(
-      '#type' => 'item',
-      '#markup' => t('No child entities currently exist.'),
-    );
-  }
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
+  $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
+  unset($content['resource_list']['form_build_id']);
+  unset($content['resource_list']['form_id']);
+  unset($content['resource_list']['form_token']);
+
 
   if (user_access('create edoweb_basic entities')) {
     // Fetch and link to add possible child bundles
@@ -675,60 +661,15 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
 /**
  * Provides a wrapper on the edit form to add a new file to an entity.
  */
-function edoweb_basic_file($entity) {
-  $files = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-  $file_entities = array();
-  if (FALSE !== $files) {
-    foreach ($files as $file) {
-      $file_entity = edoweb_basic_load(
-        _edoweb_storage_entity_get_remote_id($file['target_id'])
-      );
-      if ($file_entity->bundle_type == 'file') {
-        $file_entities[] = $file_entity;
-      }
-    }
-  }
-  $content = array();
-  // Load all of our child entities.
-  if (!empty($file_entities)) {
-    foreach ( $file_entities as $file_entity ) {
-      // Create tabular rows for our entities.
-      $rows[] = array(
-        'data' => array(
-          'title' => l(edoweb_basic_title($file_entity), "resource/{$file_entity->remote_id}"),
-          'url' => l(
-            isset($file_entity->field_edoweb_label['und'][0]['value'])
-              ? $file_entity->field_edoweb_label['und'][0]['value']
-              : "Unlabeled file",
-            isset($file_entity->field_edoweb_datastream['und'][0]['value'])
-              ? $file_entity->field_edoweb_datastream['und'][0]['value']
-              : "#"
-          ),
-          'filetype' =>
-            isset($file_entity->field_edoweb_filetype['und'][0]['value'])
-              ? $file_entity->field_edoweb_filetype['und'][0]['value']
-              : "Unknown file type"
-        ),
-      );
-    }
-    // Put our entities into a themed table. See theme_table() for details.
-    $content['entity_table'] = array(
-      '#theme' => 'table',
-      '#rows' => $rows,
-      '#header' => array(t('Title'), t('Datei'), t('Type')),
-    );
-  }
-  else {
-    // There were no entities. Tell the user.
-    $content[] = array(
-      '#type' => 'item',
-      '#markup' => t('No files currently exist.'),
-    );
-  }
-
-  //$file = entity_get_controller('edoweb_basic')->create('file');
-  //$form = drupal_get_form('edoweb_basic_form', $file);
-  //$content[] = $form;
+function edoweb_basic_file($entity, $bundle_types = array()) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
+  $query->propertyCondition('type', 'file');
+  $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
+  unset($content['resource_list']['form_build_id']);
+  unset($content['resource_list']['form_id']);
+  unset($content['resource_list']['form_token']);
 
   _edoweb_build_breadcrumb($entity);
   return $content;
@@ -741,6 +682,12 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
   $form['basic_entity'] = array(
     '#type' => 'value',
     '#value' => $entity,
+  );
+  $form['index'] = array(
+    '#type' => 'submit',
+    '#value' => t('Index'),
+    '#submit' => array('edoweb_basic_admin_index'),
+    '#weight' => 50,
   );
   $form['reload'] = array(
     '#type' => 'submit',
@@ -756,6 +703,25 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
   );
   _edoweb_build_breadcrumb($entity);
   return $form;
+}
+
+/**
+ * Form reset handler.
+ *
+ */
+function edoweb_basic_admin_index( $form , &$form_state ) {
+  $entity = $form_state['values']['basic_entity'];
+  $api = new EdowebAPIClient();
+  if ($api->index($entity)) {
+    drupal_set_message(t('The entity %id has been indexed.',
+      array('%id' => $entity->remote_id))
+    );
+  } else {
+    drupal_set_message(t('Failed to index entity %id.',
+      array('%id' => $entity->remote_id)), 'error'
+    );
+  }
+  $form_state['redirect'] = 'resource/' . $entity->remote_id;
 }
 
 /**
