@@ -679,10 +679,20 @@ function edoweb_basic_file($entity, $bundle_types = array()) {
  * Provides a form to administrate entities.
  */
 function edoweb_basic_admin($form, &$form_state, $entity) {
+  $api = new EdowebAPIClient();
+  $has_urn = field_get_items('edoweb_basic', $entity, 'field_edoweb_urn') ? TRUE : FALSE;
   $form['basic_entity'] = array(
     '#type' => 'value',
     '#value' => $entity,
   );
+  if (!$has_urn) {
+    $form['urn'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add URN'),
+      '#submit' => array('edoweb_basic_admin_add_urn'),
+      '#weight' => 50,
+    );
+  }
   $form['index'] = array(
     '#type' => 'submit',
     '#value' => t('Index'),
@@ -701,12 +711,35 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#submit' => array('edoweb_basic_admin_delete'),
     '#weight' => 200,
   );
+  $form['transformers'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Transformers'),
+    '#weight' => 5,
+  );
+  $form['transformers']['transformers'] = array(
+    '#type' => 'checkboxes',
+    '#options' => array(
+      'epicur' => 'Epicur',
+      'aleph' => 'Aleph',
+      'oaidc' => 'OAIDC',
+      'pdfbox' => 'PdfBox',
+      'pdfa' => 'Pdfa',
+    ),
+    '#default_value' => $api->getTransformers($entity),
+    '#title' => t('Please choose the transformers to apply.'),
+  );
+  $form['transformers']['apply'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+    '#submit' => array('edoweb_basic_admin_apply_transformers'),
+    '#weight' => 200,
+  );
   _edoweb_build_breadcrumb($entity);
   return $form;
 }
 
 /**
- * Form reset handler.
+ * Form index handler.
  *
  */
 function edoweb_basic_admin_index( $form , &$form_state ) {
@@ -725,7 +758,7 @@ function edoweb_basic_admin_index( $form , &$form_state ) {
 }
 
 /**
- * Form reset handler.
+ * Form reload handler.
  *
  */
 function edoweb_basic_admin_reload( $form , &$form_state ) {
@@ -756,6 +789,36 @@ function edoweb_basic_admin_delete( $form , &$form_state ) {
     }
   }
   $form_state['redirect'] = "resource/$parent_id";
+}
+
+/**
+ * Form transformers handler.
+ *
+ */
+function edoweb_basic_admin_apply_transformers( $form , &$form_state ) {
+  $entity = $form_state['values']['basic_entity'];
+  $transformers = array_keys(array_filter($form_state['values']['transformers']));
+  $api = new EdowebAPIClient();
+  if ($api->saveResource($entity, $transformers)) {
+    drupal_set_message(t('Transformers applied'));
+  } else {
+    drupal_set_message(t('Failed to apply transformers'), 'error');
+  }
+}
+
+/**
+ * Form add URN handler.
+ *
+ */
+function edoweb_basic_admin_add_urn( $form , &$form_state ) {
+  $entity = $form_state['values']['basic_entity'];
+  $api = new EdowebAPIClient();
+  if ($api->addURN($entity)) {
+    cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
+    drupal_set_message(t('URN added'));
+  } else {
+    drupal_set_message(t('Failed to add URN'), 'error');
+  }
 }
 
 /**

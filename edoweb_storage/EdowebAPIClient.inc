@@ -143,14 +143,63 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $wrapper->{$field_name}[] = $value;
         }
       } catch (EntityMetadataWrapperException $e) {
-        watchdog('edoweb_storage', 'Unable to attach data for @field_name to @entity_id.',
+        watchdog('edoweb_storage', 'Unable to attach data @data for @field_name to @entity_id.',
           array(
+            '@data' => $value,
             '@field_name' => $field_name,
             '@entity_id' => $entity->remote_id,
           )
         );
       }
     }
+  }
+
+  public function getTransformers($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s.regal',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_get($http_url, 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to load resource @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return json_decode($http_response->data)->transformer;
+  }
+
+  public function addURN($entity) {
+    list($namespace, $id) = explode(':', $entity->remote_id);
+    $snid = 'hbz:929:02';
+    $http_url = sprintf(
+      'http://%s:%s@%s/utils/addUrn?namespace=%s&id=%s&snid=',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $namespace,
+      $id,
+      $snid
+    );
+
+    $http_response = $this->_http_post($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to generate URN for @id on @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /*
