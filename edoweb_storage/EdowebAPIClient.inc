@@ -453,18 +453,21 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     pager_default_initialize($hits->total, $results_per_page);
     $results = array();
     foreach ($hits->hits as $hit) {
-      $data = $hit->_source->{'@graph'}[0];
-      $type = $hit->_source->{'@graph'}[0]
-        ->{'http://hbz-nrw.de/regal#contentType'}[0]->{'@value'};
-      $entity = new stdClass();
-      $entity->bundle_type = $type;
-      $entity->remote_id = $data->{'@id'};
-      $rdf_subject = new LibRDF_URINode($data->{'@id'});
-      $entity->local_id = _edoweb_storage_entity_get_id($rdf_subject);
-      _edoweb_storage_entity_deserialize_jsonld(
-        $entity, $rdf_subject, json_encode($data)
-      );
-      $results['edoweb_basic'][$entity->local_id] = $entity;
+      $graphs = $hit->_source->{'@graph'};
+      foreach ($graphs as $graph) {
+        if (property_exists($graph, 'http://hbz-nrw.de/regal#contentType')) {
+          $type = $graph->{'http://hbz-nrw.de/regal#contentType'}[0]->{'@value'};
+          $entity = new stdClass();
+          $entity->bundle_type = $type;
+          $entity->remote_id = $graph->{'@id'};
+          $rdf_subject = new LibRDF_URINode($graph->{'@id'});
+          $entity->local_id = _edoweb_storage_entity_get_id($rdf_subject);
+          _edoweb_storage_entity_deserialize_jsonld(
+            $entity, $rdf_subject, json_encode($graph)
+          );
+          $results['edoweb_basic'][$entity->local_id] = $entity;
+        }
+      }
     }
     return $results;
   }
