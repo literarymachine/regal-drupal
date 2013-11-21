@@ -218,7 +218,9 @@ class EdowebStorageException extends Exception {}
  * Alter the entity info.
  */
 function edoweb_storage_entity_query_alter($query) {
-  $query->executeCallback = '_edoweb_storage_query';
+  if (isset($query->tags['elasticsearch'])) {
+    $query->executeCallback = '_edoweb_storage_query';
+  }
 }
 
 function _edoweb_storage_query($query) {

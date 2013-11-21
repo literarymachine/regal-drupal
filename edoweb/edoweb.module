@@ -349,6 +349,7 @@ function edoweb_info_page() {
   }
 
   $query = new EntityFieldQuery();
+  $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
@@ -631,6 +632,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  */
 function edoweb_basic_children($entity, $bundle_types = array()) {
   $query = new EntityFieldQuery();
+  $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
@@ -663,6 +665,7 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
  */
 function edoweb_basic_file($entity, $bundle_types = array()) {
   $query = new EntityFieldQuery();
+  $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
   $query->propertyCondition('type', 'file');
