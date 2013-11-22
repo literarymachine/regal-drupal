@@ -531,7 +531,11 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   $edoweb_api_host = variable_get('edoweb_api_host');
   $entity->content['remote_id'] = array(
     '#type' => 'item',
-    '#markup' => l('View in Edoweb API', "http://{$edoweb_api_host}/resource/{$entity->remote_id}"),
+    '#markup' => l(
+      'View in Edoweb API',
+      "http://{$edoweb_api_host}/resource/{$entity->remote_id}",
+      array('attributes' => array('target'=>'_blank'))
+    ),
     '#weight' => -1,
   );
 
@@ -719,18 +723,31 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#title' => t('Transformers'),
     '#weight' => 5,
   );
+  $transformers = $api->getTransformers($entity);
   $form['transformers']['transformers'] = array(
     '#type' => 'checkboxes',
     '#options' => array(
-      'epicur' => 'Epicur',
-      'aleph' => 'Aleph',
-      'oaidc' => 'OAIDC',
-      'pdfbox' => 'PdfBox',
-      'pdfa' => 'Pdfa',
+      'epicur' => t('Register Urn'),
+      'aleph' => t('Copy to Catalog'),
+      'oaidc' => t('Support OAI-PMH'),
+      'pdfbox' => t('Allow Fulltext Search'),
+      'pdfa' => t('Prepare for Long Term Preservation'),
     ),
-    '#default_value' => $api->getTransformers($entity),
+    '#default_value' => $transformers,
     '#title' => t('Please choose the transformers to apply.'),
   );
+
+  foreach ($transformers as $transformer) {
+    $label = $form['transformers']['transformers']['#options'][$transformer];
+    $edoweb_api_host = variable_get('edoweb_api_host');
+    $api_link = l(
+      $label,
+      "http://{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
+      array('attributes' => array('target'=>'_blank'))
+    );
+    $form['transformers']['transformers']['#options'][$transformer] = $api_link;
+  }
+
   $form['transformers']['apply'] = array(
     '#type' => 'submit',
     '#value' => t('Apply'),
