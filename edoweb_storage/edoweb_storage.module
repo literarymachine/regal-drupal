@@ -501,6 +501,16 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_subject, $rdf_d
   $options = array();
   $options['format'] = 'application/nquads';
   $rdf_ntriples = jsonld_to_rdf(json_decode($rdf_data), $options);
+  $char_map = array(
+    'Ä' => '\u00C4',
+    'ä' => '\u00E4',
+    'Ü' => '\u00DC',
+    'ü' => '\u00FC',
+    'Ö' => '\u00D6',
+    'ö' => '\u00F6',
+    'ß' => '\u00DF',
+  );
+  $rdf_ntriples = strtr($rdf_ntriples, $char_map);
   $rdf_parser = new LibRDF_Parser('ntriples');
   return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_ntriples, $rdf_parser);
 }
