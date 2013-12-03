@@ -167,6 +167,12 @@ function edoweb_basic_load($remote_id, $reset = FALSE) {
     return false;
   }
   $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
+  if (!$local_id) {
+    $api = new EdowebAPIClient();
+    if ($api->importEntity($remote_id)) {
+      $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
+    }
+  }
   $local_ids = $local_id ? array($local_id) : array();
   $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
   return $basic ? reset($basic) : FALSE;

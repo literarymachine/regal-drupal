@@ -353,7 +353,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
 
     // Import the entity itself
@@ -372,7 +372,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
     $repository_data = new LibRDF_Model(new LibRDF_Storage());
     $repository_data->loadStatementsFromString(
@@ -403,7 +403,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       drupal_set_message("Imported $remote_id.");
     } catch (PDOException $e) {
       drupal_set_message("Failed to import $remote_id.");
-      return;
+      return FALSE;
     }
 
     // TODO: Load entity so that it is cached.
@@ -418,6 +418,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $remote_id = substr($child, 1, -1);
       $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
+
+    return TRUE;
 
   }
 
