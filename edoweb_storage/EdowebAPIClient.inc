@@ -92,8 +92,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
+      return FALSE;
     }
-
+    return TRUE;
   }
 
   protected function _attachUnmappedFields($entity, $data, $field_names) {
@@ -142,14 +143,63 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $wrapper->{$field_name}[] = $value;
         }
       } catch (EntityMetadataWrapperException $e) {
-        watchdog('edoweb_storage', 'Unable to attach data for @field_name to @entity_id.',
+        watchdog('edoweb_storage', 'Unable to attach data @data for @field_name to @entity_id.',
           array(
+            '@data' => $value,
             '@field_name' => $field_name,
             '@entity_id' => $entity->remote_id,
           )
         );
       }
     }
+  }
+
+  public function getTransformers($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s.regal',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_get($http_url, 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to load resource @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return json_decode($http_response->data)->transformer;
+  }
+
+  public function addURN($entity) {
+    list($namespace, $id) = explode(':', $entity->remote_id);
+    $snid = 'hbz:929:02';
+    $http_url = sprintf(
+      'http://%s:%s@%s/utils/addUrn?namespace=%s&id=%s&snid=%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $namespace,
+      $id,
+      $snid
+    );
+
+    $http_response = $this->_http_post($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to generate URN for @id on @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /*
@@ -161,54 +211,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function save($entity) {
 
-    // Create resource
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-
-    $data = array(
-      'type' => $entity->bundle_type,
-    );
-    $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
-    if (FALSE !== $parents) {
-      $local_id = $parents[0]['target_id'];
-      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
-    }
-    $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to save @id to @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return;
-    }
-
+    $this->saveResource($entity);
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    if (property_exists($entity, 'field_edoweb_datastream')
-        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
-      $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
-    }
-    if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
-      $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
-      $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
-      $file_path = drupal_realpath($file_url);
-      if ($this->_http_multipart_put("$http_url/data", $file_path, $file_mime, $file_name)) {
-        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
-          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
-        unlink($file_path);
-        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
-      } else {
-        watchdog('edoweb_storage', 'Unable to upload file to API');
-      }
-    }
+    $this->saveFiles($entity);
+    $this->saveMetadata($entity);
 
+  }
+
+  public function saveMetadata($entity) {
     // Send metadata
     $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
     $http_url = sprintf(
@@ -226,8 +237,70 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
+    return TRUE;
+  }
+
+  public function saveFiles($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s/data',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    if (property_exists($entity, 'field_edoweb_datastream')
+        && isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])) {
+      $file_url = $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'];
+    }
+    if (isset($file_url) && 'public://' == substr($file_url, 0, 9)) {
+      $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
+      $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
+      $file_path = drupal_realpath($file_url);
+      if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
+        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
+          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
+        unlink($file_path);
+        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
+      } else {
+        watchdog('edoweb_storage', 'Unable to upload file to API');
+        return FALSE;
+      }
+    }
+    return TRUE;
+  }
+
+  public function saveResource($entity, $transformers = null) {
+    // Create resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $data = array();
+    $data['type'] = $entity->bundle_type;
+    if ($transformers) $data['transformer'] = $transformers;
+
+    $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
+    if (FALSE !== $parents) {
+      $local_id = $parents[0]['target_id'];
+      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
+    }
+    $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to save @id to @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
   }
 
   /*
@@ -280,7 +353,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
 
     // Import the entity itself
@@ -299,7 +372,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      return;
+      return FALSE;
     }
     $repository_data = new LibRDF_Model(new LibRDF_Storage());
     $repository_data->loadStatementsFromString(
@@ -330,7 +403,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       drupal_set_message("Imported $remote_id.");
     } catch (PDOException $e) {
       drupal_set_message("Failed to import $remote_id.");
-      return;
+      return FALSE;
     }
 
     // TODO: Load entity so that it is cached.
@@ -346,19 +419,31 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
 
+    return TRUE;
+
   }
 
   /*
    * Import entities of a given bundle type.
    */
-  public function import($bundle_type, $import_mode = 'overwrite', $metadata_required = FALSE) {
+  public function import(
+    $bundle_type,
+    $import_mode = 'overwrite',
+    $metadata_required = FALSE,
+    $source = 'repo',
+    $from = 0,
+    $until = 10
+  ){
     // Build resource list url
     $http_url = sprintf(
-      'http://%s:%s@%s/%s/',
+      'http://%s:%s@%s/resource?type=%s&getListingFrom=%s&from=%s&until=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
-      $bundle_type
+      $bundle_type,
+      $source,
+      $from,
+      $until
     );
 
     // Fetch resource list
@@ -373,7 +458,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Wipe existing records if requested
-    if ('clear' == $import_mode) {
+    if (('clear' == $import_mode) && (0 == $from)) {
       // Delete entity records
       $num_deleted = db_delete('edoweb_basic')
         ->condition('bundle_type', $bundle_type)
@@ -382,10 +467,148 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Process resource list
-    $resource_list = json_decode($http_response->data)->list;
+    $data = json_decode($http_response->data);
+    $resource_list = property_exists($data, 'list') ? $data->list : array();
     foreach ($resource_list as $remote_id) {
       $this->importEntity($remote_id, $import_mode, $metadata_required);
     }
+    if ((count($resource_list) == 10)) {
+      $this->import(
+        $bundle_type, $import_mode, $metadata_required, $source, $from + 10, $until + 10
+      );
+    }
+  }
+
+  public function index($entity) {
+    // Index resource
+    $http_url = sprintf(
+      'http://%s:%s@%s/utils/index/%s?type=%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id,
+      $entity->bundle_type
+    );
+
+    $http_response = $this->_http_post($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to index @id on @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  public function query(EntityFieldQuery $efq) {
+    // Search resources
+    $http_url = sprintf(
+      'http://%s:%s@%s:9200/edoweb/_search',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host
+    );
+    $query = $this->_efq_to_es($efq);
+    $http_response = $this->_http_post(
+      $http_url, $query, 'application/json'
+    );
+    if (200 != $http_response->code || !isset($http_response->data)) {
+      watchdog('edoweb_storage', 'Unable to execute query on @api.',
+        array(
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    $hits = json_decode($http_response->data)->hits;
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    pager_default_initialize($hits->total, $results_per_page);
+    $results = array();
+    foreach ($hits->hits as $hit) {
+      $graphs = $hit->_source->{'@graph'};
+      foreach ($graphs as $graph) {
+        if (property_exists($graph, 'http://hbz-nrw.de/regal#contentType')) {
+          $type = $graph->{'http://hbz-nrw.de/regal#contentType'}[0]->{'@value'};
+          $entity = new stdClass();
+          $entity->bundle_type = $type;
+          $entity->remote_id = $graph->{'@id'};
+          $rdf_subject = new LibRDF_URINode($graph->{'@id'});
+          $entity->local_id = _edoweb_storage_entity_get_id($rdf_subject);
+          _edoweb_storage_entity_deserialize_jsonld(
+            $entity, $rdf_subject, json_encode($graph)
+          );
+          $results['edoweb_basic'][$entity->local_id] = $entity;
+        }
+      }
+    }
+    return $results;
+  }
+
+  protected function _efq_to_es(EntityFieldQuery $efq) {
+    $query = array();
+    $page = pager_find_page();
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    $query['from'] = $results_per_page * $page;
+    $query['size'] = $results_per_page;
+
+    // Since all values are in fields, propertyConditions are used
+    // for special queries such as fulltext search over all fields
+    foreach($efq->propertyConditions as $property_condition) {
+      switch ($property_condition['column']) {
+        case '*':
+          $query['query']['bool']['must'][]['query_string']['query'] = $property_condition['value'];
+          break;
+        case 'type':
+          $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"] = "\"file\"";
+          break;
+        default:
+          break;
+      }
+    }
+
+    $rdf_mapping = rdf_mapping_load(EDOWEB_ENTITY_TYPE);
+    $rdf_namespaces = rdf_get_namespaces();
+    foreach($efq->fieldConditions as $field_condition) {
+      $field_name = $field_condition['field']['field_name'];
+      $field_value = $field_condition['value'];
+      // Special cases for unmapped structural fields
+      switch ($field_name) {
+        case 'field_edoweb_struct_parent':
+          $field_property = 'http://purl.org/dc/terms/isPartOf';
+          $value_type = 'id';
+          break;
+        case 'field_edoweb_struct_child':
+          $field_property = 'http://purl.org/dc/terms/hasPart';
+          $value_type = 'id';
+        default:
+          // Map field name to full property URI
+          $curie = $rdf_mapping[$field_name]['predicates'][0];
+          list($prefix, $local) = explode(':', $curie);
+          $field_property = $rdf_namespaces[$prefix] . $local;
+          $value_type =
+            (isset($rdf_mapping['type']) && $rdf_mapping['type'] == 'rel') ? 'id' : 'value';
+          break;
+      }
+      $query['query']['bool']['must'][]['field']["@graph.$field_property.@$value_type"] = "\"$field_value\"";
+    }
+
+    if (!isset($query['query'])) {
+      $query['query'] = array("match_all" => new stdClass());
+    }
+
+    $query['sort'] = array();
+    foreach($efq->order as $sort) {
+      $fieldname = $sort['specifier'];
+      $order = $sort['direction'];
+      $query['sort'][]["@graph.$fieldname.@value"] = array(
+        'order' => $order,
+        'ignore_unmapped' => TRUE,
+      );
+    }
+    return json_encode($query);
   }
 
   protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
