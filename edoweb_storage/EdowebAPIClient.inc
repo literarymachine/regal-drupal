@@ -221,7 +221,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function saveMetadata($entity) {
     // Send metadata
-    $http_post_data = _edoweb_storage_entity_serialize_ntriples($entity);
+    $http_post_data = _edoweb_storage_entity_serialize_ntriples(
+      $entity, array('descriptive')
+    );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,

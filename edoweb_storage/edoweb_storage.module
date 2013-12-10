@@ -293,19 +293,29 @@ function __devnulldb_log($message, $target='php://stderr') {
 
 define('EDOWEB_ENTITY_TYPE', 'edoweb_basic');
 
-function _edoweb_storage_entity_serialize_turtle($entity) {
+function _edoweb_storage_entity_serialize_turtle(
+  $entity, $metadata_types = array()
+){
   $rdf_subject = _edoweb_storage_entity_get_uri($entity);
   $rdf_serializer = new LibRDF_Serializer('turtle');
-  return _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+  return _edoweb_storage_entity_serialize_rdf(
+    $entity, $rdf_subject, $rdf_serializer, $metadata_types
+  );
 }
 
-function _edoweb_storage_entity_serialize_ntriples($entity) {
+function _edoweb_storage_entity_serialize_ntriples(
+  $entity, $metadata_types = array()
+){
   $rdf_subject = _edoweb_storage_entity_get_uri($entity);
   $rdf_serializer = new LibRDF_Serializer('ntriples');
-  return _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+  return _edoweb_storage_entity_serialize_rdf(
+    $entity, $rdf_subject, $rdf_serializer, $metadata_types
+  );
 }
 
-function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer) {
+function _edoweb_storage_entity_serialize_rdf(
+  $entity, $rdf_subject, $rdf_serializer, $metadata_types = array()
+){
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
@@ -325,6 +335,12 @@ function _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serial
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   // Following elements contain predicate mappings
   foreach ($rdf_mapping as $field_name => $field_mapping) {
+    $field_info = field_info_field($field_name);
+    $metadata_type = $field_info['settings']['metadata_type'];
+    if (!empty($metadata_types)
+        && !in_array($metadata_type, $metadata_types)) {
+      continue;
+    }
     $rdf_predicate = new LibRDF_URINode(
       _edoweb_expand_curie($field_mapping['predicates'][0])
     );
@@ -475,7 +491,9 @@ function _edoweb_storage_entity_get_bundle($entity) {
   return $entity_ids[2];
 }
 
-function _edoweb_storage_entity_serialize_jsonld($entity) {
+function _edoweb_storage_entity_serialize_jsonld(
+  $entity, $metadata_types = array()
+){
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
   );
@@ -487,7 +505,9 @@ function _edoweb_storage_entity_serialize_jsonld($entity) {
   _edoweb_storage_entity_get_uri($entity);
   $rdf_subject = _edoweb_storage_entity_get_uri($entity);
   $rdf_serializer = new LibRDF_Serializer('ntriples');
-  $rdf_ntriples = _edoweb_storage_entity_serialize_rdf($entity, $rdf_subject, $rdf_serializer);
+  $rdf_ntriples = _edoweb_storage_entity_serialize_rdf(
+    $entity, $rdf_subject, $rdf_serializer, $metadata_types
+  );
   try {
     $rdf_jsonld = jsonld_compact(jsonld_from_rdf($rdf_ntriples), $jsonld_context);
   } catch (JsonLdException $e) {
