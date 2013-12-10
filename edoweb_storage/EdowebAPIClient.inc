@@ -51,107 +51,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    // Fetch and add relations and files
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_get($http_url, 'application/rdf+xml');
-    if ((200 == $http_response->code) && isset($http_response->data)) {
-      $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-      $repository_data = new LibRDF_Model(new LibRDF_Storage());
-      $repository_data->loadStatementsFromString(
-        new LibRDF_Parser('rdfxml'), $http_response->data
-      );
-      // Fetch and add non-descriptive fields
-      $this->_attachUnmappedFields(
-        $entity, $repository_data, array(
-          'field_edoweb_struct_child',
-          'field_edoweb_struct_parent',
-          'field_edoweb_filesize',
-        )
-      );
-      // FIXME: hardcoded URL for datastreams
-      // TODO: decide on explicit rdf property for datastream links
-      if (_edoweb_field_access($entity, array('field_edoweb_datastream'))) {
-        $wrapper->field_edoweb_datastream =
-          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
-      }
-      // Load remaining (descriptive) metadata into fields
-      $rdf_subject = _edoweb_storage_entity_get_uri($entity);
-      $rdf_data = $http_response->data;
-      $rdf_parser = new LibRDF_Parser('rdfxml');
-      _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data, $rdf_parser);
-    } else {
-      watchdog('edoweb_storage', 'Unable to load data for @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    return TRUE;
-  }
-
-  protected function _attachUnmappedFields($entity, $data, $field_names) {
-    foreach ($field_names as $field_name) {
-      $this->_attachUnmappedField($entity, $data, $field_name);
-    }
-  }
-
-  /*
-   * Load the value for a field that is not mapped via hook_rdf_mapping
-   * (currently all fields mapped there are written as descriptive
-   * metadata, but some fields are not descriptive).
-   * TODO: Implement metadata roles in hook_rdf_mapping
-   */
-  protected function _attachUnmappedField($entity, $data, $field_name) {
-    $mapping = array(
-      'field_edoweb_struct_parent' =>
-        new LibRDF_URINode('http://purl.org/dc/terms/isPartOf'),
-      'field_edoweb_struct_child' =>
-        new LibRDF_URINode('http://purl.org/dc/terms/hasPart'),
-      'field_edoweb_filesize' =>
-        new LibRDF_URINode('http://downlode.org/Code/RDF/File_Properties/schema#size'),
-    );
-
-    // Fetch and add values
-    $value_nodes = $data->getTargets(
-      _get_rdf_subject($entity, $field_name),
-      $mapping[$field_name]
-    );
+    // FIXME: hardcoded URL for datastreams
+    // TODO: decide on explicit rdf property for datastream links
     $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-    LibRDF_LiteralNode::setPlainOutput(true);
-    foreach ($value_nodes as $value_node) {
-      if ($value_node instanceOf LibRDF_LiteralNode) {
-        $value = "$value_node";
-      } else {
-        $remote_id = substr($value_node, 1, -1);
-        $value = db_query(
-          'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-          array(':remote_id' => $remote_id)
-        )->fetchField();
-      }
-      try {
-        if ($wrapper->$field_name instanceOf EntityValueWrapper) {
-          $wrapper->{$field_name} = $value;
-        } else {
-          $wrapper->{$field_name}[] = $value;
-        }
-      } catch (EntityMetadataWrapperException $e) {
-        watchdog('edoweb_storage', 'Unable to attach data @data for @field_name to @entity_id.',
-          array(
-            '@data' => $value,
-            '@field_name' => $field_name,
-            '@entity_id' => $entity->remote_id,
-          )
-        );
-      }
+    if (_edoweb_field_access($entity, array('field_edoweb_datastream'))) {
+      $wrapper->field_edoweb_datastream =
+        "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
     }
+    $entity_uri = _edoweb_expand_curie($entity->remote_id);
+    $linkedDataClient = new LinkedDataClient();
+    return $linkedDataClient->load($entity, $entity_uri);
   }
 
   public function getTransformers($entity) {

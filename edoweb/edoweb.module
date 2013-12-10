@@ -1267,7 +1267,9 @@ function edoweb_rdf_mapping() {
  * http://api.drupal.org/api/drupal/modules--rdf--rdf.api.php/function/hook_rdf_namespaces/7
  */
 function edoweb_rdf_namespaces() {
+  $edoweb_api_host = variable_get('edoweb_api_host');
   return array(
+    'edoweb' => "http://$edoweb_api_host/resource/edoweb:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
