@@ -421,7 +421,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
 
   // Load all of our entities.
   $result = $query->execute();
-  if (!array_key_exists('edoweb_basic', $result)) {
+  if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
     $entities = $result['edoweb_basic'];
@@ -1268,8 +1268,9 @@ function edoweb_rdf_mapping() {
  */
 function edoweb_rdf_namespaces() {
   $edoweb_api_host = variable_get('edoweb_api_host');
+  $edoweb_api_namespace = variable_get('edoweb_api_namespace');
   return array(
-    'edoweb' => "http://$edoweb_api_host/resource/edoweb:",
+    $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',

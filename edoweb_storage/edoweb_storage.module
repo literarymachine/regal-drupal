@@ -88,6 +88,20 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Text field for api namespace.
+  $form['edoweb_api_namespace'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_api_namespace',
+      'edoweb'
+    ),
+    '#title' => t('Namespace'),
+    '#description' => t('The namespace of the primary resources.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
   // Checkbox for debugging mode
   $form['edoweb_api_debug'] = array(
     '#type' => 'checkbox',
@@ -458,8 +472,7 @@ function _edoweb_storage_entity_get_uri($entity) {
 }
 
 function _edoweb_storage_entity_get_id($entity) {
-  if ($entity instanceof LibRDF_URINode
-             && '<edoweb:' === substr($entity, 0, 8)) {
+  if ($entity instanceof LibRDF_URINode) {
     $remote_id = substr($entity, 1, -1);
     $id = db_query(
       'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
