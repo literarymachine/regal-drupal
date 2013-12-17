@@ -417,7 +417,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function query(EntityFieldQuery $efq) {
     // Search resources
     $http_url = sprintf(
-      'http://%s:%s@%s:9200/edoweb/_search',
+      'http://%s:%s@%s:9200/ellinet/_search',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host

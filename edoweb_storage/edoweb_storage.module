@@ -458,8 +458,7 @@ function _edoweb_storage_entity_get_uri($entity) {
 }
 
 function _edoweb_storage_entity_get_id($entity) {
-  if ($entity instanceof LibRDF_URINode
-             && '<edoweb:' === substr($entity, 0, 8)) {
+  if ($entity instanceof LibRDF_URINode) {
     $remote_id = substr($entity, 1, -1);
     $id = db_query(
       'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',

@@ -1270,6 +1270,7 @@ function edoweb_rdf_namespaces() {
   $edoweb_api_host = variable_get('edoweb_api_host');
   return array(
     'edoweb' => "http://$edoweb_api_host/resource/edoweb:",
+    'ellinet' => "http://$edoweb_api_host/resource/ellinet:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
