@@ -898,7 +898,8 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
   } catch (LibRDF_Error $e) {
     drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
   }
-  $entity->remote_id = 'edoweb:' . EdowebBasicController::uuid_v4();
+  $namespace = variable_get('edoweb_api_namespace');
+  $entity->remote_id = "$namespace:" . EdowebBasicController::uuid_v4();
   $form_state = array();
   $form_state['values'] = array();
   drupal_form_submit('edoweb_basic_form', $form_state, $entity);
@@ -1572,7 +1573,8 @@ class EdowebBasicController
     }
     // If our entity has no remote_id, create one.
     if (empty($entity->remote_id)) {
-      $entity->remote_id = 'edoweb:' . self::uuid_v4();
+      $namespace = variable_get('edoweb_api_namespace');
+      $entity->remote_id = "$namespace:" . self::uuid_v4();
     }
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
