@@ -448,11 +448,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $entity->bundle_type = $type;
           $entity->remote_id = $graph->{'@id'};
           $rdf_subject = new LibRDF_URINode($graph->{'@id'});
-          $entity->local_id = _edoweb_storage_entity_get_id($rdf_subject);
           _edoweb_storage_entity_deserialize_jsonld(
             $entity, $rdf_subject, json_encode($graph)
           );
-          $results['edoweb_basic'][$entity->local_id] = $entity;
+          $results['edoweb_basic'][] = $entity;
         }
       }
     }
