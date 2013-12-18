@@ -241,8 +241,8 @@ function edoweb_menu() {
   // is defined in basic_uri and will use load_basic to retrieve
   // the necessary entity info.
   $items['resource/%edoweb_basic'] = array(
-    'title callback' => 'edoweb_basic_title',
-    'title arguments' => array(1),
+    'title callback' => 'entity_label',
+    'title arguments' => array(EDOWEB_ENTITY_TYPE, 1),
     'page callback' => 'edoweb_basic_view',
     'page arguments' => array(1),
     'access arguments' => array('view any edoweb_basic entity'),
@@ -432,7 +432,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
       $rows[] = array(
         'data' => array(
           'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
-          'title' => edoweb_basic_title($entity),
+          'title' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
           'issued' => 
             ($issued = field_get_items(
               'edoweb_basic', $entity, 'field_edoweb_issued'
@@ -589,7 +589,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
       $trail
     );
   }
-  $title = edoweb_basic_title($entity);
+  $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
   $entity_url = edoweb_basic_uri($entity);
   $trail[] = l($title, $entity_url['path']);
   return $trail;
@@ -1352,24 +1352,7 @@ function _edoweb_http_request($request_url, $http_options) {
 }
 
 function edoweb_entity_info_alter(&$entity_info) {
-  $entity_info['edoweb_basic']['label callback'] = '_edoweb_label_callback_set';
-}
-
-function _edoweb_label_callback_set($entity, $entity_type) {
-  // Only handle edoweb entities
-  if ('edoweb_basic' != $entity_type) return;
-
-  // Return label based on bundle
-  $label = '';
-  switch ($entity->bundle_type) {
-    case 'monograph':
-    case 'journal':
-    case 'volume':
-      $items = field_get_items('edoweb_basic', $entity, 'field_edoweb_title');
-      $label = $items[0]['value'];
-      break;
-  }
-  return $label;
+  $entity_info['edoweb_basic']['label callback'] = 'edoweb_basic_title';
 }
 
 function _edoweb_gnd_autocomplete($field_name, $term) {
