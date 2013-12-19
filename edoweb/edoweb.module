@@ -1834,3 +1834,16 @@ function edoweb_update_7101() {
     field_update_field($field_definition);
   }
 }
+
+/**
+ * Add URN field instances to volume, issue, article and file bundles
+ */
+function edoweb_update_7102() {
+  $added_instances = array(
+    'volume' => array('field_edoweb_urn'),
+    'issue' => array('field_edoweb_urn'),
+    'article' => array('field_edoweb_urn'),
+    'file' => array('field_edoweb_urn'),
+  );
+  _update_edoweb_installed_instances($added_instances);
+}
