@@ -95,10 +95,11 @@ function edoweb_install() {
   // Create all the instances for our fields.
   // http://api.drupal.org/api/function/field_create_instance/7
   foreach (_edoweb_installed_instances() as $bundle_type => $field_instances) {
-    foreach ($field_instances as $field_instance) {
+    foreach ($field_instances as $field_name => $field_instance) {
+      $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
-      $defaults = _edoweb_field_instance_defaults($field_instance['field_name']);
+      $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
         : null;
@@ -444,83 +445,32 @@ function _edoweb_installed_instances() {
      * Field instances in monograph bundle
      */
     'monograph' => array(
-      array(
-        'field_name'  => 'field_edoweb_identifier_ht',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_parent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_volume',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_title',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_title_other',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_editor',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_edition',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_publication_place',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_publisher',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_is_like',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_urn',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn10',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn13',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_doi',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_language',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_extent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_description',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_subject',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_abstract',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_parallel',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_child',
+      'field_edoweb_identifier_ht' => array(),
+      'field_edoweb_parent' => array(),
+      'field_edoweb_volume' => array(),
+      'field_edoweb_title' => array(),
+      'field_edoweb_title_other' => array(),
+      'field_edoweb_creator' => array(),
+      'field_edoweb_creator_new' => array(),
+      'field_edoweb_contributor' => array(),
+      'field_edoweb_contributor_new' => array(),
+      'field_edoweb_editor' => array(),
+      'field_edoweb_edition' => array(),
+      'field_edoweb_publication_place' => array(),
+      'field_edoweb_publisher' => array(),
+      'field_edoweb_issued' => array(),
+      'field_edoweb_is_like' => array(),
+      'field_edoweb_urn' => array(),
+      'field_edoweb_isbn10' => array(),
+      'field_edoweb_isbn13' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_language' => array(),
+      'field_edoweb_extent' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_subject' => array(),
+      'field_edoweb_abstract' => array(),
+      'field_edoweb_parallel' => array(),
+      'field_edoweb_struct_child' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -536,89 +486,34 @@ function _edoweb_installed_instances() {
      * Field instances in journal bundle
      */
     'journal' => array(
-      array(
-        'field_name'  => 'field_edoweb_identifier_ht',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_identifier_zdb',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_parent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_title',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_title_other',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_editor',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_publication_place',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_publisher',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued_since',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued_until',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_publication_freq',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_is_like',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_urn',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn10',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn13',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issn',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_doi',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_language',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_extent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_description',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_subject',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_parallel',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_homepage',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_child',
+      'field_edoweb_identifier_ht' => array(),
+      'field_edoweb_identifier_zdb' => array(),
+      'field_edoweb_parent' => array(),
+      'field_edoweb_title' => array(),
+      'field_edoweb_title_other' => array(),
+      'field_edoweb_creator' => array(),
+      'field_edoweb_creator_new' => array(),
+      'field_edoweb_contributor' => array(),
+      'field_edoweb_contributor_new' => array(),
+      'field_edoweb_editor' => array(),
+      'field_edoweb_publication_place' => array(),
+      'field_edoweb_publisher' => array(),
+      'field_edoweb_issued_since' => array(),
+      'field_edoweb_issued_until' => array(),
+      'field_edoweb_publication_freq' => array(),
+      'field_edoweb_is_like' => array(),
+      'field_edoweb_urn' => array(),
+      'field_edoweb_isbn10' => array(),
+      'field_edoweb_isbn13' => array(),
+      'field_edoweb_issn' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_language' => array(),
+      'field_edoweb_extent' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_subject' => array(),
+      'field_edoweb_parallel' => array(),
+      'field_edoweb_homepage' => array(),
+      'field_edoweb_struct_child' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -637,32 +532,15 @@ function _edoweb_installed_instances() {
      * Field instances in volume bundle
      */
     'volume' => array(
-      array(
-        'field_name'  => 'field_edoweb_volume',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_is_like',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn10',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_isbn13',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issn',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_doi',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_description',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_child',
+      'field_edoweb_volume' => array(),
+      'field_edoweb_issued' => array(),
+      'field_edoweb_is_like' => array(),
+      'field_edoweb_isbn10' => array(),
+      'field_edoweb_isbn13' => array(),
+      'field_edoweb_issn' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_struct_child' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -674,8 +552,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-      array(
-        'field_name'  => 'field_edoweb_struct_parent',
+      'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -691,26 +568,13 @@ function _edoweb_installed_instances() {
      * Field instances in issue bundle
      */
     'issue' => array(
-      array(
-        'field_name'  => 'field_edoweb_title',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_is_like',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_doi',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_extent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_description',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_child',
+      'field_edoweb_title' => array(),
+      'field_edoweb_issued' => array(),
+      'field_edoweb_is_like' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_extent' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_struct_child' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -721,8 +585,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-      array(
-        'field_name'  => 'field_edoweb_struct_parent',
+      'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -739,50 +602,21 @@ function _edoweb_installed_instances() {
      * Field instances in article bundle
      */
     'article' => array(
-      array(
-        'field_name'  => 'field_edoweb_title',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_title_other',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_creator_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_contributor_new',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_issued',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_is_like',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_doi',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_language',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_extent',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_description',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_subject',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_abstract',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_parent',
+      'field_edoweb_title' => array(),
+      'field_edoweb_title_other' => array(),
+      'field_edoweb_creator' => array(),
+      'field_edoweb_creator_new' => array(),
+      'field_edoweb_contributor' => array(),
+      'field_edoweb_contributor_new' => array(),
+      'field_edoweb_issued' => array(),
+      'field_edoweb_is_like' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_language' => array(),
+      'field_edoweb_extent' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_subject' => array(),
+      'field_edoweb_abstract' => array(),
+      'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
@@ -800,23 +634,12 @@ function _edoweb_installed_instances() {
      * Field instances in file bundle
      */
     'file' => array(
-      array(
-        'field_name'  => 'field_edoweb_title',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_label',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_filesize',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_filetype',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_datastream',
-      ),
-      array(
-        'field_name'  => 'field_edoweb_struct_parent',
+      'field_edoweb_title' => array(),
+      'field_edoweb_label' => array(),
+      'field_edoweb_filesize' => array(),
+      'field_edoweb_filetype' => array(),
+      'field_edoweb_datastream' => array(),
+      'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(

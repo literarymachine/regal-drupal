@@ -1129,7 +1129,7 @@ function edoweb_basic_delete($entity) {
 function edoweb_rdf_mapping() {
   return array(
     array(
-      'type' => 'edoweb_basic',
+      'type' => EDOWEB_ENTITY_TYPE,
       'bundle' => RDF_DEFAULT_BUNDLE,
       'mapping' => array(
         'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
@@ -1687,6 +1687,115 @@ class LinkedDataClient {
     return $rdf_model;
   }
 
+}
+
+function _update_edoweb_installed_fields($updated_fields = null) {
+
+  module_load_install('edoweb');
+  $installed_fields = _edoweb_installed_fields();
+
+  // Update all fields by default
+  if (is_null($updated_fields)) {
+    $updated_fields = array_keys($installed_fields);
+  }
+
+  foreach ($updated_fields as $field_name) {
+    $field_definition = $installed_fields[$field_name];
+    $field_definition['field_name'] = $field_name;
+    $installed_field = field_info_field($field_name);
+    if (is_null($installed_field)) {
+      field_create_field($field_definition);
+      drupal_set_message("Created field $field_name.");
+    } else {
+      field_update_field($field_definition);
+      drupal_set_message("Updated field $field_name.");
+    }
+  }
+
+}
+
+/*
+ * Reload instance definitions from edoweb.install
+ * @param $updated_instances
+ *   array(
+ *     'updated_bundle' => array(
+ *       field_name_1, field_name_2, ...
+ *     )
+ *   )
+ */
+function _update_edoweb_installed_instances($updated_instances = null) {
+
+  module_load_install('edoweb');
+  $installed_instances = _edoweb_installed_instances();
+
+  // Update all instances by default
+  if (is_null($updated_instances)) {
+    $updated_instances = array();
+    foreach ($installed_instances as $bundle_type => $installed_fields) {
+      foreach (array_keys($installed_fields) as $field_name) {
+        $updated_instances[$bundle_type][] = $field_name;
+      }
+    }
+  }
+
+  foreach ($updated_instances as $bundle_type => $field_names) {
+    foreach ($field_names as $field_name) {
+      $field_instance = $installed_instances[$bundle_type][$field_name];
+      $field_instance['field_name'] = $field_name;
+      $field_instance['entity_type'] = 'edoweb_basic';
+      $field_instance['bundle'] = $bundle_type;
+      $defaults = _edoweb_field_instance_defaults($field_name);
+      $field_instance['label'] = array_key_exists('label', $defaults)
+        ? $defaults['label']
+        : null;
+      $field_instance['description'] = array_key_exists('description', $defaults)
+        ? $defaults['description']
+        : null;
+      $field_instance['default_value'] = array_key_exists('default_value', $defaults)
+        ? $defaults['default_value']
+        : null;
+      $installed_instance = field_info_instance(
+        EDOWEB_ENTITY_TYPE, $field_name, $bundle_type
+      );
+      if (is_null($installed_instance)) {
+        field_create_instance($field_instance);
+        drupal_set_message(
+          "Created instance for field $field_name in bundle $bundle_type."
+        );
+      } else {
+        field_update_instance($field_instance);
+        drupal_set_message(
+          "Updated instance for field $field_name in bundle $bundle_type."
+        );
+      }
+    }
+  }
+
+}
+
+function _update_rdf_mapping($updated_mappings = null) {
+
+  module_load_install('edoweb');
+  $installed_fields = _edoweb_installed_fields();
+
+  // Update mappings for all fields by default
+  if (is_null($updated_mappings)) {
+    $updated_mappings = array_keys($installed_fields);
+  }
+
+  $rdf_mappings = edoweb_rdf_mapping();
+  foreach ($rdf_mappings as $rdf_mapping) {
+    foreach (array_keys($rdf_mapping['mapping']) as $field_name) {
+      if (!in_array($field_name, $updated_mappings)) {
+        unset($rdf_mapping['mapping'][$field_name]);
+      }
+    }
+    rdf_mapping_save($rdf_mapping);
+    drupal_set_message(
+      'Updated RDF mappings for '
+      . implode(', ', array_keys($rdf_mapping['mapping']))
+    );
+  }
 }
 
 /**
