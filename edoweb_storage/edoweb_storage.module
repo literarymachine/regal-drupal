@@ -637,3 +637,19 @@ function _edoweb_expand_curie($curie) {
   return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
 
+function _edoweb_compact_uri($uri) {
+  $rdf_namespaces = rdf_get_namespaces();
+  $split = strrpos($uri, '#');
+  if (!$split) {
+    $split = strrpos($uri, '/');
+  }
+  $curie_prefix = array_search(
+    substr($uri, 0, $split + 1), $rdf_namespaces
+  );
+  $curie_local = substr($uri, $split + 1);
+  if (!$curie_prefix) {
+    return FALSE;
+  } else {
+    return "$curie_prefix:$curie_local";
+  }
+}
