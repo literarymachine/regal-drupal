@@ -157,16 +157,22 @@ function edoweb_field_field_is_empty($item, $field) {
  * @see field_example_field_widget_form()
  */
 function edoweb_field_field_widget_info() {
+
   return array(
     'edoweb_autocomplete_widget' => array(
       'label' => t('Auto-complete'),
       'field types' => array('edoweb_ld_reference'),
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
     ),
     'edoweb_upload_widget' => array(
       'label' => t('File Upload'),
       'field types' => array('edoweb_datastream'),
     ),
   );
+
 }
 
 /**
@@ -220,55 +226,133 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
  */
 function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 
-  // Overwrite default autocomplete behaviour
+  // Add autocomplete JS
+  drupal_add_library('system', 'ui.autocomplete');
   drupal_add_js(
-    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
-    array('weight' => '100')
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js'
   );
+
 
   switch ($instance['widget']['type']) {
     case 'edoweb_autocomplete_widget':
-      $widget = $element;
-      $widget['#delta'] = $delta;
 
-      $endpoint = $field['settings']['endpoint'];
-      $parameter = $field['settings']['parameter'];
+      // Get field configuration
+      $field_info = field_info_field($field['field_name']);
+      $field_name = $field_info['field_name'];
+      $field_cardinality = $field_info['cardinality'];
 
-      $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
-      // Check if value was set in form input, e.g. when this function
-      // is called by ajax via the "Add another item" button.
-      $value = isset($form_state['input'][$field['field_name']]['und'][$delta]['value']) ?
-        $form_state['input'][$field['field_name']]['und'][$delta]['value'] : $value;
-
-      if ($value != '') {
-        $widget += array(
-          '#type' => 'hidden',
-          '#autocomplete_path' => "edoweb/autocomplete/{$field['field_name']}",
-          '#value' => $value,
-        );
-        $element['label'] = array(
-          '#type' => 'textfield',
-          '#value' => _edoweb_field_ld_reference_get_label($field, $value),
-          '#disabled' => TRUE,
-          '#attributes' => array(
-            'class' => array('autocomplete-selected'),
-          ),
-        );
-        $element['remove'] = array(
-          '#type' => 'item',
-          '#markup' => '<a href="#" class="autocomplete-remove">[remove]</a>',
-        );
-      } else {
-        $widget += array(
-          '#type' => 'textfield',
-          '#autocomplete_path' => "edoweb/autocomplete/{$field['field_name']}",
-        );
-      }
-      $widget += array(
-        '#element_validate' => array('_edoweb_field_ld_reference_validate'),
+      // Widget Fieldset
+      $element += array(
+        '#type' => 'fieldset',
       );
-      $element['value'] = $widget;
+
+      // Textfield to hold new values
+      $element['edoweb_autocomplete_widget']['value'] = array(
+        '#type' => 'textfield',
+        '#attributes' => array(
+          'class' => array('edoweb_autocomplete_widget', $field_name),
+        ),
+        '#parents' => array(
+          'edoweb_autocomplete_widget', $field_name, 'value'
+        ),
+        '#disabled' => TRUE,
+        '#access' => FALSE,
+      );
+
+      // Submit button to add new values
+      $element['edoweb_autocomplete_widget']['submit'] = array(
+        '#type' => 'submit',
+        '#parents' => array(
+          'edoweb_autocomplete_widget', $field_name, 'submit'
+        ),
+        '#name' => "edoweb_autocomplete_widget_add_$field_name",
+        '#value' => t('Hinzufügen'),
+        '#disabled' => TRUE,
+        '#access' => FALSE,
+        '#submit' => array('edoweb_autocomplete_widget_update_value'),
+      );
+
+      // Reload items from form_state values
+      if (array_key_exists('values', $form_state)) {
+        $items = array();
+        if (array_key_exists($field_name, $form_state['values'])) {
+          foreach ($form_state['values'][$field_name][LANGUAGE_NONE] as $value) {
+            array_push($items, $value);
+          }
+        }
+      }
+
+      // Handle add event
+      if (array_key_exists('triggering_element', $form_state)
+          && ($form_state['triggering_element']['#name']
+          == "edoweb_autocomplete_widget_add_{$field_name}")
+      ) {
+        $element['#prefix'] = '<a name="focus"></a>';
+        $added_value =
+          $form_state['values']['edoweb_autocomplete_widget'][$field_name]['value'];
+        if ($added_value != '') {
+          array_unshift($items, array('value' => $added_value));
+        }
+      }
+
+      // Handle remove event - because of the way drupal works, the
+      // value needs to be empty but still present in the array, i.e.
+      // unset($items[$i]) will not work! This is why we need to track
+      // the actual count of set values separately in order to properly
+      // handle cardinality limits.
+      $value_count = 0;
+      foreach (array_keys($items) as $i) {
+        if (array_key_exists('triggering_element', $form_state)) {
+          if ($form_state['triggering_element']['#name']
+              == "edoweb_autocomplete_widget_remove_{$field_name}_{$i}"
+          ) {
+            $form_state['values'][$field_name][LANGUAGE_NONE][$i]['value'] = '';
+            $items[$i]['value'] = '';
+            $element['#prefix'] = '<a name="focus"></a>';
+          }
+        }
+        if ($items[$i]['value'] != '') {
+          $value_count++;
+        }
+      }
+
+      // Enabled add button if max cardinality is not reached
+      if (($field_cardinality == FIELD_CARDINALITY_UNLIMITED)
+          || ($value_count < $field_cardinality)
+      ) {
+        unset($element['edoweb_autocomplete_widget']['submit']['#disabled']);
+        unset($element['edoweb_autocomplete_widget']['submit']['#access']);
+        unset($element['edoweb_autocomplete_widget']['value']['#disabled']);
+        unset($element['edoweb_autocomplete_widget']['value']['#access']);
+      }
+
+      // List items
+      foreach (array_keys($items) as $i) {
+        // Hidden inputs for values
+        $element[$i]['value'] = array(
+          '#type' => 'hidden',
+          '#value' => $items[$i]['value'],
+        );
+        if (!edoweb_field_field_is_empty($items[$i], $field)) {
+          // Associated data for display
+          $element[$i]['data'] = array(
+            '#type' => 'item',
+            '#title' => _edoweb_field_ld_reference_get_label(
+              $field, $items[$i]['value']
+            ),
+          );
+          // Submit button to remove value
+          $element[$i]['data']['remove'][] = array(
+            '#type' => 'submit',
+            '#name' => "edoweb_autocomplete_widget_remove_{$field_name}_{$i}",
+            '#value' => t('Entfernen'),
+            '#submit' => array('edoweb_autocomplete_widget_update_value'),
+          );
+        }
+      }
+
       break;
+
     case 'edoweb_upload_widget':
       $widget = $element;
       $widget['#delta'] = $delta;
@@ -285,13 +369,12 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
   return $element;
 }
 
-function _edoweb_field_ld_reference_validate($element, &$form_state, $form) {
-  // Because field values can have been removed by javascript,
-  // form_state has to be updated accordingly.
-  if (isset($form_state['input'][$element['#field_name']][LANGUAGE_NONE][$element['#delta']]['value'])) {
-    $input = $form_state['input'][$element['#field_name']][LANGUAGE_NONE][$element['#delta']]['value'];
-    form_set_value($element, $input, $form_state);
-  }
+function edoweb_autocomplete_widget_update_value($form, &$form_state) {
+  unset($form['edoweb_autocomplete_widget']['value']['#value']);
+  unset($form_state['input']['edoweb_autocomplete_widget']);
+  unset($form_state['edoweb_autocomplete_widget']);
+  unset($form_state['complete form']['edoweb_autocomplete_widget']);
+  $form_state['rebuild'] = TRUE;
 }
 
 function _edoweb_field_ld_reference_get_label($field, $resource_uri) {

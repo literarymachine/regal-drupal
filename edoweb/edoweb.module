@@ -1355,7 +1355,8 @@ function edoweb_entity_info_alter(&$entity_info) {
   $entity_info['edoweb_basic']['label callback'] = 'edoweb_basic_title';
 }
 
-function _edoweb_gnd_autocomplete($field_name, $term) {
+function _edoweb_gnd_autocomplete($field_name) {
+  $term = $_GET['term'];
   $field_definition = field_info_field($field_name);
   $endpoint = $field_definition['settings']['endpoint'];
   $parameter = $field_definition['settings']['parameter'];
@@ -1421,7 +1422,10 @@ function _edoweb_gnd_autocomplete($field_name, $term) {
     } else {
       $resource_label = "Label for $resource_uri";
     }
-    $matches[substr($rdf_subject, 1, -1)] = $resource_label;
+    $matches[] = array(
+      'value' => substr($rdf_subject, 1, -1),
+      'label' => $resource_label,
+    );
   }
 
   drupal_json_output($matches);
