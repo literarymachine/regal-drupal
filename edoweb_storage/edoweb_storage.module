@@ -466,7 +466,13 @@ function _get_rdf_subject($entity, $field_name) {
   if ('file' == $entity->bundle_type
       && in_array($field_name, $datastream_properties)
   ) {
-    return new LibRDF_URINode(substr($rdf_subject, 1, -1) .  '/data');
+    return new LibRDF_URINode(
+      substr($rdf_subject, 1, -1) .  '/data'
+    );
+  } else if ('generic' == $entity->bundle_type) {
+    return new LibRDF_URINode(
+      _edoweb_expand_curie(substr($rdf_subject, 1, -1))
+    );
   } else {
     return $rdf_subject;
   }
