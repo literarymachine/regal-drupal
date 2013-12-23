@@ -268,32 +268,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Import the entity itself
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $remote_id
-    );
-    $http_response = $this->_http_get($http_url, 'application/rdf+xml');
-    if (200 != $http_response->code || !isset($http_response->data)) {
-      watchdog('edoweb_storage', 'Unable to import @id from @api.',
-        array(
-          '@id' => $remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    $repository_data = new LibRDF_Model(new LibRDF_Storage());
-    $repository_data->loadStatementsFromString(
-      new LibRDF_Parser('rdfxml'), $http_response->data
-    );
+    $linkedDataClient = new LinkedDataClient();
+    $http_url = _edoweb_expand_curie($remote_id);
+    $repository_data = $linkedDataClient->getRDF($http_url);
     LibRDF_LiteralNode::setPlainOutput(true);
-    $bundle_type = (string) $repository_data->getTarget(
-      new LibRDF_URINode($remote_id),
-      new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
-    );
+    try {
+      $bundle_type = (string) $repository_data->getTarget(
+        new LibRDF_URINode($remote_id),
+        new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
+      );
+    } catch (LibRDF_LookupError $e) {
+      $bundle_type = 'generic';
+    }
     $entity = entity_get_controller('edoweb_basic')->create(
       array('bundle_type' => $bundle_type)
     );
