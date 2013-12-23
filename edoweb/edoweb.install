@@ -432,6 +432,17 @@ function _edoweb_installed_fields() {
         'handler_settings' => array('target_bundles' => null),
       ),
     ),
+
+    /*
+     * Generic linked data fields
+     */
+    'field_gnd_name' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+      ),
+    ),
   );
 }
 
@@ -658,6 +669,13 @@ function _edoweb_installed_instances() {
         ),
       ),
     ),
+
+    /*
+     * Field instances in generic bundle
+     */
+    'generic' => array(
+      'field_gnd_name' => array(),
+    ),
   );
 }
 
@@ -797,6 +815,9 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_struct_child' => array(
       'label' => 'Child',
+    ),
+    'field_gnd_name' => array(
+      'label' => 'Name',
     ),
   );
   return $defaults[$field_name];

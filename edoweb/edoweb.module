@@ -132,6 +132,15 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'generic' => array(
+        'label' => t('A generic linked data ressource'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/generic/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
     ),
     // View modes allow entities to be displayed differently based on context.
     'view modes' => array(
@@ -457,21 +466,32 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
 }
 
 /**
- * Callback for a page title when this entity is displayed.
+ * Callback for a title for this entity.
  */
 function edoweb_basic_title($entity) {
-  if ($entity->bundle_type == 'volume') {
-    $label_field = 'field_edoweb_volume';
-  } else {
-    $label_field = 'field_edoweb_title';
+
+  switch ($entity->bundle_type) {
+    case 'volume':
+      $label_field = 'field_edoweb_volume';
+      break;
+    case 'generic':
+      $label_field = 'field_gnd_name';
+      break;
+    default:
+      $label_field = 'field_edoweb_title';
+      break;
   }
+
   $title_items = field_get_items(
     'edoweb_basic', $entity, $label_field
   );
+
   $title = $title_items[0]['value']
     ? $title_items[0]['value']
     : "Untitled {$entity->bundle_type}";
+
   return $title;
+
 }
 
 /**
@@ -1252,6 +1272,9 @@ function edoweb_rdf_mapping() {
           'predicates' => array('dc:isPartOf'),
           'type' => 'rel',
         ),
+        'field_gnd_name' => array(
+          'predicates' => array('gnd:preferredNameForThePerson'),
+        ),
       ),
     ),
   );
@@ -1280,6 +1303,8 @@ function edoweb_rdf_namespaces() {
     'lv'  => 'http://purl.org/lobid/lv#',
     'rdfs'  => 'http://www.w3.org/2000/01/rdf-schema#',
     'orca'  => 'http://geni-orca.renci.org/owl/topology.owl#',
+    'dnb' => 'http://d-nb.info/gnd/',
+    'gnd' => 'http://d-nb.info/standards/elementset/gnd#',
   );
 }
 
@@ -1625,4 +1650,18 @@ function edoweb_update_7102() {
     'file' => array('field_edoweb_urn'),
   );
   _update_edoweb_installed_instances($added_instances);
+}
+
+/**
+ * Add fields to generic bundle for external linked data resources
+ */
+function edoweb_update_7103() {
+  // FIXME: add the bundle itself
+  $added_fields = array('field_gnd_name');
+  $added_instances = array(
+    'generic' => array('field_gnd_name'),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
 }
