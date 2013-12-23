@@ -202,7 +202,11 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
     case 'edoweb_ld_format':
       foreach ($items as $delta => $item) {
         $elements[$delta] = array(
-          '#markup' => l(_edoweb_field_ld_reference_get_label($field, $item['value']), $item['value']),
+          '#markup' => l(
+            _edoweb_field_ld_reference_get_label(
+              $field, $item['value']
+            ), 'resource/' . _edoweb_compact_uri($item['value'])
+          ),
         );
       }
       break;
