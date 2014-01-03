@@ -1145,139 +1145,37 @@ function edoweb_basic_delete($entity) {
  * functions should be used.
  */
 function edoweb_rdf_mapping() {
-  return array(
-    array(
+
+  module_load_install('edoweb');
+  $bundles = _edoweb_installed_instances();
+
+  $rdf_mappings = array();
+  foreach ($bundles as $bundle_type => $field_instances) {
+    $rdf_mapping = array(
       'type' => EDOWEB_ENTITY_TYPE,
-      'bundle' => RDF_DEFAULT_BUNDLE,
+      'bundle' => $bundle_type,
       'mapping' => array(
+        // TODO: implement type map
         'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
-        'field_edoweb_identifier' => array(
-          'predicates' => array('dc:identifier'),
-        ),
-        'field_edoweb_identifier_ht' => array(
-          'predicates' => array('lv:hbzID'),
-        ),
-        'field_edoweb_identifier_zdb' => array(
-          'predicates' => array('lv:zdbID'),
-        ),
-        'field_edoweb_parent' => array(
-          'predicates' => array('dc:isPartOf'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_volume' => array(
-          'predicates' => array('bibo:volume'),
-        ),
-        'field_edoweb_title' => array(
-          'predicates' => array('isbd:P1004'),
-        ),
-        'field_edoweb_title_other' => array(
-          'predicates' => array('isbd:P1006'),
-        ),
-        'field_edoweb_creator' => array(
-          'predicates' => array('dce:creator'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_creator_new' => array(
-          'predicates' => array('dc:creator'),
-        ),
-        'field_edoweb_contributor' => array(
-          'predicates' => array('dce:contributor'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_contributor_new' => array(
-          'predicates' => array('dc:contributor'),
-        ),
-        'field_edoweb_editor' => array(
-          'predicates' => array('bibo:editor'),
-        ),
-        'field_edoweb_issued' => array(
-          'predicates' => array('dc:issued'),
-        ),
-        // TODO: Decide on mapping
-        //'field_edoweb_issued_since' => array(
-        //  'predicates' => array(''),
-        //),
-        //'field_edoweb_issued_until' => array(
-        //  'predicates' => array(''),
-        //),
-        //'field_edoweb_publication_freq' => array(
-        //  'predicates' => array(''),
-        //),
-        'field_edoweb_urn' => array(
-          'predicates' => array('orca:hasURN'),
-        ),
-        'field_edoweb_is_like' => array(
-          'predicates' => array('umbel:isLike'),
-        ),
-        'field_edoweb_doi' => array(
-          'predicates' => array('bibo:doi'),
-        ),
-        'field_edoweb_isbn10' => array(
-          'predicates' => array('bibo:isbn10'),
-        ),
-        'field_edoweb_isbn13' => array(
-          'predicates' => array('bibo:isbn13'),
-        ),
-        'field_edoweb_issn' => array(
-          'predicates' => array('bibo:issn'),
-        ),
-        'field_edoweb_extent' => array(
-          'predicates' => array('dc:extent'),
-        ),
-        'field_edoweb_description' => array(
-          'predicates' => array('dc:description'),
-        ),
-        'field_edoweb_abstract' => array(
-          'predicates' => array('dc:abstract'),
-        ),
-        'field_edoweb_parallel' => array(
-          'predicates' => array('dc:hasFormat'),
-        ),
-        'field_edoweb_homepage' => array(
-          'predicates' => array('foaf:homepage'),
-        ),
-        'field_edoweb_language' => array(
-          'predicates' => array('dc:language'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_edition' => array(
-          'predicates' => array('bibo:edition'),
-        ),
-        'field_edoweb_publication_place' => array(
-          'predicates' => array('isbd:P1016'),
-        ),
-        'field_edoweb_subject' => array(
-          'predicates' => array('dc:subject'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_publisher' => array(
-          'predicates' => array('isbd:P1017'),
-        ),
-        'field_edoweb_label' => array(
-          'predicates' => array('rdfs:label'),
-        ),
-        'field_edoweb_filetype' => array(
-          'predicates' => array('dc:format'),
-        ),
-        // Files and parent/child relations not mapped as
-        // they are not part of the descriptive metadata.
-        //'field_edoweb_file' => array(
-        //  'predicates' => array('ore:aggregates'),
-        //),
-        'field_edoweb_struct_child' => array(
-          'predicates' => array('dc:hasPart'),
-          'type' => 'rel',
-        ),
-        'field_edoweb_struct_parent' => array(
-          'predicates' => array('dc:isPartOf'),
-          'type' => 'rel',
-        ),
-        'field_gnd_name' => array(
-          'predicates' => array('gnd:preferredNameForThePerson'),
-        ),
       ),
-    ),
-  );
+    );
+    foreach ($field_instances as $field_name => $field_instance) {
+      $field_info = field_info_field($field_name);
+      if (isset($field_info['settings']['predicates'])) {
+        $rdf_mapping['mapping'][$field_name]['predicates'] =
+          $field_info['settings']['predicates'];
+        if (in_array($field_info['type'],
+            array('edoweb_ld_reference', 'entityreference'))
+        ) {
+          $rdf_mapping['mapping'][$field_name]['type'] = 'rel';
+        }
+      }
+    }
+    $rdf_mappings[] = $rdf_mapping;
+  }
+
+  return $rdf_mappings;
+
 }
 
 /*
@@ -1305,6 +1203,7 @@ function edoweb_rdf_namespaces() {
     'orca'  => 'http://geni-orca.renci.org/owl/topology.owl#',
     'dnb' => 'http://d-nb.info/gnd/',
     'gnd' => 'http://d-nb.info/standards/elementset/gnd#',
+    'lr' => 'http://lobid.org/resource/',
   );
 }
 
@@ -1587,6 +1486,9 @@ function _update_rdf_mapping($updated_mappings = null) {
     $updated_mappings = array_keys($installed_fields);
   }
 
+  // Add RDF type
+  $updated_mappings[] = 'rdftype';
+
   $rdf_mappings = edoweb_rdf_mapping();
   foreach ($rdf_mappings as $rdf_mapping) {
     foreach (array_keys($rdf_mapping['mapping']) as $field_name) {
@@ -1600,6 +1502,7 @@ function _update_rdf_mapping($updated_mappings = null) {
       . implode(', ', array_keys($rdf_mapping['mapping']))
     );
   }
+
 }
 
 /**
