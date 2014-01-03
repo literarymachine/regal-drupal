@@ -671,9 +671,9 @@ function _edoweb_installed_instances() {
     ),
 
     /*
-     * Field instances in generic bundle
+     * Field instances in person bundle
      */
-    'generic' => array(
+    'person' => array(
       'field_gnd_name' => array(),
     ),
   );

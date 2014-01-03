@@ -132,12 +132,12 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
-      'generic' => array(
-        'label' => t('A generic linked data ressource'),
+      'person' => array(
+        'label' => t('Person'),
         // 'admin' key is used by the Field UI to provide field and
         // display UI pages.
         'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/generic/manage',
+          'path' => 'admin/structure/edoweb_basic/person/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -1653,13 +1653,13 @@ function edoweb_update_7102() {
 }
 
 /**
- * Add fields to generic bundle for external linked data resources
+ * Add fields to person bundle for external linked data resources
  */
 function edoweb_update_7103() {
   // FIXME: add the bundle itself
   $added_fields = array('field_gnd_name');
   $added_instances = array(
-    'generic' => array('field_gnd_name'),
+    'person' => array('field_gnd_name'),
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
