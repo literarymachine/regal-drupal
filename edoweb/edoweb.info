@@ -12,4 +12,7 @@ dependencies[] = entityreference
 dependencies[] = entity
 dependencies[] = edoweb_field
 files[] = edoweb.test
+files[] = EdowebBasicEntity.inc
+files[] = EdowebBasicController.inc
+files[] = LinkedDataClient.inc
 configure = admin/structure/edoweb_basic/manage
