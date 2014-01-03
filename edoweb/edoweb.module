@@ -474,7 +474,7 @@ function edoweb_basic_title($entity) {
     case 'volume':
       $label_field = 'field_edoweb_volume';
       break;
-    case 'generic':
+    case 'person':
       $label_field = 'field_gnd_name';
       break;
     default:
@@ -1149,14 +1149,14 @@ function edoweb_rdf_mapping() {
   module_load_install('edoweb');
   $bundles = _edoweb_installed_instances();
 
+  $rdf_types = edoweb_rdf_types();
   $rdf_mappings = array();
   foreach ($bundles as $bundle_type => $field_instances) {
     $rdf_mapping = array(
       'type' => EDOWEB_ENTITY_TYPE,
       'bundle' => $bundle_type,
       'mapping' => array(
-        // TODO: implement type map
-        'rdftype' => array('dc:BibliographicResource', 'frbr:Manifestation'),
+        'rdftype' => $rdf_types[$bundle_type],
       ),
     );
     foreach ($field_instances as $field_name => $field_instance) {
@@ -1176,6 +1176,18 @@ function edoweb_rdf_mapping() {
 
   return $rdf_mappings;
 
+}
+
+function edoweb_rdf_types() {
+  return array(
+    'person' => array('gnd:DifferentiatedPerson'),
+    'monograph' => array('bibo:Book'),
+    'journal' => array('bibo:Journal'),
+    'volume' => array('bibo:Volume'),
+    'issue' => array('bibo:Issue'),
+    'article' => array('bibo:Article'),
+    'file' => array('bibo:DocumentPart'),
+  );
 }
 
 /*
