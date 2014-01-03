@@ -272,6 +272,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_url = _edoweb_expand_curie($remote_id);
     $repository_data = $linkedDataClient->getRDF($http_url);
     LibRDF_LiteralNode::setPlainOutput(true);
+    // If all fails, resort to generic bundle
+    $bundle_type = 'generic';
     try {
       // Regal content-types overrule RDF types
       $bundle_type = (string) $repository_data->getTarget(
@@ -281,20 +283,19 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     } catch (LibRDF_LookupError $e) {
       try {
         // Determine bundle based on RDF type
-        $rdf_types = edoweb_rdf_types();
-        $rdf_type = $repository_data->getTarget(
+        $rdf_types = $repository_data->getTargets(
           new LibRDF_URINode(_edoweb_expand_curie($remote_id)),
           new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
         );
-        $type = _edoweb_compact_uri(substr($rdf_type, 1, -1));
-        foreach ($rdf_types as $bundle => $types) {
-          if (in_array($type, $types)) {
-            $bundle_type = $bundle;
+        foreach ($rdf_types as $rdf_type) {
+          $type = _edoweb_compact_uri(substr($rdf_type, 1, -1));
+          foreach (edoweb_rdf_types() as $bundle => $types) {
+            if (in_array($type, $types)) {
+              $bundle_type = $bundle;
+            }
           }
         }
       } catch (LibRDF_LookupError $e) {
-        // If all fails, resort to generic bundle
-        $bundle_type = 'generic';
       }
     }
     $entity = entity_get_controller('edoweb_basic')->create(

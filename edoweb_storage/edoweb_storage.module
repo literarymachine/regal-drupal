@@ -457,28 +457,29 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
 
 function _get_rdf_subject($entity, $field_name) {
   $rdf_subject = _edoweb_storage_entity_get_uri($entity);
+
   $datastream_properties = array(
     'field_edoweb_filetype',
     'field_edoweb_label',
     'field_edoweb_filesize',
     'field_edoweb_datastream',
   );
-  $local_bundles = array(
-    'monograph', 'journal', 'volume', 'issue', 'article', 'file'
-  );
+
+  $namespace = variable_get('edoweb_api_namespace');
   if ('file' == $entity->bundle_type
       && in_array($field_name, $datastream_properties)
   ) {
     return new LibRDF_URINode(
       substr($rdf_subject, 1, -1) .  '/data'
     );
-  } else if (in_array($entity->bundle_type, $local_bundles)) {
+  } else if ("<$namespace:" === substr($rdf_subject, 0, strlen($namespace) + 2)) {
     return $rdf_subject;
   } else {
     return new LibRDF_URINode(
       _edoweb_expand_curie(substr($rdf_subject, 1, -1))
     );
   }
+
 }
 
 function _edoweb_storage_entity_get_uri($entity) {
