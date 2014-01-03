@@ -479,6 +479,30 @@ function _edoweb_installed_fields() {
         'predicates' => array('gnd:preferredNameForThePerson'),
       ),
     ),
+    'field_gnd_identifier' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:gndIdentifier'),
+      ),
+    ),
+    'field_gnd_date_of_birth' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:dateOfBirth'),
+      ),
+    ),
+    'field_gnd_date_of_death' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:dateOfDeath'),
+      ),
+    ),
   );
 }
 
@@ -711,6 +735,9 @@ function _edoweb_installed_instances() {
      */
     'person' => array(
       'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+      'field_gnd_date_of_birth' => array(),
+      'field_gnd_date_of_death' => array(),
     ),
   );
 }
@@ -854,6 +881,15 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_gnd_name' => array(
       'label' => 'Name',
+    ),
+    'field_gnd_identifier' => array(
+      'label' => 'Identifikator',
+    ),
+    'field_gnd_date_of_birth' => array(
+      'label' => 'Geburtsdatum',
+    ),
+    'field_gnd_date_of_death' => array(
+      'label' => 'Todesdatum',
     ),
   );
   return $defaults[$field_name];

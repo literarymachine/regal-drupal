@@ -1572,9 +1572,19 @@ function edoweb_update_7102() {
  */
 function edoweb_update_7103() {
   // FIXME: add the bundle itself
-  $added_fields = array('field_gnd_name');
+  $added_fields = array(
+    'field_gnd_name',
+    'field_gnd_identifier',
+    'field_gnd_date_of_birth',
+    'field_gnd_date_of_death',
+  );
   $added_instances = array(
-    'person' => array('field_gnd_name'),
+    'person' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+      'field_gnd_date_of_birth',
+      'field_gnd_date_of_death',
+    )
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
