@@ -384,11 +384,16 @@ function _edoweb_installed_fields() {
     ),
     'field_edoweb_subject' => array(
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      // TODO: Use linked data field
-      'type'        => 'text',
+      'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:subject'),
+        'parameter' => 'name',
+        'endpoint' => 'subject',
+        'label_properties' => array(
+          'http://www.w3.org/2004/02/skos/core#prefLabel',
+          'http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber',
+        ),
       ),
     ),
     'field_edoweb_abstract' => array(
@@ -501,6 +506,22 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('gnd:dateOfDeath'),
+      ),
+    ),
+    'field_skos_notation' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('skos:notation'),
+      ),
+    ),
+    'field_skos_pref_label' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('skos:prefLabel'),
       ),
     ),
   );
@@ -739,6 +760,15 @@ function _edoweb_installed_instances() {
       'field_gnd_date_of_birth' => array(),
       'field_gnd_date_of_death' => array(),
     ),
+
+    /*
+     * Field instances in subject bundle
+     */
+    'subject' => array(
+      'field_gnd_identifier' => array(),
+      'field_skos_notation' => array(),
+      'field_skos_pref_label' => array(),
+    ),
   );
 }
 
@@ -890,6 +920,12 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_gnd_date_of_death' => array(
       'label' => 'Todesdatum',
+    ),
+    'field_skos_pref_label' => array(
+      'label' => 'Label',
+    ),
+    'field_skos_notation' => array(
+      'label' => 'Notation',
     ),
   );
   return $defaults[$field_name];

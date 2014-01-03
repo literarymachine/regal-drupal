@@ -141,6 +141,15 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'subject' => array(
+        'label' => t('Schlagwort'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/subject/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
     ),
     // View modes allow entities to be displayed differently based on context.
     'view modes' => array(
@@ -1020,6 +1029,7 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     'field_edoweb_label',
     'field_edoweb_filesize',
     'field_edoweb_filetype',
+    'field_edoweb_subject',
   );
   foreach ($fields_info as $field_name => $value) {
     $field_info = field_info_field($field_name);
@@ -1180,8 +1190,16 @@ function edoweb_rdf_mapping() {
 
 function edoweb_rdf_types() {
   return array(
-    'person' => array('gnd:DifferentiatedPerson'),
-    'monograph' => array('bibo:Book'),
+    'person' => array(
+      'gnd:DifferentiatedPerson',
+      'gnd:UndifferentiatedPerson',
+    ),
+    'subject' => array('skos:Concept', 'gnd:SubjectHeading'),
+    'monograph' => array(
+      'bibo:Book',
+      'dc:BibliographicResource',
+      'bibo:Series'
+    ),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
     'issue' => array('bibo:Issue'),
@@ -1216,6 +1234,8 @@ function edoweb_rdf_namespaces() {
     'dnb' => 'http://d-nb.info/gnd/',
     'gnd' => 'http://d-nb.info/standards/elementset/gnd#',
     'lr' => 'http://lobid.org/resource/',
+    'skos' => 'http://www.w3.org/2004/02/skos/core#',
+    'ddc' => 'http://dewey.info/class/',
   );
 }
 
