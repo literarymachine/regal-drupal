@@ -39,6 +39,12 @@ function edoweb_entity_info() {
     // A human readable label to identify our entity.
     'label' => t('Edoweb Basic Entity'),
 
+    // Callback to label entities
+    'label callback' => 'edoweb_basic_title',
+
+    // The class for our Entity
+    'entity class' => 'EdowebBasicEntity',
+
     // The controller for our Entity, extending the Drupal core controller.
     'controller class' => 'EdowebBasicController',
 
@@ -46,7 +52,7 @@ function edoweb_entity_info() {
     'base table' => 'edoweb_basic',
 
     // Returns the uri elements of an entity
-    'uri callback' => 'edoweb_basic_uri',
+    'uri callback' => 'entity_class_uri',
 
     // IF fieldable == FALSE, we can't attach fields.
     'fieldable' => TRUE,
@@ -188,18 +194,6 @@ function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $
   // TODO: Determine whether to $reset by checking HTTP header
   // of resource in Edoweb API
   return entity_load('edoweb_basic', $local_ids, $conditions, $reset);
-}
-
-/**
- * Implements the uri callback.
- */
-function edoweb_basic_uri($basic) {
-  $id = property_exists($basic, 'remote_id')
-    ? $basic->remote_id
-    : null;
-  return array(
-    'path' => "resource/$id",
-  );
 }
 
 /**
@@ -590,7 +584,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
     );
   }
   $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
-  $entity_url = edoweb_basic_uri($entity);
+  $entity_url = entity_class_uri($entity);
   $trail[] = l($title, $entity_url['path']);
   return $trail;
 }
@@ -628,7 +622,9 @@ function edoweb_field_extra_fields() {
 function edoweb_basic_add($bundle_type, $parent = NULL) {
   // Create a basic entity structure to be used and passed to the validation
   // and submission functions.
-  $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
+  $entity = entity_get_controller('edoweb_basic')->create(
+    array('bundle_type' => $bundle_type)
+  );
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
     $wrapper->field_edoweb_struct_parent[] = $parent;
@@ -851,7 +847,9 @@ function edoweb_basic_admin_add_urn( $form , &$form_state ) {
  * Provides a form to import entities from linked data.
  */
 function edoweb_basic_import($bundle_type) {
-  $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
+  $entity = entity_get_controller('edoweb_basic')->create(
+    array('bundle_type' => $bundle_type)
+  );
   return drupal_get_form('edoweb_basic_import_form', $entity);
 }
 
@@ -1351,10 +1349,6 @@ function _edoweb_http_request($request_url, $http_options) {
   return $http_response;
 }
 
-function edoweb_entity_info_alter(&$entity_info) {
-  $entity_info['edoweb_basic']['label callback'] = 'edoweb_basic_title';
-}
-
 function _edoweb_gnd_autocomplete($field_name) {
   $term = $_GET['term'];
   $field_definition = field_info_field($field_name);
@@ -1472,34 +1466,33 @@ function _edoweb_available_languages() {
   return $languages;
 }
 
-
 /**
- * EdowebBasicControllerInterface definition.
- *
- * We create an interface here because anyone could come along and
- * use hook_entity_info_alter() to change our controller class.
- * We want to let them know what methods our class needs in order
- * to function with the rest of the module, so here's a handy list.
- *
- * @see hook_entity_info_alter()
+ * Model
  */
+class EdowebBasicEntity extends Entity {
+  /**
+   * Implements the uri callback.
+   */
+  protected function defaultUri() {
+    return array(
+      'path' => "resource/{$this->identifier()}",
+    );
+  }
 
-interface EdowebBasicControllerInterface
-  extends DrupalEntityControllerInterface {
-  public function create();
-  public function save($entity);
-  public function delete($entity);
+  public function identifier() {
+    return $this->remote_id;
+  }
+
+  public function internalIdentifier() {
+    return $this->local_id;
+  }
+
 }
 
 /**
- * EdowebBasicController extends DrupalDefaultEntityController.
- *
- * Our subclass of DrupalDefaultEntityController lets us add a few
- * important create, update, and delete methods.
+ * Controller
  */
-class EdowebBasicController
-  extends DrupalDefaultEntityController
-  implements EdowebBasicControllerInterface {
+class EdowebBasicController extends EntityAPIController {
 
   private $__entity_loaded = array();
 
@@ -1517,17 +1510,6 @@ class EdowebBasicController
       mt_rand(0, 0x3fff) | 0x8000,
       mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
       );
-  }
-
-  /**
-   * Create and return a new edoweb_basic entity.
-   */
-  public function create($bundle_type = 'monograph') {
-    $entity = new stdClass();
-    $entity->type = 'edoweb_basic';
-    $entity->local_id = null;
-    $entity->bundle_type = $bundle_type;
-    return $entity;
   }
 
   /**

@@ -294,7 +294,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       new LibRDF_URINode($remote_id),
       new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
     );
-    $entity = entity_get_controller('edoweb_basic')->create($bundle_type);
+    $entity = entity_get_controller('edoweb_basic')->create(
+      array('bundle_type' => $bundle_type)
+    );
     if ('overwrite' == $import_mode) {
       $local_id = db_select('edoweb_basic')
         ->condition('remote_id', $remote_id, '=')
