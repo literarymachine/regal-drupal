@@ -337,7 +337,7 @@ function edoweb_menu() {
 
   // GND Autocompletion
   $items['edoweb/autocomplete'] = array(
-    'page callback' => '_edoweb_gnd_autocomplete',
+    'page callback' => '_edoweb_autocomplete',
     'access arguments' => array('edit any edoweb_basic entity'),
     'type' => MENU_CALLBACK
   );
@@ -1305,76 +1305,38 @@ function _edoweb_http_request($request_url, $http_options) {
   return $http_response;
 }
 
-function _edoweb_gnd_autocomplete($field_name) {
+function _edoweb_autocomplete($field_name) {
   $term = $_GET['term'];
   $field_definition = field_info_field($field_name);
-  $endpoint = $field_definition['settings']['endpoint'];
-  $parameter = $field_definition['settings']['parameter'];
-  $autocomplete_url = "http://api.lobid.org/$endpoint?$parameter=";
-  $autocomplete_url .= urlencode($term);
+  $endpoint = isset($field_definition['settings']['endpoint'])
+    ? $field_definition['settings']['endpoint']
+    : false;
+  $parameter = isset($field_definition['settings']['parameter'])
+    ? $field_definition['settings']['parameter']
+    : false;
 
-  $http_options = array(
-    'method' => 'GET',
-    'headers' => array('Accept' => 'text/plain'),
-  );
-  $http_response = drupal_http_request($autocomplete_url, $http_options);
+  $query = new EntityFieldQuery();
+  if ($endpoint && $parameter) {
+    $query->addTag('lobid');
+    $query->addMetaData('endpoint', $endpoint);
+    $query->addMetaData('parameter', $parameter);
+  } else {
+    $query->addTag('elasticsearch');
+  }
+
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $query->propertyCondition('*', $term);
+  $result = $query->execute();
+  if (!$result or !array_key_exists('edoweb_basic', $result)) {
+    $entities = array();
+  } else {
+    $entities = $result['edoweb_basic'];
+  }
   $matches = array();
-  if (!((200 == $http_response->code) && isset($http_response->data))) {
-    watchdog('edoweb', 'Unable to retrieve result from api.lobid.org');
-    drupal_json_output($matches);
-    return;
-  }
-
-  $nt_data = $http_response->data;
-  $rdf_parser = new LibRDF_Parser('ntriples');
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  try {
-    $rdf_model->loadStatementsFromString($rdf_parser, $nt_data);
-  } catch (LibRDF_Error $e) {
-    watchdog('edoweb', 'Unable to parse result from api.lobid.org');
-    drupal_json_output($matches);
-    return;
-  }
-
-  $rdf_type_property = new LibRDF_URINode(
-    'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-  );
-  $rdf_type_map = array(
-    'resource' => new LibRDF_URINode(
-      'http://purl.org/dc/terms/BibliographicResource'
-    ),
-    'person' => new LibRDF_URINode(
-      'http://d-nb.info/standards/elementset/gnd#DifferentiatedPerson'
-    ),
-  );
-
-  $resources = $rdf_model->getSources(
-    $rdf_type_property, $rdf_type_map[$endpoint]
-  );
-  $rdf_properties = $field_definition['settings']['label_properties'];
-
-  LibRDF_LiteralNode::setPlainOutput(true);
-  foreach ($resources as $rdf_subject) {
-    $label_properties = array();
-    foreach ($rdf_properties as $rdf_property_uri) {
-      $rdf_property = new LibRDF_URINode($rdf_property_uri);
-      try {
-        // Fix escaped unicode characters such as \u00E4
-        $label_properties[] = json_decode(
-          '"'.$rdf_model->getTarget($rdf_subject, $rdf_property).'"'
-        );
-      } catch (LibRDF_LookupError $e) {
-        // Property could not be loaded, ignore
-      }
-    }
-    if (!empty($label_properties)) {
-      $resource_label = implode(', ', $label_properties);
-    } else {
-      $resource_label = "Label for $resource_uri";
-    }
+  foreach ($entities as $entity) {
     $matches[] = array(
-      'value' => substr($rdf_subject, 1, -1),
-      'label' => $resource_label,
+      'value' => $entity->remote_id,
+      'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
     );
   }
 
