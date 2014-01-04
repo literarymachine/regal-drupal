@@ -398,6 +398,88 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   public function query(EntityFieldQuery $efq) {
+    if (isset($efq->tags['elasticsearch'])) {
+      $results = $this->_query_elasticsearch($efq);
+    } else if (isset($efq->tags['lobid'])) {
+      $results = $this->_query_lobid($efq);
+    }
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    pager_default_initialize($results['hits'], $results_per_page);
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $ret = array();
+
+    foreach ($results['entities'] as $entity_rdf) {
+      $remote_id = $entity_rdf->{'@id'};
+      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      $options = array(
+        'format' => 'application/nquads',
+      );
+      $rdf_ntriples = jsonld_to_rdf($entity_rdf, $options);
+      $rdf_model->loadStatementsFromString(
+        $rdf_parser,
+        $rdf_ntriples
+      );
+      // FIXME: Properly handle namespaces at loading level
+      $namespace = variable_get('edoweb_api_namespace');
+      if ("<$namespace:" === substr(new LibRDF_URINode($remote_id), 0, strlen($namespace) + 2)) {
+        $bundle_type = $this->_bundle_type_from_rdf($remote_id, $rdf_model);
+      } else {
+        $bundle_type = $this->_bundle_type_from_rdf(
+          _edoweb_compact_uri($remote_id), $rdf_model
+        );
+        $remote_id = _edoweb_compact_uri($remote_id);
+      }
+      $entity = new stdClass();
+      $entity->bundle_type = $bundle_type;
+      $entity->remote_id = $remote_id;
+      $rdf_subject = new LibRDF_URINode($remote_id);
+      _edoweb_storage_entity_deserialize_rdf(
+        $entity, $rdf_subject, $rdf_ntriples, $rdf_parser
+      );
+      $ret['edoweb_basic'][] = $entity;
+    }
+    return $ret;
+  }
+
+  protected function _query_lobid(EntityFieldQuery $efq) {
+    $term = $efq->propertyConditions[0]['value'];
+    $endpoint = $efq->metaData['endpoint'];
+    $parameter = $efq->metaData['parameter'];
+    $page = pager_find_page();
+    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
+    $from = $results_per_page * $page;
+    $size = $results_per_page;
+    $http_url = sprintf(
+      'http://api.lobid.org/%s?%s=%s&from=%s&size=%s',
+      $endpoint, $parameter, $term, $from, $size
+    );
+    $http_response = $this->_http_get(
+      $http_url, 'application/json'
+    );
+    if (200 != $http_response->code || !isset($http_response->data)) {
+      watchdog('edoweb_storage', 'Unable to execute query on api.lobid.org');
+      return FALSE;
+    }
+    $hits = json_decode($http_response->data);
+    $results = array(
+      'hits' => count($hits),
+      'entities' => array(),
+    );
+    //FIXME: Workaround for broken lobid context documents
+    //TODO: Cache external json-ld context documents
+    $context_doc = json_decode(
+      file_get_contents(dirname(__FILE__) .  '/gnd-staging.json')
+    );
+    foreach ($hits as $hit) {
+      if ($hit->{'@context'} == "http://api.lobid.org/context/gnd-staging.json") {
+        $hit->{'@context'} = $context_doc->{'@context'};
+      }
+      $results['entities'][] = $hit;
+    }
+    return $results;
+  }
+
+  protected function _query_elasticsearch(EntityFieldQuery $efq) {
     // Search resources
     $http_url = sprintf(
       'http://%s:%s@%s:9200/%s/_search',
@@ -419,22 +501,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return FALSE;
     }
     $hits = json_decode($http_response->data)->hits;
-    $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
-    pager_default_initialize($hits->total, $results_per_page);
-    $results = array();
+    $results = array(
+      'hits' => $hits->total,
+      'entities' => array(),
+    );
     foreach ($hits->hits as $hit) {
       $graphs = $hit->_source->{'@graph'};
       foreach ($graphs as $graph) {
         if (property_exists($graph, 'http://hbz-nrw.de/regal#contentType')) {
-          $type = $graph->{'http://hbz-nrw.de/regal#contentType'}[0]->{'@value'};
-          $entity = new stdClass();
-          $entity->bundle_type = $type;
-          $entity->remote_id = $graph->{'@id'};
-          $rdf_subject = new LibRDF_URINode($graph->{'@id'});
-          _edoweb_storage_entity_deserialize_jsonld(
-            $entity, $rdf_subject, json_encode($graph)
-          );
-          $results['edoweb_basic'][] = $entity;
+          $results['entities'][] = $graph;
         }
       }
     }
