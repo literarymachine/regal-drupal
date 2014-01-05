@@ -403,41 +403,63 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     } else if (isset($efq->tags['lobid'])) {
       $results = $this->_query_lobid($efq);
     }
+
+    $target_bundles = $efq->metaData['target_bundles'];
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
     pager_default_initialize($results['hits'], $results_per_page);
     $rdf_parser = new LibRDF_Parser('ntriples');
     $ret = array();
 
-    foreach ($results['entities'] as $entity_rdf) {
-      $remote_id = $entity_rdf->{'@id'};
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      $options = array(
-        'format' => 'application/nquads',
-      );
-      $rdf_ntriples = jsonld_to_rdf($entity_rdf, $options);
-      $rdf_model->loadStatementsFromString(
-        $rdf_parser,
-        $rdf_ntriples
-      );
-      // FIXME: Properly handle namespaces at loading level
-      $namespace = variable_get('edoweb_api_namespace');
-      if ("<$namespace:" === substr(new LibRDF_URINode($remote_id), 0, strlen($namespace) + 2)) {
-        $bundle_type = $this->_bundle_type_from_rdf($remote_id, $rdf_model);
-      } else {
-        $bundle_type = $this->_bundle_type_from_rdf(
-          _edoweb_compact_uri($remote_id), $rdf_model
-        );
-        $remote_id = _edoweb_compact_uri($remote_id);
+    // All of this filtering has to be done because results may contain
+    // additional graphs, e.g. a search result for a resource on
+    // lobid.org contains one graph for the ressource itself and one
+    // additional graph for each asscociated author.
+    foreach ($results['entities'] as $i => $entity_rdf) {
+      if (!property_exists($entity_rdf, '@graph')) {
+        $entity_rdf_graphed = new StdClass();
+        $entity_rdf_graphed->{'@context'} = $entity_rdf->{'@context'};
+        $entity_rdf_graphed->{'@graph'} = array($entity_rdf);
+        $results['entities'][$i] = $entity_rdf_graphed;
       }
-      $entity = new stdClass();
-      $entity->bundle_type = $bundle_type;
-      $entity->remote_id = $remote_id;
-      $rdf_subject = new LibRDF_URINode($remote_id);
-      _edoweb_storage_entity_deserialize_rdf(
-        $entity, $rdf_subject, $rdf_ntriples, $rdf_parser
-      );
-      $ret['edoweb_basic'][] = $entity;
     }
+    foreach ($results['entities'] as $entity_rdf_graphs) {
+      foreach($entity_rdf_graphs->{'@graph'} as $entity_rdf) {
+        if (property_exists($entity_rdf_graphs, '@context')) {
+          $entity_rdf->{'@context'} = $entity_rdf_graphs->{'@context'};
+        }
+        $remote_id = $entity_rdf->{'@id'};
+        $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+        $options = array(
+          'format' => 'application/nquads',
+        );
+        $rdf_ntriples = jsonld_to_rdf($entity_rdf, $options);
+        $rdf_model->loadStatementsFromString(
+          $rdf_parser,
+          $rdf_ntriples
+        );
+        // FIXME: Properly handle namespaces at loading level
+        $namespace = variable_get('edoweb_api_namespace');
+        if ("$namespace:" === substr($remote_id, 0, strlen($namespace) + 1)) {
+          $bundle_type = $this->_bundle_type_from_rdf($remote_id, $rdf_model);
+        } else {
+          $bundle_type = $this->_bundle_type_from_rdf(
+            _edoweb_compact_uri($remote_id), $rdf_model
+          );
+          $remote_id = _edoweb_compact_uri($remote_id);
+        }
+        if (in_array($bundle_type, $target_bundles)) {
+          $entity = new stdClass();
+          $entity->bundle_type = $bundle_type;
+          $entity->remote_id = $remote_id;
+          $rdf_subject = new LibRDF_URINode($remote_id);
+          _edoweb_storage_entity_deserialize_rdf(
+            $entity, $rdf_subject, $rdf_ntriples, $rdf_parser
+          );
+          $ret['edoweb_basic'][] = $entity;
+        }
+      }
+    }
+
     return $ret;
   }
 
@@ -472,7 +494,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
     foreach ($hits as $hit) {
       if ($hit->{'@context'} == "http://api.lobid.org/context/gnd-staging.json") {
-        $hit->{'@context'} = $context_doc->{'@context'};
+        $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/gnd-staging.json';
       }
       $results['entities'][] = $hit;
     }
@@ -506,12 +528,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'entities' => array(),
     );
     foreach ($hits->hits as $hit) {
-      $graphs = $hit->_source->{'@graph'};
-      foreach ($graphs as $graph) {
-        if (property_exists($graph, 'http://hbz-nrw.de/regal#contentType')) {
-          $results['entities'][] = $graph;
-        }
-      }
+      $results['entities'][] = $hit->_source;
     }
     return $results;
   }

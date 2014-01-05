@@ -369,6 +369,7 @@ function edoweb_info_page() {
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
+  $query->addMetaData('target_bundles', array('monograph', 'journal'));
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
   unset($content['resource_list']['form_id']);
@@ -670,6 +671,7 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
+  $query->addMetaData('target_bundles', array('file'));
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
   unset($content['resource_list']['form_id']);
@@ -1308,6 +1310,7 @@ function _edoweb_http_request($request_url, $http_options) {
 }
 
 function _edoweb_autocomplete($field_name) {
+
   $term = $_GET['term'];
   $field_definition = field_info_field($field_name);
   $endpoint = isset($field_definition['settings']['endpoint'])
@@ -1318,6 +1321,10 @@ function _edoweb_autocomplete($field_name) {
     : false;
 
   $query = new EntityFieldQuery();
+  $target_bundles = array_values(
+    $field_definition['settings']['handler_settings']['target_bundles']
+  );
+  $query->addMetaData('target_bundles', $target_bundles);
   if ($endpoint && $parameter) {
     $query->addTag('lobid');
     $query->addMetaData('endpoint', $endpoint);
