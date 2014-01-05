@@ -27,7 +27,9 @@ class EdowebBasicEntity extends Entity {
   }
 
   public function identifier() {
-    return $this->remote_id;
+    return isset($this->remote_id)
+      ? $this->remote_id
+      : null;
   }
 
   public function internalIdentifier() {
