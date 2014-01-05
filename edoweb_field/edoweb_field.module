@@ -201,12 +201,16 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   switch ($display['type']) {
     case 'edoweb_ld_format':
       foreach ($items as $delta => $item) {
+        $target_entity = edoweb_basic_load(
+          _edoweb_compact_uri($item['value'])
+        );
+        // FIXME: Why is this null for dewey classifications?
+        if (!$target_entity) continue;
         $elements[$delta] = array(
           '#markup' => l(
-            _edoweb_field_ld_reference_get_label(
-              $field, $item['value']
-            ), 'resource/' . _edoweb_compact_uri($item['value'])
-          ),
+            entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
+            'resource/' . $target_entity->remote_id
+          )
         );
       }
       break;
@@ -338,12 +342,15 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           '#value' => $items[$i]['value'],
         );
         if (!edoweb_field_field_is_empty($items[$i], $field)) {
+          $target_entity = edoweb_basic_load(
+            _edoweb_compact_uri($items[$i]['value'])
+          );
+          // FIXME: Why is this null for dewey classifications?
+          if (!$target_entity) continue;
           // Associated data for display
           $element[$i]['data'] = array(
             '#type' => 'item',
-            '#title' => _edoweb_field_ld_reference_get_label(
-              $field, $items[$i]['value']
-            ),
+            '#title' => entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
           );
           // Submit button to remove value
           $element[$i]['data']['remove'][] = array(
@@ -379,68 +386,6 @@ function edoweb_autocomplete_widget_update_value($form, &$form_state) {
   unset($form_state['edoweb_autocomplete_widget']);
   unset($form_state['complete form']['edoweb_autocomplete_widget']);
   $form_state['rebuild'] = TRUE;
-}
-
-function _edoweb_field_ld_reference_get_label($field, $resource_uri) {
-  $cached_label = _edoweb_field_ld_reference_get_cached_label($resource_uri);
-  if (!$cached_label) {
-    $label = _edoweb_field_ld_reference_fetch_label(
-      $field, $resource_uri
-    );
-    _edoweb_field_ld_reference_set_cached_label($resource_uri, $label);
-  } else {
-    $label = $cached_label;
-  }
-  return $label;
-}
-
-function _edoweb_field_ld_reference_fetch_label($field, $resource_uri) {
-  $api = new LinkedDataClient();
-  $rdf_model = $api->getRDF($resource_uri);
-  $rdf_subject = new LibRDF_URINode($resource_uri);
-  LibRDF_LiteralNode::setPlainOutput(true);
-  $rdf_properties = $field['settings']['label_properties'];
-  $label_properties = array();
-  foreach ($rdf_properties as $rdf_property_uri) {
-    $rdf_property = new LibRDF_URINode($rdf_property_uri);
-    try {
-      // Fix escaped unicode characters such as \u00E4
-      $label_properties[] = json_decode(
-        '"'.$rdf_model->getTarget($rdf_subject, $rdf_property).'"'
-      );
-    } catch (LibRDF_LookupError $e) {
-      // Property could not be loaded, ignore
-    }
-  }
-  if (!empty($label_properties)) {
-    $resource_label = implode(', ', $label_properties);
-  } else {
-    $resource_label = "Label for $resource_uri";
-  }
-  return "$resource_label";
-}
-
-function _edoweb_field_ld_reference_get_cached_label($resource_uri) {
-  $resource_uri_md5 = md5($resource_uri);
-  return db_query(
-    'SELECT label FROM {edoweb_ld_reference_label_cache}
-     WHERE resource_uri_md5 = :resource_uri_md5',
-    array(':resource_uri_md5' => $resource_uri_md5)
-  )->fetchField();
-}
-
-function _edoweb_field_ld_reference_set_cached_label($resource_uri, $label) {
-  $resource_uri_md5 = md5($resource_uri);
-  $data = array(
-    'resource_uri_md5' => $resource_uri_md5,
-    'label' => $label,
-    'lang' => '',
-    'updated' => time(),
-  );
-  return db_merge('edoweb_ld_reference_label_cache')
-    ->key(array('resource_uri_md5' => $resource_uri_md5, 'lang' => ''))
-    ->fields($data)
-    ->execute();
 }
 
 /**

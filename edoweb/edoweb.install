@@ -167,10 +167,6 @@ function _edoweb_installed_fields() {
         'predicates' => array('dc:isPartOf'),
         'parameter' => 'name',
         'endpoint' => 'resource',
-        'label_properties' => array(
-          'http://iflastandards.info/ns/isbd/elements/P1004',
-          'http://lobid.org/vocab/lobid#hbzID',
-        ),
       ),
     ),
     'field_edoweb_volume' => array(
@@ -205,10 +201,6 @@ function _edoweb_installed_fields() {
         'predicates' => array('dce:creator'),
         'parameter' => 'name',
         'endpoint' => 'person',
-        'label_properties' => array(
-          'http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson',
-          'http://d-nb.info/standards/elementset/gnd#gndIdentifier',
-        ),
       ),
     ),
     'field_edoweb_creator_new' => array(
@@ -227,10 +219,6 @@ function _edoweb_installed_fields() {
         'predicates' => array('dce:contributor'),
         'parameter' => 'name',
         'endpoint' => 'person',
-        'label_properties' => array(
-          'http://d-nb.info/standards/elementset/gnd#preferredNameForThePerson',
-          'http://d-nb.info/standards/elementset/gnd#gndIdentifier',
-        ),
       ),
     ),
     'field_edoweb_contributor_new' => array(
@@ -390,10 +378,6 @@ function _edoweb_installed_fields() {
         'predicates' => array('dc:subject'),
         'parameter' => 'name',
         'endpoint' => 'subject',
-        'label_properties' => array(
-          'http://www.w3.org/2004/02/skos/core#prefLabel',
-          'http://d-nb.info/standards/elementset/gnd#oldAuthorityNumber',
-        ),
       ),
     ),
     'field_edoweb_abstract' => array(
@@ -412,10 +396,6 @@ function _edoweb_installed_fields() {
         'predicates' => array('dc:hasFormat'),
         'parameter' => 'name',
         'endpoint' => 'resource',
-        'label_properties' => array(
-          'http://iflastandards.info/ns/isbd/elements/P1004',
-          'http://lobid.org/vocab/lobid#hbzID',
-        ),
       ),
     ),
     'field_edoweb_homepage' => array(
