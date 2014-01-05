@@ -1337,7 +1337,7 @@ function _edoweb_autocomplete($field_name) {
   $matches = array();
   foreach ($entities as $entity) {
     $matches[] = array(
-      'value' => $entity->remote_id,
+      'value' => _edoweb_expand_curie($entity->remote_id),
       'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
     );
   }
