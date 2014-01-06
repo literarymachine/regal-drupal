@@ -258,7 +258,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       $element['edoweb_autocomplete_widget']['value'] = array(
         '#type' => 'textfield',
         '#attributes' => array(
-          'class' => array('edoweb_autocomplete_widget', $field_name),
+          'class' => array('edoweb_autocomplete_widget', $field_name, $instance['bundle']),
         ),
         '#parents' => array(
           'edoweb_autocomplete_widget', $field_name, 'value'

@@ -1308,10 +1308,14 @@ function _edoweb_http_request($request_url, $http_options) {
   return $http_response;
 }
 
-function _edoweb_autocomplete($field_name) {
+function _edoweb_autocomplete($bundle_name, $field_name) {
+
+  $instance_definition = field_info_instance(
+    EDOWEB_ENTITY_TYPE, $field_name, $bundle_name
+  );
+  $field_definition = field_info_field($field_name);
 
   $term = $_GET['term'];
-  $field_definition = field_info_field($field_name);
   $endpoint = isset($field_definition['settings']['endpoint'])
     ? $field_definition['settings']['endpoint']
     : false;
@@ -1320,9 +1324,10 @@ function _edoweb_autocomplete($field_name) {
     : false;
 
   $query = new EntityFieldQuery();
-  $target_bundles = array_values(
-    $field_definition['settings']['handler_settings']['target_bundles']
-  );
+  $target_bundles = isset($instance_definition['settings']['handler_settings']['target_bundles'])
+    ? array_values($instance_definition['settings']['handler_settings']['target_bundles'])
+    : array_values($field_definition['settings']['handler_settings']['target_bundles']);
+
   $query->addMetaData('target_bundles', $target_bundles);
   if ($endpoint && $parameter) {
     $query->addTag('lobid');
@@ -1341,13 +1346,18 @@ function _edoweb_autocomplete($field_name) {
     $entities = $result['edoweb_basic'];
   }
   $matches = array();
+  $namespace = variable_get('edoweb_api_namespace');
   foreach ($entities as $entity) {
+    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)) {
+      $value = $entity->remote_id;
+    } else {
+      $value = _edoweb_expand_curie($entity->remote_id);
+    }
     $matches[] = array(
-      'value' => _edoweb_expand_curie($entity->remote_id),
+      'value' => $value,
       'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
     );
   }
-
   drupal_json_output($matches);
 }
 

@@ -24,8 +24,9 @@
       window.location.hash = 'focus';
       $('.edoweb_autocomplete_widget').each(function(index, element) {
         var field_name = $(this).attr('class').split(/\s+/)[1];
+        var bundle_name = $(this).attr('class').split(/\s+/)[2];
         $(this).autocomplete({
-          source: Drupal.settings.basePath + 'edoweb/autocomplete/' + field_name,
+          source: Drupal.settings.basePath + 'edoweb/autocomplete/' + bundle_name + '/' + field_name,
           minLength: 2,
           select: function(event, ui) {
             var value_input = $('input[name="edoweb_autocomplete_widget[' + field_name + '][value]"]');
