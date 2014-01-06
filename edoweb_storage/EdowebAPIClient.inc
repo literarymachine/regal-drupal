@@ -486,14 +486,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'hits' => count($hits),
       'entities' => array(),
     );
-    //FIXME: Workaround for broken lobid context documents
-    //TODO: Cache external json-ld context documents
-    $context_doc = json_decode(
-      file_get_contents(dirname(__FILE__) .  '/gnd-staging.json')
-    );
+    // Load lobid.org json-ld context documents from cache
     foreach ($hits as $hit) {
-      if ($hit->{'@context'} == "http://api.lobid.org/context/gnd-staging.json") {
-        $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/gnd-staging.json';
+      $is_lobid_context = (
+        substr($hit->{'@context'}, 0, 29) == 'http://api.lobid.org/context/'
+      );
+      if ($is_lobid_context) {
+        $context_file = substr($hit->{'@context'}, 29);
+        $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/' .  $context_file;
       }
       $results['entities'][] = $hit;
     }
