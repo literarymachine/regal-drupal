@@ -606,8 +606,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
   // Recursively add parents to trail
   $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
   if (FALSE !== $parents) {
-    $local_id = $parents[0]['target_id'];
-    $parent = edoweb_basic_load(_edoweb_storage_entity_get_remote_id($local_id));
+    $parent = edoweb_basic_load($parents[0]['value']);
     $trail = array_merge(
       _edoweb_build_parent_trail($parent, $trail),
       $trail
@@ -657,7 +656,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   );
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
-    $wrapper->field_edoweb_struct_parent[] = $parent;
+    $wrapper->field_edoweb_struct_parent[] = $parent->remote_id;
   }
   _edoweb_build_breadcrumb($entity);
   return drupal_get_form('edoweb_basic_form', $entity);
@@ -838,7 +837,7 @@ function edoweb_basic_admin_delete( $form , &$form_state ) {
   $parent_id = '';
   if (FALSE !== $parents) {
     foreach($parents as $parent) {
-      $parent_id = _edoweb_storage_entity_get_remote_id($parent['target_id']);
+      $parent_id = _edoweb_storage_entity_get_remote_id($parent['value']);
     }
   }
   $form_state['redirect'] = "resource/$parent_id";
@@ -1115,7 +1114,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
   if (FALSE !== $parents) {
     foreach($parents as $parent) {
-      cache_clear_all("field:edoweb_basic:{$parent['target_id']}", 'cache_field');
+      cache_clear_all("field:edoweb_basic:{$parent['value']}", 'cache_field');
     }
   }
 
@@ -1357,9 +1356,7 @@ function _edoweb_field_has_value_type($entity, $field_name, $bundle_type) {
   if (FALSE === $values) return FALSE;
   $field_has_value_type = FALSE;
   foreach ($values as $value) {
-    $ref_entity = edoweb_basic_load(
-      _edoweb_storage_entity_get_remote_id($value['target_id'])
-    );
+    $ref_entity = edoweb_basic_load($value['value']);
     if ($ref_entity->bundle_type == $bundle_type) {
       $field_has_value_type = TRUE;
       break;

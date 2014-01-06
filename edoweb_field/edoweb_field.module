@@ -28,7 +28,7 @@ function edoweb_field_field_info() {
       'description' => t('This field holds the URI of a linked data resource'),
       'default_widget' => 'edoweb_autocomplete_widget',
       'default_formatter' => 'edoweb_ld_format',
-      'property_type' => 'uri',
+      'property_type' => 'text',
     ),
     'edoweb_date' => array(
       'label' => t('A field for dates'),

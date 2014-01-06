@@ -76,7 +76,7 @@ class EdowebBasicController extends EntityAPIController {
     // The 'primary_keys' argument determines whether this will be an insert
     // or an update. So if the entity already has an ID, we'll specify
     // local_id as the key.
-    $primary_keys = $entity->local_id ? 'local_id' : array();
+    $primary_keys = $entity->internalIdentifier() ? 'local_id' : array();
     // Write out the entity record.
     try {
       drupal_write_record('edoweb_basic', $entity, $primary_keys);
@@ -130,9 +130,7 @@ class EdowebBasicController extends EntityAPIController {
           $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
           if (FALSE !== $children) {
             foreach($children as $child) {
-              $child_entity = edoweb_basic_load(
-                _edoweb_storage_entity_get_remote_id($child['target_id'])
-              );
+              $child_entity = edoweb_basic_load($child['value']);
               $this->delete($child_entity);
             }
           }

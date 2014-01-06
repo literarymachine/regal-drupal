@@ -198,8 +198,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {
-      $local_id = $parents[0]['target_id'];
-      $data['parentPid'] = _edoweb_storage_entity_get_remote_id($local_id);
+      $data['parentPid'] = $parents[0]['value'];
     }
     $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
     if (200 != $http_response->code) {

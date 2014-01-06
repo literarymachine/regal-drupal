@@ -432,17 +432,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, $rdf_data
             $wrapper->{$field_name}[] = (string) $value;
           }
         } else {
-          //TODO:
-          //Analyze whether internal URIs really must be handeled
-          //differently than external ones. Ideally, all link
-          //fields should become either entityreference or
-          //edoweb_ld_reference field
-          $namespace = variable_get('edoweb_api_namespace');
-          if ("<$namespace:" === substr($value, 0, strlen($namespace) + 2)) {
-            $value = _edoweb_storage_entity_get_id($value);
-          } else {
-            $value = substr($value, 1, -1);
-          }
+          $value = substr($value, 1, -1);
           if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
             $wrapper->{$field_name} = $value;
           } else {
