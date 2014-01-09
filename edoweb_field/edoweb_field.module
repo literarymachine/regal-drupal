@@ -200,19 +200,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   $elements = array();
   switch ($display['type']) {
     case 'edoweb_ld_format':
-      foreach ($items as $delta => $item) {
-        $target_entity = edoweb_basic_load(
-          _edoweb_compact_uri($item['value'])
-        );
-        // FIXME: Why is this null for dewey classifications?
-        if (!$target_entity) continue;
-        $elements[$delta] = array(
-          '#markup' => l(
-            entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
-            'resource/' . $target_entity->remote_id
-          )
-        );
-      }
+      $elements = _edoweb_field_embed_entities($items, $entity->remote_id);
       break;
     case 'edoweb_datastream_format':
       foreach ($items as $delta => $item) {
@@ -224,6 +212,40 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   }
   return $elements;
 }
+
+function _edoweb_field_embed_entities($items, $referrer = null) {
+  drupal_add_library('system', 'drupal.collapse');
+  $elements = array();
+  // Prevent recursion
+  static $referrers = array();
+  if (!is_null($referrer)) {
+    $referrers[] = $referrer;
+  }
+  foreach ($items as $delta => $item) {
+    if (in_array($item['value'], $referrers)) {
+      continue;
+    }
+    $referrers[] = $item['value'];
+    $target_entity = edoweb_basic_load(
+      _edoweb_compact_uri($item['value'])
+    );
+    // FIXME: Why is this null e.g. for dewey classifications?
+    if (!$target_entity) continue;
+    $entity_data = entity_view(
+      EDOWEB_ENTITY_TYPE, array($target_entity), 'teaser', null, TRUE
+    );
+    $elements[$delta] = array(
+      '#type' => 'fieldset',
+      '#attributes' => array(
+        'class' => array('collapsible', 'collapsed'),
+        ),
+      '#title' => entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
+      $entity_data,
+    );
+  }
+  return $elements;
+}
+
 
 /**
  * Implements hook_field_widget_form().
@@ -335,6 +357,10 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       }
 
       // List items
+      $referrer = menu_get_object(EDOWEB_ENTITY_TYPE);
+      $element['data'] = _edoweb_field_embed_entities(
+        $items, $referrer->remote_id
+      );
       foreach (array_keys($items) as $i) {
         // Hidden inputs for values
         $element[$i]['value'] = array(
@@ -342,17 +368,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           '#value' => $items[$i]['value'],
         );
         if (!edoweb_field_field_is_empty($items[$i], $field)) {
-          $target_entity = edoweb_basic_load(
-            _edoweb_compact_uri($items[$i]['value'])
-          );
-          // FIXME: Why is this null for dewey classifications?
-          if (!$target_entity) continue;
-          // Associated data for display
-          $element[$i]['data'] = array(
-            '#type' => 'item',
-            '#title' => entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
-          );
           // Submit button to remove value
+          // FIXME: Move buttons from end of list to
+          // corresponding fieldset
           $element[$i]['data']['remove'][] = array(
             '#type' => 'submit',
             '#name' => "edoweb_autocomplete_widget_remove_{$field_name}_{$i}",
@@ -361,6 +379,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           );
         }
       }
+
 
       break;
 
