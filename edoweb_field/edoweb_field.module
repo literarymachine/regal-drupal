@@ -214,7 +214,6 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_field_embed_entities($items, $referrer = null) {
-  drupal_add_library('system', 'drupal.collapse');
   $elements = array();
   // Prevent recursion
   static $referrers = array();
@@ -231,19 +230,25 @@ function _edoweb_field_embed_entities($items, $referrer = null) {
     );
     // FIXME: Why is this null e.g. for dewey classifications?
     if (!$target_entity) continue;
-    $entity_data = entity_view(
-      EDOWEB_ENTITY_TYPE, array($target_entity), 'teaser', null, TRUE
-    );
-    $elements[$delta] = array(
-      '#type' => 'fieldset',
-      '#attributes' => array(
-        'class' => array('collapsible', 'collapsed'),
-        ),
-      '#title' => entity_label(EDOWEB_ENTITY_TYPE, $target_entity),
-      $entity_data,
-    );
+    $elements[$delta] =
+      _edoweb_field_render_embedded_entity($target_entity);
   }
   return $elements;
+}
+
+function _edoweb_field_render_embedded_entity($entity, $collapsed = 'collapsed') {
+  drupal_add_library('system', 'drupal.collapse');
+  $entity_data = entity_view(
+    EDOWEB_ENTITY_TYPE, array($entity), 'teaser', null, TRUE
+  );
+  return array(
+    '#type' => 'fieldset',
+    '#attributes' => array(
+      'class' => array('collapsible', $collapsed),
+    ),
+    '#title' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
+    $entity_data,
+  );
 }
 
 
