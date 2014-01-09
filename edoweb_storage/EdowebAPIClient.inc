@@ -447,9 +447,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $remote_id = _edoweb_compact_uri($remote_id);
         }
         if (in_array($bundle_type, $target_bundles)) {
-          $entity = new stdClass();
-          $entity->bundle_type = $bundle_type;
-          $entity->remote_id = $remote_id;
+          $entity = entity_get_controller('edoweb_basic')->create(
+            array(
+              'bundle_type' => $bundle_type,
+              'remote_id' => $remote_id,
+            )
+          );
           $rdf_subject = new LibRDF_URINode($remote_id);
           _edoweb_storage_entity_deserialize_rdf(
             $entity, $rdf_subject, $rdf_ntriples, $rdf_parser
