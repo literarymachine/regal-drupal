@@ -1310,12 +1310,30 @@ function _edoweb_http_request($request_url, $http_options) {
 
 function _edoweb_autocomplete($bundle_name, $field_name) {
 
+  $term = $_GET['term'];
+  $entities = _edoweb_lookup($bundle_name, $field_name, $term);
+  $matches = array();
+  $namespace = variable_get('edoweb_api_namespace');
+  foreach ($entities as $entity) {
+    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)) {
+      $value = $entity->remote_id;
+    } else {
+      $value = _edoweb_expand_curie($entity->remote_id);
+    }
+    $matches[] = array(
+      'value' => $value,
+      'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
+    );
+  }
+  drupal_json_output($matches);
+}
+
+function _edoweb_lookup($bundle_name, $field_name, $term) {
   $instance_definition = field_info_instance(
     EDOWEB_ENTITY_TYPE, $field_name, $bundle_name
   );
   $field_definition = field_info_field($field_name);
 
-  $term = $_GET['term'];
   $endpoint = isset($field_definition['settings']['endpoint'])
     ? $field_definition['settings']['endpoint']
     : false;
@@ -1345,20 +1363,7 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
   } else {
     $entities = $result['edoweb_basic'];
   }
-  $matches = array();
-  $namespace = variable_get('edoweb_api_namespace');
-  foreach ($entities as $entity) {
-    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)) {
-      $value = $entity->remote_id;
-    } else {
-      $value = _edoweb_expand_curie($entity->remote_id);
-    }
-    $matches[] = array(
-      'value' => $value,
-      'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
-    );
-  }
-  drupal_json_output($matches);
+  return $entities;
 }
 
 function _edoweb_field_has_value_type($entity, $field_name, $bundle_type) {
