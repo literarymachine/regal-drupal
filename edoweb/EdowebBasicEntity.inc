@@ -20,6 +20,8 @@
 
 class EdowebBasicEntity extends Entity {
 
+  private $__source = null;
+
   protected function defaultUri() {
     return array(
       'path' => "resource/{$this->identifier()}",
@@ -36,6 +38,14 @@ class EdowebBasicEntity extends Entity {
     return isset($this->local_id)
       ? $this->local_id
       : null;
+  }
+
+  public function getSource() {
+    return $this->__source;
+  }
+
+  public function setSource($source) {
+    $this->__source = $source;
   }
 
 }

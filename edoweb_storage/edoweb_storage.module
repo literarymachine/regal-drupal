@@ -411,6 +411,8 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   }
   LibRDF_LiteralNode::setPlainOutput(true);
 
+  $entity->setSource($rdf_model);
+
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping[key($rdf_mapping)]);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
