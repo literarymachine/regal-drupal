@@ -349,6 +349,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         if ($term != '') {
           $matches = _edoweb_lookup($entity->bundle_type, $field_name, $term);
           foreach ($matches as $i => $match) {
+            LinkedDataClient::setTripleStore($match->getSource());
             $element['edoweb_autocomplete_widget']['option'][$i]
               = _edoweb_field_render_embedded_entity($match);
             $element['edoweb_autocomplete_widget']['option'][$i]['value'] = array(
@@ -374,6 +375,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
             }
             $element['#prefix'] = '<a name="focus"></a>';
           }
+          LinkedDataClient::setTripleStore(null);
         }
       }
 

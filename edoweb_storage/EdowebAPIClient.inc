@@ -246,10 +246,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function importEntity($remote_id, $import_mode = 'overwrite') {
 
+    if (is_null(LinkedDataClient::getTripleStore())) {
+      $linkedDataClient = new LinkedDataClient();
+      $http_url = _edoweb_expand_curie($remote_id);
+      $repository_data = $linkedDataClient->getRDF($http_url);
+    } else {
+      $repository_data = LinkedDataClient::getTripleStore();
+    }
+
     // Import the entity itself
-    $linkedDataClient = new LinkedDataClient();
-    $http_url = _edoweb_expand_curie($remote_id);
-    $repository_data = $linkedDataClient->getRDF($http_url);
     LibRDF_LiteralNode::setPlainOutput(true);
     $bundle_type = _edoweb_bundle_type_from_rdf(
       $remote_id, $repository_data
