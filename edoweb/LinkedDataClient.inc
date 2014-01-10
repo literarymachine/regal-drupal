@@ -20,6 +20,8 @@
 
 class LinkedDataClient {
 
+  private static $__triple_store = null;
+
   /*
    * Load an entity from the API.
    *
@@ -27,7 +29,12 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
+    if (is_null(self::$__triple_store)) {
+      $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
+    } else {
+      drupal_set_message("Loading data fro {$entity->remote_id} from local ts");
+      $rdf_model = self::$__triple_store;
+    }
     $rdf_parser = new LibRDF_Parser('rdfxml');
     _edoweb_storage_entity_deserialize_rdf($entity, "$rdf_model", $rdf_parser);
   }
@@ -56,6 +63,14 @@ class LinkedDataClient {
       );
     }
     return $rdf_model;
+  }
+
+  public static function setTripleStore($triple_store) {
+    self::$__triple_store = $triple_store;
+  }
+
+  public static function getTripleStore() {
+    return self::$__triple_store;
   }
 
 }
