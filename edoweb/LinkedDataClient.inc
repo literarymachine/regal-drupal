@@ -26,11 +26,10 @@ class LinkedDataClient {
    * @param $entity
    *   The drupal entity to load data into
    */
-  public function load($entity, $resource_uri) {
-    $rdf_model = $this->getRDF($resource_uri);
-    $rdf_subject = new LibRDF_URINode($resource_uri);
+  public function load($entity) {
+    $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
     $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_subject, "$rdf_model", $rdf_parser);
+    _edoweb_storage_entity_deserialize_rdf($entity, "$rdf_model", $rdf_parser);
   }
 
   /*

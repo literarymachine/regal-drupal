@@ -921,7 +921,7 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
   $resource_uri = sprintf($base_url, $resource_id);
   $entity->remote_id = $resource_uri;
   try {
-    $api->load($entity, $resource_uri);
+    $api->load($entity);
     drupal_set_message(t("Imported data from ") . $resource_uri, 'status');
   } catch (LibRDF_Error $e) {
     drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');

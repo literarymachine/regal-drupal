@@ -58,9 +58,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $wrapper->field_edoweb_datastream =
         "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
     }
-    $entity_uri = _edoweb_expand_curie($entity->remote_id);
     $linkedDataClient = new LinkedDataClient();
-    return $linkedDataClient->load($entity, $entity_uri);
+    return $linkedDataClient->load($entity);
   }
 
   public function getTransformers($entity) {
@@ -453,9 +452,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
               'remote_id' => $remote_id,
             )
           );
-          $rdf_subject = new LibRDF_URINode($remote_id);
           _edoweb_storage_entity_deserialize_rdf(
-            $entity, $rdf_subject, $rdf_ntriples, $rdf_parser
+            $entity, $rdf_ntriples, $rdf_parser
           );
           $ret['edoweb_basic'][] = $entity;
         }
