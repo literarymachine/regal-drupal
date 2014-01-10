@@ -244,26 +244,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   /*
    * Import an entity based on its remote id.
    */
-  public function importEntity($remote_id, $import_mode = 'overwrite', $metadata_required = FALSE) {
-
-    // Check for metadata
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/metadata',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $remote_id
-    );
-    $http_response = $this->_http_get($http_url);
-    if (404 == $http_response->code && 1 == $metadata_required) {
-      watchdog('edoweb_storage', 'Unable to import required metadata for @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
+  public function importEntity($remote_id, $import_mode = 'overwrite') {
 
     // Import the entity itself
     $linkedDataClient = new LinkedDataClient();
@@ -308,7 +289,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
     foreach ($children as $child) {
       $remote_id = substr($child, 1, -1);
-      $this->importEntity($remote_id, $import_mode, $metadata_required);
+      $this->importEntity($remote_id, $import_mode);
     }
 
     return TRUE;
@@ -321,7 +302,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function import(
     $bundle_type,
     $import_mode = 'overwrite',
-    $metadata_required = FALSE,
     $source = 'repo',
     $from = 0,
     $until = 10
@@ -362,11 +342,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $data = json_decode($http_response->data);
     $resource_list = property_exists($data, 'list') ? $data->list : array();
     foreach ($resource_list as $remote_id) {
-      $this->importEntity($remote_id, $import_mode, $metadata_required);
+      $this->importEntity($remote_id, $import_mode);
     }
     if ((count($resource_list) == 10)) {
       $this->import(
-        $bundle_type, $import_mode, $metadata_required, $source, $from + 10, $until + 10
+        $bundle_type, $import_mode, $source, $from + 10, $until + 10
       );
     }
   }
