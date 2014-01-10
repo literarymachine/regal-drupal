@@ -55,6 +55,28 @@ class EdowebBasicController extends EntityAPIController {
     return $entities;
   }
 
+  public function createFromRdf($subject_uri, $rdf_model) {
+    // FIXME: Properly handle namespaces at loading level
+    $namespace = variable_get('edoweb_api_namespace');
+    if ("$namespace:" === substr($subject_uri, 0, strlen($namespace) + 1)) {
+      $remote_id = $subject_uri;
+    } else {
+      $remote_id = _edoweb_compact_uri($subject_uri);
+    }
+    $bundle_type = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
+    $entity = parent::create(
+      array(
+        'remote_id' => $remote_id,
+        'bundle_type' => $bundle_type,
+      )
+    );
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    _edoweb_storage_entity_deserialize_rdf(
+      $entity, "$rdf_model", $rdf_parser
+    );
+    return $entity;
+  }
+
   /**
    * Saves the custom fields using drupal_write_record()
    * Storage of attached fields is handled by a custom

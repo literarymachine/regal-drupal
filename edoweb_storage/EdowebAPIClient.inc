@@ -400,12 +400,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $results['entities'][$i] = $entity_rdf_graphed;
       }
     }
+
     foreach ($results['entities'] as $entity_rdf_graphs) {
+      $candidates = array();
+      // TODO: Implement support for nquads in LibRDF to
+      // obviate the need to manually merge graphs here
+      $rdf_model_merged = new LibRDF_Model(new LibRDF_Storage());
       foreach($entity_rdf_graphs->{'@graph'} as $entity_rdf) {
         if (property_exists($entity_rdf_graphs, '@context')) {
           $entity_rdf->{'@context'} = $entity_rdf_graphs->{'@context'};
         }
-        $remote_id = $entity_rdf->{'@id'};
+        $candidates[] = $entity_rdf->{'@id'};
         $rdf_model = new LibRDF_Model(new LibRDF_Storage());
         $options = array(
           'format' => 'application/nquads',
@@ -415,30 +420,20 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $rdf_parser,
           $rdf_ntriples
         );
-        // FIXME: Properly handle namespaces at loading level
-        $namespace = variable_get('edoweb_api_namespace');
-        if ("$namespace:" === substr($remote_id, 0, strlen($namespace) + 1)) {
-          $bundle_type = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
-        } else {
-          $bundle_type = _edoweb_bundle_type_from_rdf(
-            _edoweb_compact_uri($remote_id), $rdf_model
-          );
-          $remote_id = _edoweb_compact_uri($remote_id);
+        foreach ($rdf_model as $statement) {
+          $rdf_model_merged->addStatement($statement);
         }
-        if (in_array($bundle_type, $target_bundles)) {
-          $entity = entity_get_controller('edoweb_basic')->create(
-            array(
-              'bundle_type' => $bundle_type,
-              'remote_id' => $remote_id,
-            )
-          );
-          _edoweb_storage_entity_deserialize_rdf(
-            $entity, $rdf_ntriples, $rdf_parser
-          );
+      }
+      foreach ($candidates as $remote_id) {
+        $entity = entity_get_controller('edoweb_basic')->createFromRdf(
+          $remote_id, $rdf_model_merged
+        );
+        if (in_array($entity->bundle_type, $target_bundles)) {
           $ret['edoweb_basic'][] = $entity;
         }
       }
     }
+
 
     return $ret;
   }
