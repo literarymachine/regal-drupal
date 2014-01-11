@@ -32,7 +32,6 @@ class LinkedDataClient {
     if (is_null(self::$__triple_store)) {
       $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
     } else {
-      drupal_set_message("Loading data fro {$entity->remote_id} from local ts");
       $rdf_model = self::$__triple_store;
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');

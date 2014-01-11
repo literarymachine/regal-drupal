@@ -444,7 +444,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   protected function _query_lobid(EntityFieldQuery $efq) {
-    $term = $efq->propertyConditions[0]['value'];
+    $term = str_replace(
+      ' ', '+', $efq->propertyConditions[0]['value']
+    );
     $endpoint = $efq->metaData['endpoint'];
     $parameter = $efq->metaData['parameter'];
     $page = pager_find_page();

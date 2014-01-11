@@ -324,6 +324,15 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         }
       }
 
+      // Fieldset for search elements
+      $element['edoweb_autocomplete_widget'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Hinzufügen'),
+        '#parents' => array(
+          'edoweb_autocomplete_widget', $field_name
+        ),
+      );
+
       // Textfield for search input
       $element['edoweb_autocomplete_widget']['search'] = array(
         '#type' => 'textfield',
@@ -373,8 +382,8 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
             ) {
               $element['edoweb_autocomplete_widget']['option'][$i]['add']['#disabled'] = TRUE;
             }
-            $element['#prefix'] = '<a name="focus"></a>';
           }
+          $element['#prefix'] = '<a name="focus"></a>';
           LinkedDataClient::setTripleStore(null);
         }
       }
@@ -396,8 +405,6 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         );
         if (!edoweb_field_field_is_empty($items[$i], $field)) {
           // Submit button to remove value
-          // FIXME: Move buttons from end of list to
-          // corresponding fieldset
           $element['data'][$i]['remove'] = array(
             '#type' => 'submit',
             '#name' => "edoweb_autocomplete_widget_remove_{$field_name}_{$i}",
