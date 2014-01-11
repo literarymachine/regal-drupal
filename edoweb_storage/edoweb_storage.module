@@ -338,7 +338,7 @@ function _edoweb_storage_entity_serialize_rdf(
   $rdf_type_predicate = new LibRDF_URINode(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
   );
-  $rdf_subject = new LibRDF_URINode($entity->identitifier());
+  $rdf_subject = new LibRDF_URINode($entity->identifier());
   foreach (array_shift($rdf_mapping) as $rdf_type_mapping) {
     $rdf_type_statement = new LibRDF_Statement(
       $rdf_subject, $rdf_type_predicate,
