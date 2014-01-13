@@ -119,12 +119,22 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function save($entity) {
 
-    $this->saveResource($entity);
-    // Store attached files first, as entity metadata has to be
-    // updated with corresponding new file URIs
-    $this->saveFiles($entity);
-    $this->saveMetadata($entity);
-
+    // Local entities are stored in the file system
+    if ('local:' == substr($entity->remote_id, 0, 6)) {
+      $rdf_serializer = new LibRDF_Serializer('rdfxml');
+      $metadata = _edoweb_storage_entity_serialize_rdf(
+        $entity, $rdf_serializer, array('descriptive')
+      );
+      $file_name = substr($entity->remote_id, 6);
+      $file_path = drupal_realpath(file_default_scheme() . '://');
+      file_put_contents("$file_path/$file_name.rdf", $metadata);
+    } else {
+      $this->saveResource($entity);
+      // Store attached files first, as entity metadata has to be
+      // updated with corresponding new file URIs
+      $this->saveFiles($entity);
+      $this->saveMetadata($entity);
+    }
   }
 
   public function saveMetadata($entity) {

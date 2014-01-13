@@ -467,6 +467,8 @@ function _get_rdf_subject($entity, $field_name) {
     );
   } else if ("<$namespace:" === substr($rdf_subject, 0, strlen($namespace) + 2)) {
     return $rdf_subject;
+  } else if ('local:' == substr($entity->remote_id, 0, 6)) {
+    return $rdf_subject;
   } else {
     return new LibRDF_URINode(
       _edoweb_expand_curie(substr($rdf_subject, 1, -1))
@@ -635,11 +637,13 @@ function _edoweb_log($message, $target='php://stderr') {
 }
 
 function _edoweb_expand_curie($curie) {
-  if ('http://' == substr($curie, 0, 7)) {
+  if ('http://' == substr($curie, 0, 7)
+      || 'local:' == substr($curie, 0, 6)
+      || '_:' == substr($curie, 0, 2)
+  ) {
     return $curie;
   }
   $rdf_namespaces = rdf_get_namespaces();
-  $rdf_namespaces['_'] = '_';
   list($curie_prefix, $curie_local) = explode(':', $curie);
   return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
