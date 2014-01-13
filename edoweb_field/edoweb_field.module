@@ -282,6 +282,12 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
   switch ($instance['widget']['type']) {
     case 'edoweb_autocomplete_widget':
 
+      // Add autocomplete JS
+      drupal_add_library('system', 'ui.autocomplete');
+      drupal_add_js(
+        drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js'
+      );
+
       // The entity being edited
       $entity = menu_get_object(EDOWEB_ENTITY_TYPE);
 
@@ -373,6 +379,13 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         '#parents' => array(
           'edoweb_autocomplete_widget', $field_name, 'search'
         ),
+        '#attributes' => array(
+          'class' => array(
+            'edoweb_autocomplete_widget',
+            $field_name,
+            $instance['bundle']
+          ),
+        ),
       );
 
       // Submit button for search
@@ -408,6 +421,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
             if ($i === 'new') {
               $element['edoweb_autocomplete_widget']['option'][$i]
                 = _edoweb_field_render_embedded_entity($match, false, true);
+              $element['edoweb_autocomplete_widget']['option'][$i] += array(
+                '#description' => t('Wenn die Suche nicht erfolgreich war, kann hier neu erfasst werde.'),
+              );
               $element['edoweb_autocomplete_widget']['option'][$i]['entity']['#parents'] = array(
                 'edoweb_autocomplete_widget', $field_name, 'option', $i, 'value'
               );

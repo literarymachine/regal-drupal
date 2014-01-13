@@ -29,14 +29,11 @@
           source: Drupal.settings.basePath + 'edoweb/autocomplete/' + bundle_name + '/' + field_name,
           minLength: 2,
           select: function(event, ui) {
-            var value_input = $('input[name="edoweb_autocomplete_widget[' + field_name + '][value]"]');
-            var add_button = $('input[name="edoweb_autocomplete_widget_add_' + field_name + '"]');
-            if (!add_button.is(':disabled')) {
-              value_input.val(ui.item.value);
-              add_button.trigger('click');
-            } else {
-              value_input.val('');
-            }
+            var search_input = $('input[name="edoweb_autocomplete_widget[' + field_name + '][search]"]');
+            var search_button = $('input[name="edoweb_autocomplete_widget[' + field_name + '][submit]"]');
+            search_input.val(ui.item.label);
+            console.log(search_button);
+            search_button.trigger('click');
             return false;
           }
         });
