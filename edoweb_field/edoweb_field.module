@@ -236,18 +236,36 @@ function _edoweb_field_embed_entities($items, $referrer = null) {
   return $elements;
 }
 
-function _edoweb_field_render_embedded_entity($entity, $collapsed = 'collapsed') {
+function _edoweb_field_render_embedded_entity(
+  $entity, $collapsed = 'collapsed', $as_form = FALSE
+) {
   drupal_add_library('system', 'drupal.collapse');
-  $entity_data = entity_view(
-    EDOWEB_ENTITY_TYPE, array($entity), 'teaser', null, TRUE
-  );
+  if ($as_form) {
+    $form_state = array();
+    $entity_data = array();
+    field_attach_form(
+      EDOWEB_ENTITY_TYPE, $entity, $entity_data, $form_state
+    );
+    $entity_data['remote_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $entity->remote_id,
+    );
+    $entity_data['bundle_type'] = array(
+      '#type' => 'hidden',
+      '#value' => $entity->bundle_type,
+    );
+  } else {
+    $entity_data = entity_view(
+      EDOWEB_ENTITY_TYPE, array($entity), 'teaser', null, TRUE
+    );
+  }
   return array(
     '#type' => 'fieldset',
     '#attributes' => array(
       'class' => array('collapsible', $collapsed),
     ),
     '#title' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
-    $entity_data,
+    'entity' => $entity_data,
   );
 }
 
@@ -271,6 +289,16 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       $field_info = field_info_field($field['field_name']);
       $field_name = $field_info['field_name'];
       $field_cardinality = $field_info['cardinality'];
+
+      $handler_settings = array_key_exists(
+        'handler_settings', $field_info['settings']
+      ) ? $field_info['settings']['handler_settings']
+        : false;
+
+      $embedded_creation = $handler_settings && array_key_exists(
+        'embedded_creation', $handler_settings
+      ) ? $handler_settings['embedded_creation']
+        : false;
 
       // Widget Fieldset
       $element += array(
@@ -298,7 +326,13 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           $added_value =
             $form_state['values']['edoweb_autocomplete_widget'][$field_name]['option'][$index]['value'];
           if ($added_value != '') {
-            array_unshift($items, array('value' => $added_value));
+            if ($index === 'new' && $embedded_creation) {
+              $added_entity = entity_get_controller('edoweb_basic')->create($added_value);
+              entity_get_controller('edoweb_basic')->save($added_entity);
+              array_unshift($items, array('value' => $added_entity->remote_id));
+            } else {
+              array_unshift($items, array('value' => $added_value));
+            }
           }
         }
       }
@@ -357,17 +391,37 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         $term = $form_state['values']['edoweb_autocomplete_widget'][$field_name]['search'];
         if ($term != '') {
           $matches = _edoweb_lookup($entity->bundle_type, $field_name, $term);
+          if ($embedded_creation) {
+            $init_val = array();
+            $init_val[LANGUAGE_NONE][0]['value'] = $term;
+            $new = entity_get_controller('edoweb_basic')->create(
+              array(
+                'bundle_type' => $embedded_creation['bundle'],
+                'remote_id' => 'local:' . EdowebBasicController::uuid_v4(),
+                $embedded_creation['field'] => $init_val,
+              )
+            );
+            $matches['new'] = $new;
+          }
           foreach ($matches as $i => $match) {
             LinkedDataClient::setTripleStore($match->getSource());
-            $element['edoweb_autocomplete_widget']['option'][$i]
-              = _edoweb_field_render_embedded_entity($match);
-            $element['edoweb_autocomplete_widget']['option'][$i]['value'] = array(
-              '#type' => 'hidden',
-              '#value' => $match->remote_id,
-              '#parents' => array(
+            if ($i === 'new') {
+              $element['edoweb_autocomplete_widget']['option'][$i]
+                = _edoweb_field_render_embedded_entity($match, false, true);
+              $element['edoweb_autocomplete_widget']['option'][$i]['entity']['#parents'] = array(
                 'edoweb_autocomplete_widget', $field_name, 'option', $i, 'value'
-              ),
-            );
+              );
+            } else {
+              $element['edoweb_autocomplete_widget']['option'][$i]
+                = _edoweb_field_render_embedded_entity($match);
+              $element['edoweb_autocomplete_widget']['option'][$i]['value'] = array(
+                '#type' => 'hidden',
+                '#value' => $match->remote_id,
+                '#parents' => array(
+                  'edoweb_autocomplete_widget', $field_name, 'option', $i, 'value'
+                ),
+              );
+            }
             $element['edoweb_autocomplete_widget']['option'][$i]['add'] = array(
               '#type' => 'submit',
               '#name' => "edoweb_autocomplete_widget_add_{$field_name}_{$i}",

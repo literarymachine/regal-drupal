@@ -211,6 +211,10 @@ function _edoweb_installed_fields() {
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
+          ),
+          'embedded_creation' => array(
+            'bundle' => 'person',
+            'field' => 'field_gnd_name',
           )
         ),
       ),
