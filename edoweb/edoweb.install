@@ -207,7 +207,10 @@ function _edoweb_installed_fields() {
           'embedded_creation' => array(
             'bundle' => 'person',
             'field' => 'field_gnd_name',
-          )
+          ),
+          'embedded_storage' => array(
+            'view_mode' => 'full',
+          ),
         ),
       ),
     ),
@@ -223,7 +226,14 @@ function _edoweb_installed_fields() {
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
-          )
+          ),
+          'embedded_creation' => array(
+            'bundle' => 'person',
+            'field' => 'field_gnd_name',
+          ),
+          'embedded_storage' => array(
+            'view_mode' => 'full',
+          ),
         ),
       ),
     ),

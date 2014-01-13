@@ -328,7 +328,7 @@ function _edoweb_storage_entity_serialize_ntriples(
 }
 
 function _edoweb_storage_entity_serialize_rdf(
-  $entity, $rdf_serializer, $metadata_types = array()
+  $entity, $rdf_serializer = false, $metadata_types = array()
 ){
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_mapping = rdf_mapping_load(
@@ -351,6 +351,17 @@ function _edoweb_storage_entity_serialize_rdf(
   // Following elements contain predicate mappings
   foreach ($rdf_mapping as $field_name => $field_mapping) {
     $field_info = field_info_field($field_name);
+
+    $handler_settings = array_key_exists(
+      'handler_settings', $field_info['settings']
+    ) ? $field_info['settings']['handler_settings']
+      : false;
+
+    $embedded_storage = $handler_settings && array_key_exists(
+      'embedded_storage', $handler_settings
+    ) ? $handler_settings['embedded_storage']
+      : false;
+
     $metadata_type = $field_info['settings']['metadata_type'];
     if (!empty($metadata_types)
         && !in_array($metadata_type, $metadata_types)) {
@@ -379,8 +390,24 @@ function _edoweb_storage_entity_serialize_rdf(
           and $field_mapping['type'] == 'rel') {
         if (is_object($item)) {
           $rdf_object = _edoweb_storage_entity_get_uri($item);
+          if ($embedded_storage) {
+            $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
+              $item, false, $metadata_types
+            );
+            foreach ($embedded_item_graph as $embedded_item_statement) {
+              $rdf_model->addStatement($embedded_item_statement);
+            }
+          }
         } else {
           $rdf_object = new LibRDF_URINode($item);
+          if ($embedded_storage) {
+            $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
+              edoweb_basic_load($item), false, $metadata_types
+            );
+            foreach ($embedded_item_graph as $embedded_item_statement) {
+              $rdf_model->addStatement($embedded_item_statement);
+            }
+          }
         }
       } else {
         $rdf_object = new LibRDF_LiteralNode($item);
@@ -391,11 +418,15 @@ function _edoweb_storage_entity_serialize_rdf(
       $rdf_model->addStatement($rdf_statement);
     }
   }
-  foreach (rdf_get_namespaces() as $prefix => $namespace) {
-    _edoweb_log("mapping: $prefix to $namespace\n");
-    $rdf_serializer->setNamespace($namespace, $prefix);
+  if ($rdf_serializer) {
+    foreach (rdf_get_namespaces() as $prefix => $namespace) {
+      _edoweb_log("mapping: $prefix to $namespace\n");
+      $rdf_serializer->setNamespace($namespace, $prefix);
+    }
+    return $rdf_model->serializeStatements($rdf_serializer);
+  } else {
+    return $rdf_model;
   }
-  return $rdf_model->serializeStatements($rdf_serializer);
 }
 
 function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser) {
