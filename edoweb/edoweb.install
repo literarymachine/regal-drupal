@@ -135,14 +135,6 @@ function edoweb_install() {
 function _edoweb_installed_fields() {
   $t = get_t();
   return array(
-    'field_edoweb_identifier' => array(
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
-      'settings'    => array(
-        'metadata_type' => 'descriptive',
-        'predicates' => array('dc:identifier'),
-      ),
-    ),
     'field_edoweb_identifier_ht' => array(
       'cardinality' => 1,
       'type'        => 'text',
@@ -219,14 +211,6 @@ function _edoweb_installed_fields() {
         ),
       ),
     ),
-    'field_edoweb_creator_new' => array(
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
-      'settings'    => array(
-        'metadata_type' => 'descriptive',
-        'predicates' => array('dc:creator'),
-      ),
-    ),
     'field_edoweb_contributor' => array(
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'edoweb_ld_reference',
@@ -241,14 +225,6 @@ function _edoweb_installed_fields() {
             'person' => 'person'
           )
         ),
-      ),
-    ),
-    'field_edoweb_contributor_new' => array(
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
-      'settings'    => array(
-        'metadata_type' => 'descriptive',
-        'predicates' => array('dc:contributor'),
       ),
     ),
     'field_edoweb_editor' => array(
@@ -561,9 +537,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_creator' => array(),
-      'field_edoweb_creator_new' => array(),
       'field_edoweb_contributor' => array(),
-      'field_edoweb_contributor_new' => array(),
       'field_edoweb_editor' => array(),
       'field_edoweb_edition' => array(),
       'field_edoweb_publication_place' => array(),
@@ -602,9 +576,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_creator' => array(),
-      'field_edoweb_creator_new' => array(),
       'field_edoweb_contributor' => array(),
-      'field_edoweb_contributor_new' => array(),
       'field_edoweb_editor' => array(),
       'field_edoweb_publication_place' => array(),
       'field_edoweb_publisher' => array(),
@@ -717,9 +689,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_creator' => array(),
-      'field_edoweb_creator_new' => array(),
       'field_edoweb_contributor' => array(),
-      'field_edoweb_contributor_new' => array(),
       'field_edoweb_issued' => array(),
       'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
@@ -816,17 +786,9 @@ function _edoweb_field_instance_defaults($field_name) {
       'label' => 'Autor oder Körperschaft',
       'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat; Auswahl aus GND',
     ),
-    'field_edoweb_creator_new' => array(
-      'label' => 'Autor oder Körperschaft',
-      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat.',
-    ),
     'field_edoweb_contributor' => array(
       'label' => 'Mitwirkende/r',
       'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat; Auswahl aus GND',
-    ),
-    'field_edoweb_contributor_new' => array(
-      'label' => 'Mitwirkende/r',
-      'description' => 'Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat.',
     ),
     'field_edoweb_editor' => array(
       'label' => 'Editor',

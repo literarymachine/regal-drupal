@@ -1563,25 +1563,11 @@ function edoweb_update_7102() {
 }
 
 /**
- * Add fields to person bundle for external linked data resources
+ * Remove superfluous fields
  */
 function edoweb_update_7103() {
-  // FIXME: add the bundle itself
-  $added_fields = array(
-    'field_gnd_name',
-    'field_gnd_identifier',
-    'field_gnd_date_of_birth',
-    'field_gnd_date_of_death',
-  );
-  $added_instances = array(
-    'person' => array(
-      'field_gnd_name',
-      'field_gnd_identifier',
-      'field_gnd_date_of_birth',
-      'field_gnd_date_of_death',
-    )
-  );
-  _update_edoweb_installed_fields($added_fields);
-  _update_edoweb_installed_instances($added_instances);
-  _update_rdf_mapping();
+  field_remove_field('field_edoweb_creator_new');
+  field_remove_field('field_edoweb_contributor_new');
+  field_remove_field('field_edoweb_identifier');
+  field_purge_batch(10);
 }
