@@ -1005,6 +1005,10 @@ function edoweb_bulk_import_form_submit($form, &$form_state) {
  */
 function edoweb_basic_form($form, &$form_state, $entity) {
 
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb.js'
+  );
+
   $form['basic_entity'] = array(
     '#type' => 'value',
     '#value' => $entity,
