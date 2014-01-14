@@ -1324,7 +1324,13 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
   drupal_json_output($matches);
 }
 
-function _edoweb_lookup($bundle_name, $field_name, $term) {
+function _edoweb_lookup($bundle_name, $field_name, $term, $page = null) {
+
+  // Overwrite page query parameter
+  if (!is_null($page)) {
+    $_GET['page'] = $page;
+  }
+
   $instance_definition = field_info_instance(
     EDOWEB_ENTITY_TYPE, $field_name, $bundle_name
   );
