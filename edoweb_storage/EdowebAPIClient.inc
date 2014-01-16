@@ -270,7 +270,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $remote_id, $repository_data
     );
     $entity = entity_get_controller('edoweb_basic')->create(
-      array('bundle_type' => $bundle_type)
+      array(
+        'bundle_type' => $bundle_type,
+        'uid' => 0,
+      )
     );
     if ('overwrite' == $import_mode) {
       $local_id = db_select('edoweb_basic')

@@ -1581,3 +1581,16 @@ function edoweb_update_7103() {
   field_remove_field('field_edoweb_identifier');
   field_purge_batch(10);
 }
+
+/**
+ * Add user id column
+ */
+function edoweb_update_7104() {
+  $uid_column = array(
+    'description' => 'The {users}.uid that created this entity.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('edoweb_basic', 'uid', $uid_column);
+}

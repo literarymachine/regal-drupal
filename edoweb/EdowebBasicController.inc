@@ -93,6 +93,11 @@ class EdowebBasicController extends EntityAPIController {
       $namespace = variable_get('edoweb_api_namespace');
       $entity->remote_id = "$namespace:" . self::uuid_v4();
     }
+    // If our entity has no owner, set current user.
+    if (empty($entity->uid)) {
+      global $user;
+      $entity->uid = $user->uid;
+    }
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
     // The 'primary_keys' argument determines whether this will be an insert
