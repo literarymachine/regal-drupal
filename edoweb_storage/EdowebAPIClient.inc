@@ -394,71 +394,21 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   public function query(EntityFieldQuery $efq) {
+
     if (isset($efq->tags['elasticsearch'])) {
       $results = $this->_query_elasticsearch($efq);
     } else if (isset($efq->tags['lobid'])) {
       $results = $this->_query_lobid($efq);
     }
 
-    $target_bundles = $efq->metaData['target_bundles'];
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
     pager_default_initialize($results['hits'], $results_per_page);
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    $ret = array();
-
-    // All of this filtering has to be done because results may contain
-    // additional graphs, e.g. a search result for a resource on
-    // lobid.org contains one graph for the ressource itself and one
-    // additional graph for each asscociated author.
-    foreach ($results['entities'] as $i => $entity_rdf) {
-      if (!property_exists($entity_rdf, '@graph')) {
-        $entity_rdf_graphed = new StdClass();
-        $entity_rdf_graphed->{'@context'} = $entity_rdf->{'@context'};
-        $entity_rdf_graphed->{'@graph'} = array($entity_rdf);
-        $results['entities'][$i] = $entity_rdf_graphed;
-      }
-    }
-
-    foreach ($results['entities'] as $entity_rdf_graphs) {
-      $candidates = array();
-      // TODO: Implement support for nquads in LibRDF to
-      // obviate the need to manually merge graphs here
-      $rdf_model_merged = new LibRDF_Model(new LibRDF_Storage());
-      foreach($entity_rdf_graphs->{'@graph'} as $entity_rdf) {
-        if (property_exists($entity_rdf_graphs, '@context')) {
-          $entity_rdf->{'@context'} = $entity_rdf_graphs->{'@context'};
-        }
-        $candidates[] = $entity_rdf->{'@id'};
-        $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-        $options = array(
-          'format' => 'application/nquads',
-        );
-        $rdf_ntriples = jsonld_to_rdf($entity_rdf, $options);
-        $rdf_model->loadStatementsFromString(
-          $rdf_parser,
-          $rdf_ntriples
-        );
-        foreach ($rdf_model as $statement) {
-          $rdf_model_merged->addStatement($statement);
-        }
-      }
-      foreach ($candidates as $remote_id) {
-        $entity = entity_get_controller('edoweb_basic')->createFromRdf(
-          $remote_id, $rdf_model_merged
-        );
-        if (in_array($entity->bundle_type, $target_bundles)) {
-          $ret['edoweb_basic'][] = $entity;
-        }
-      }
-    }
-
-
-    return $ret;
+    return $results;
   }
 
   protected function _query_lobid(EntityFieldQuery $efq) {
     $term = str_replace(
-      ' ', '+', $efq->propertyConditions[0]['value']
+      ' ', '+', $efq->metaData['term']
     );
     $endpoint = $efq->metaData['endpoint'];
     $parameter = $efq->metaData['parameter'];
@@ -480,10 +430,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $hits = json_decode($http_response->data);
     $results = array(
       'hits' => count($hits),
-      'entities' => array(),
+      EDOWEB_ENTITY_TYPE => array(),
     );
-    // Load lobid.org json-ld context documents from cache
+    $rdf_parser = new LibRDF_Parser('ntriples');
     foreach ($hits as $hit) {
+      // Load lobid.org json-ld context documents from cache
       $is_lobid_context = (
         substr($hit->{'@context'}, 0, 29) == 'http://api.lobid.org/context/'
       );
@@ -491,7 +442,50 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $context_file = substr($hit->{'@context'}, 29);
         $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/' .  $context_file;
       }
-      $results['entities'][] = $hit;
+      // Parse results
+      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      $options = array(
+        'format' => 'application/nquads',
+      );
+      $rdf_ntriples = jsonld_to_rdf($hit, $options);
+      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      $rdf_model->loadStatementsFromString(
+        $rdf_parser,
+        $rdf_ntriples
+      );
+      // Identify primary resource(s)
+      if (array_key_exists('bundle', $efq->entityConditions)) {
+        $target_bundles = $efq->entityConditions['bundle']['value'];
+        if (!is_array($target_bundles)) {
+          $target_bundles = array($target_bundles);
+        }
+      } else {
+        $target_bundles = array();
+      }
+      $rdf_type_stmts = $rdf_model->findStatements(
+        null,
+        new LibRDF_URINode(
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        ),
+        null
+      );
+      foreach($rdf_type_stmts as $rdf_type_stmt) {
+        $rdf_type = _edoweb_compact_uri(
+          substr($rdf_type_stmt->getObject(), 1, -1)
+        );
+        foreach (edoweb_rdf_types() as $bundle => $rdf_types) {
+          if (in_array($rdf_type, $rdf_types)
+              && in_array($bundle, $target_bundles)
+          ) {
+            // Create entity
+            $remote_id = substr($rdf_type_stmt->getSubject(), 1, -1);
+            $entity = entity_get_controller('edoweb_basic')->createFromRdf(
+              $remote_id, $rdf_model
+            );
+            $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
+          }
+        }
+      }
     }
     return $results;
   }
@@ -506,6 +500,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       variable_get('edoweb_api_namespace')
     );
     $query = $this->_efq_to_es($efq);
+
     $http_response = $this->_http_post(
       $http_url, $query, 'application/json'
     );
@@ -520,10 +515,37 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $hits = json_decode($http_response->data)->hits;
     $results = array(
       'hits' => $hits->total,
-      'entities' => array(),
+      EDOWEB_ENTITY_TYPE => array(),
     );
+    $rdf_parser = new LibRDF_Parser('ntriples');
     foreach ($hits->hits as $hit) {
-      $results['entities'][] = $hit->_source;
+      // Parse results
+      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      $options = array(
+        'format' => 'application/nquads',
+      );
+      $rdf_ntriples = jsonld_to_rdf($hit->_source, $options);
+      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      $rdf_model->loadStatementsFromString(
+        $rdf_parser,
+        $rdf_ntriples
+      );
+      // Identify primary resource
+      $ore_describes = $rdf_model->findStatements(
+        null,
+        new LibRDF_URINode(
+          "http://www.openarchives.org/ore/terms/describes"
+        ),
+        null
+      )->current();
+      // Create entity
+      if ($ore_describes) {
+        $remote_id = substr($ore_describes->getObject(), 1, -1);
+        $entity = entity_get_controller('edoweb_basic')->createFromRdf(
+          $remote_id, $rdf_model
+        );
+        $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
+      }
     }
     return $results;
   }
@@ -535,19 +557,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $query['from'] = $results_per_page * $page;
     $query['size'] = $results_per_page;
 
-    // Since all values are in fields, propertyConditions are used
-    // for special queries such as fulltext search over all fields
-    foreach($efq->propertyConditions as $property_condition) {
-      switch ($property_condition['column']) {
-        case '*':
-          $query['query']['bool']['must'][]['query_string']['query'] = $property_condition['value'];
-          break;
-        case 'type':
-          $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"] = "\"file\"";
-          break;
-        default:
-          break;
+    if (array_key_exists('term', $efq->metaData)) {
+      $query['query']['bool']['must'][]['query_string']['query']
+        = $efq->metaData['term'];
+    }
+
+    if (array_key_exists('bundle', $efq->entityConditions)) {
+      $target_bundles = $efq->entityConditions['bundle']['value'];
+      if (!is_array($target_bundles)) {
+        $target_bundles = array($target_bundles);
       }
+      $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"]
+        = implode(' OR ', $target_bundles);
     }
 
     $rdf_mapping = rdf_mapping_load(EDOWEB_ENTITY_TYPE);
@@ -589,6 +610,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         'ignore_unmapped' => TRUE,
       );
     }
+
     return json_encode($query);
   }
 

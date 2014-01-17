@@ -369,7 +369,6 @@ function edoweb_info_page() {
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
-  $query->addMetaData('target_bundles', array('monograph', 'journal'));
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
   unset($content['resource_list']['form_id']);
@@ -414,7 +413,7 @@ function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $que
   if (array_key_exists('query', $_GET) && !empty($_GET['query'])) {
     $term = $_GET['query'];
     $form['query']['#default_value'] = $term;
-    $query->propertyCondition('*', $term);
+    $query->addMetaData('term', $term);
   }
   $form['results'] = edoweb_basic_list_entities($query);
   $form_state['redirect'] = false;
@@ -670,7 +669,6 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
-  $query->addMetaData('target_bundles', array('file'));
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
   unset($content['resource_list']['form_id']);
@@ -704,7 +702,7 @@ function edoweb_basic_file($entity, $bundle_types = array()) {
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
-  $query->propertyCondition('type', 'file');
+  $query->entityCondition('bundle', 'file');
   $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
   unset($content['resource_list']['form_build_id']);
   unset($content['resource_list']['form_id']);
@@ -1326,6 +1324,10 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
 
 function _edoweb_lookup($bundle_name, $field_name, $term, $page = null) {
 
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $query->addMetaData('term', $term);
+
   // Overwrite page query parameter
   if (!is_null($page)) {
     $_GET['page'] = $page;
@@ -1343,12 +1345,6 @@ function _edoweb_lookup($bundle_name, $field_name, $term, $page = null) {
     ? $field_definition['settings']['parameter']
     : false;
 
-  $query = new EntityFieldQuery();
-  $target_bundles = isset($instance_definition['settings']['handler_settings']['target_bundles'])
-    ? array_values($instance_definition['settings']['handler_settings']['target_bundles'])
-    : array_values($field_definition['settings']['handler_settings']['target_bundles']);
-
-  $query->addMetaData('target_bundles', $target_bundles);
   if ($endpoint && $parameter) {
     $query->addTag('lobid');
     $query->addMetaData('endpoint', $endpoint);
@@ -1357,8 +1353,12 @@ function _edoweb_lookup($bundle_name, $field_name, $term, $page = null) {
     $query->addTag('elasticsearch');
   }
 
-  $query->entityCondition('entity_type', 'edoweb_basic');
-  $query->propertyCondition('*', $term);
+  $target_bundles = isset($instance_definition['settings']['handler_settings']['target_bundles'])
+    ? array_values($instance_definition['settings']['handler_settings']['target_bundles'])
+    : array_values($field_definition['settings']['handler_settings']['target_bundles']);
+
+  $query->entityCondition('bundle', $target_bundles);
+
   $result = $query->execute();
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();

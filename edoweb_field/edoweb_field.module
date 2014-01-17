@@ -417,7 +417,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 
       // Search result listing
       if ($term != '') {
-        $matches = _edoweb_lookup($entity->bundle_type, $field_name, $term, $page);
+        $matches = array_values(
+          _edoweb_lookup($entity->bundle_type, $field_name, $term, $page)
+        );
         if ($embedded_creation) {
           $init_val = array();
           $init_val[LANGUAGE_NONE][0]['value'] = $term;
