@@ -506,13 +506,12 @@ function edoweb_basic_title($entity) {
       break;
   }
 
-  $title_items = field_get_items(
-    'edoweb_basic', $entity, $label_field
-  );
-
-  $title = $title_items[0]['value']
-    ? $title_items[0]['value']
-    : "Untitled {$entity->bundle_type}";
+  $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
+  try {
+    $title = $wrapper->$label_field->value();
+  } catch (EntityMetadataWrapperException $e) {
+    $title = "Untitled {$entity->bundle_type}";
+  }
 
   return $title;
 
