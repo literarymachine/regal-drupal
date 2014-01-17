@@ -405,6 +405,16 @@ function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $que
   $form['query'] = array(
     '#type' => 'textfield',
   );
+
+  $bundle_options = array_map(function($bundle) {
+    return $bundle['label'];
+  }, field_info_bundles(EDOWEB_ENTITY_TYPE));
+  $form['bundles'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $bundle_options,
+    '#title' => t('Restrict list to these types'),
+  );
+
   $form['search_submit'] = array(
     '#type' => 'submit',
     '#value' => t('Search'),
@@ -414,6 +424,11 @@ function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $que
     $term = $_GET['query'];
     $form['query']['#default_value'] = $term;
     $query->addMetaData('term', $term);
+  }
+  if (array_key_exists('bundles', $_GET)) {
+    $target_bundles = array_keys($_GET['bundles']);
+    $query->entityCondition('bundle', $target_bundles);
+    $form['bundles']['#default_value'] = $target_bundles;
   }
   $form['results'] = edoweb_basic_list_entities($query);
   $form_state['redirect'] = false;
