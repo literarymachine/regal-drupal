@@ -347,6 +347,18 @@ function _edoweb_storage_entity_serialize_rdf(
     $rdf_model->addStatement($rdf_type_statement);
   }
 
+  // Add non-field properties
+  $rdf_about_subject = new LibRDF_URINode(
+    substr($rdf_subject, 1, -1) .  '.rdf'
+  );
+  $rdf_model->addStatement(
+    new LibRDF_Statement(
+      $rdf_about_subject,
+      new LibRDF_URINode(_edoweb_expand_curie('dce:creator')),
+      new LibRDF_LiteralNode($entity->uid)
+    )
+  );
+
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   // Following elements contain predicate mappings
   foreach ($rdf_mapping as $field_name => $field_mapping) {

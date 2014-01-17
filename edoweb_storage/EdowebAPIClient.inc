@@ -571,12 +571,28 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         = implode(' OR ', $target_bundles);
     }
 
+    foreach($efq->propertyConditions as $property_condition) {
+      // TODO: Handle via RDF mapping
+      switch ($property_condition['column']) {
+        case 'uid':
+          $uids = $property_condition['value'];
+          if (!is_array($uids)) {
+            $uids = array($uids);
+          }
+          $query['query']['bool']['must'][]['field']
+            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"]
+              = implode(' OR ', $uids);
+          break;
+      }
+    }
+
     $rdf_mapping = rdf_mapping_load(EDOWEB_ENTITY_TYPE);
     $rdf_namespaces = rdf_get_namespaces();
     foreach($efq->fieldConditions as $field_condition) {
       $field_name = $field_condition['field']['field_name'];
       $field_value = $field_condition['value'];
       // Special cases for unmapped structural fields
+      // TODO: remove superfluous special cases
       switch ($field_name) {
         case 'field_edoweb_struct_parent':
           $field_property = 'http://purl.org/dc/terms/isPartOf';
@@ -587,6 +603,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $value_type = 'id';
         default:
           // Map field name to full property URI
+          // TODO: use OR query and all predicates
           $curie = $rdf_mapping[$field_name]['predicates'][0];
           list($prefix, $local) = explode(':', $curie);
           $field_property = $rdf_namespaces[$prefix] . $local;
