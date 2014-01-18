@@ -186,19 +186,8 @@ function edoweb_entity_info() {
  * @see edoweb_menu()
  */
 function edoweb_basic_load($remote_id, $reset = FALSE) {
-  if (false == $remote_id) {
-    //FIXME: remote id not available on incomplete data from api
-    return false;
-  }
-  $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
-  if (!$local_id) {
-    $api = new EdowebAPIClient();
-    if ($api->importEntity($remote_id)) {
-      $local_id = _edoweb_storage_entity_get_id(new LibRDF_URINode($remote_id));
-    }
-  }
-  $local_ids = $local_id ? array($local_id) : array();
-  $basic = edoweb_basic_load_multiple($local_ids, array(), $reset);
+  $remote_ids = $remote_id ? array($remote_id) : array();
+  $basic = edoweb_basic_load_multiple($remote_ids, array(), $reset);
   return $basic ? reset($basic) : FALSE;
 }
 
@@ -208,10 +197,10 @@ function edoweb_basic_load($remote_id, $reset = FALSE) {
  * We only need to pass this request along to entity_load(), which
  * will in turn call the load() method of our entity controller class.
  */
-function edoweb_basic_load_multiple($local_ids = FALSE, $conditions = array(), $reset = FALSE) {
+function edoweb_basic_load_multiple($remote_ids = FALSE, $conditions = array(), $reset = FALSE) {
   // TODO: Determine whether to $reset by checking HTTP header
   // of resource in Edoweb API
-  return entity_load('edoweb_basic', $local_ids, $conditions, $reset);
+  return entity_load('edoweb_basic', $remote_ids, $conditions, $reset);
 }
 
 /**
@@ -860,7 +849,7 @@ function edoweb_basic_admin_delete( $form , &$form_state ) {
   $parent_id = '';
   if (FALSE !== $parents) {
     foreach($parents as $parent) {
-      $parent_id = _edoweb_storage_entity_get_remote_id($parent['value']);
+      $parent_id = $parent['value'];
     }
   }
   $form_state['redirect'] = "resource/$parent_id";

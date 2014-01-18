@@ -41,19 +41,37 @@ class EdowebBasicController extends EntityAPIController {
   /**
    * Load an edoweb_basic entity.
    */
-  public function load($ids = array(), $conditions = array()) {
-    if (1 == variable_get('edoweb_api_nocache')) {
-      foreach ($ids as $id) {
-        if (!isset($this->__entity_loaded[$id])) {
-          cache_clear_all("field:edoweb_basic:{$id}", 'cache_field');
-          $this->__entity_loaded[$id] = true;
+  public function load($remote_ids = array(), $conditions = array()) {
+    $local_ids = array();
+    foreach ($remote_ids as $remote_id) {
+      $local_id = $this->_get_local_id($remote_id);
+      if (!$local_id) {
+        $api = new EdowebAPIClient();
+        if ($api->importEntity($remote_id)) {
+          $local_id = $this->_get_local_id($remote_id);
         }
+      }
+      if ($local_id && (1 == variable_get('edoweb_api_nocache'))
+          && !isset($this->__entity_loaded[$local_id])) {
+        cache_clear_all("field:edoweb_basic:{$local_id}", 'cache_field');
+        $this->__entity_loaded[$local_id] = true;
+        $local_ids[] = $local_id;
+      } else if ($local_id) {
+        $local_ids[] = $local_id;
       }
     }
     LibRDF_LiteralNode::setPlainOutput(true);
-    $entities = parent::load($ids, $conditions);
+    $entities = parent::load($local_ids, $conditions);
     return $entities;
   }
+
+  protected function _get_local_id($remote_id) {
+    return db_query(
+      'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
+      array(':remote_id' => $remote_id)
+    )->fetchField();
+  }
+
 
   public function createFromRdf($subject_uri, $rdf_model) {
     // FIXME: Properly handle namespaces at loading level
