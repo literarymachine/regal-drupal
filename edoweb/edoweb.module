@@ -446,7 +446,39 @@ function edoweb_basic_search_entities_submit($form, &$form_state) {
 function edoweb_basic_list_entities(EntityFieldQuery $query) {
   $content = array();
 
+
+  $header = array(
+    array(
+      'data' => 'ID',
+    ),
+    array(
+      'data' => 'Updated',
+      'type' => 'property',
+      'specifier' => 'updated',
+      'sort' => 'desc',
+    ),
+    array(
+      'data' => 'Title',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_title',
+        'column' => 'value',
+      ),
+    ),
+    array(
+      'data' => 'Issued',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_issued',
+        'column' => 'value',
+      ),
+    ),
+    array(
+      'data' => 'Type',
+    ),
+  );
   // Load all of our entities.
+  $query->tableSort($header);
   $result = $query->execute();
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
@@ -459,6 +491,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
       $rows[] = array(
         'data' => array(
           'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
+          'updated' => format_date($entity->updated, 'custom', 'd.m.Y - H:i:s'),
           'title' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
           'issued' => 
             ($issued = field_get_items(
@@ -472,7 +505,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
     $content['entity_table'] = array(
       '#theme' => 'table',
       '#rows' => $rows,
-      '#header' => array(t('ID'), t('Title'), t('Issued'), t('Type')),
+      '#header' => $header,
     );
     $content['pager'] = array(
       '#markup' => theme('pager'),
@@ -567,7 +600,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   $entity->content['_created'] = array(
     '#type' => 'item',
-    '#markup' => '<small>' . format_date($entity->created) . '</small>',
+    '#markup' => '<small>Letzte Änderung: ' . format_date($entity->created, 'custom', 'd.m.Y - H:i:s') . '</small>',
     '#weight' => 1000,
   );
 

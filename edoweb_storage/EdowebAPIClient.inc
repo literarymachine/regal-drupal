@@ -620,12 +620,36 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $query['sort'] = array();
     foreach($efq->order as $sort) {
-      $fieldname = $sort['specifier'];
+      $field_property = null;
+      $value_type = null;
+      switch ($sort['type']) {
+        case 'property':
+          $property_name = $sort['specifier'];
+          if ($property_name == 'updated') {
+            $field_property = _edoweb_expand_curie('dc:modified');
+            $value_type = 'value';
+          }
+          break;
+        case 'field':
+          // FIXME: retrieve property from actual mapping
+          // (problem is, we don't have a specific bundle type here)
+          $field_name = $sort['specifier']['field']['field_name'];
+          $field_info = field_info_field($field_name);
+          $field_property = _edoweb_expand_curie(
+            $field_info['settings']['predicates'][0]
+          );
+          $value_type = 'value';
+          break;
+        default:
+          break;
+      }
       $order = $sort['direction'];
-      $query['sort'][]["@graph.$fieldname.@value"] = array(
-        'order' => $order,
-        'ignore_unmapped' => TRUE,
-      );
+      if ($field_property && $value_type) {
+        $query['sort'][]["@graph.$field_property.@$value_type"] = array(
+          'order' => $order,
+          'ignore_unmapped' => TRUE,
+        );
+      }
     }
 
     return json_encode($query);
