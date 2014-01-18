@@ -432,7 +432,6 @@ function _edoweb_storage_entity_serialize_rdf(
   }
   if ($rdf_serializer) {
     foreach (rdf_get_namespaces() as $prefix => $namespace) {
-      _edoweb_log("mapping: $prefix to $namespace\n");
       $rdf_serializer->setNamespace($namespace, $prefix);
     }
     return $rdf_model->serializeStatements($rdf_serializer);
@@ -631,10 +630,6 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
   $rdf_ntriples = strtr($rdf_ntriples, $char_map);
   $rdf_parser = new LibRDF_Parser('ntriples');
   return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_ntriples, $rdf_parser);
-}
-
-function _edoweb_log($message, $target='php://stderr') {
-  // file_put_contents($target, $message);
 }
 
 function _edoweb_expand_curie($curie) {
