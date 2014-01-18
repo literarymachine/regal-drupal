@@ -488,6 +488,17 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
       }
     }
   }
+  // Add non-field properties
+  $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
+  try {
+    $entity->updated = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('dc:modified'))
+    ));
+  } catch (LibRDF_LookupError $e) {
+    // No update time available, ignore
+  }
+
 }
 
 function _get_rdf_subject($entity, $field_name) {
