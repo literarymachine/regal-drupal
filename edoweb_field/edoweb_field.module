@@ -214,7 +214,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   return $elements;
 }
 
-function _edoweb_field_embed_entities($items, $referrer = null) {
+function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed') {
   $elements = array();
   // Prevent recursion
   static $referrers = array();
@@ -232,7 +232,7 @@ function _edoweb_field_embed_entities($items, $referrer = null) {
     // FIXME: Why is this null e.g. for dewey classifications?
     if (!$target_entity) continue;
     $elements[$delta] =
-      _edoweb_field_render_embedded_entity($target_entity);
+      _edoweb_field_render_embedded_entity($target_entity, $collapsed);
   }
   return $elements;
 }

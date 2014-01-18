@@ -750,13 +750,15 @@ function edoweb_basic_file($entity, $bundle_types = array()) {
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
   $query->entityCondition('bundle', 'file');
-  $content['resource_list'] = drupal_get_form('edoweb_basic_search_entities', $query);
-  unset($content['resource_list']['form_build_id']);
-  unset($content['resource_list']['form_id']);
-  unset($content['resource_list']['form_token']);
+  $files = $query->execute();
 
   _edoweb_build_breadcrumb($entity);
-  return $content;
+  $values = array_map(function($remote_id) {
+    return array('value' => $remote_id);
+  }, array_keys($files[EDOWEB_ENTITY_TYPE]));
+  return _edoweb_field_embed_entities(
+    $values, $entity->identifier(), false
+  );
 }
 
 /**
