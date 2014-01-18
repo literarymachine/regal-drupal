@@ -730,25 +730,10 @@ function edoweb_basic_file($entity, $bundle_types = array()) {
  * Provides a form to administrate entities.
  */
 function edoweb_basic_admin($form, &$form_state, $entity) {
-  $api = new EdowebAPIClient();
-  $has_urn = field_get_items('edoweb_basic', $entity, 'field_edoweb_urn') ? TRUE : FALSE;
+
   $form['basic_entity'] = array(
     '#type' => 'value',
     '#value' => $entity,
-  );
-  if (!$has_urn) {
-    $form['urn'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add URN'),
-      '#submit' => array('edoweb_basic_admin_add_urn'),
-      '#weight' => 50,
-    );
-  }
-  $form['index'] = array(
-    '#type' => 'submit',
-    '#value' => t('Index'),
-    '#submit' => array('edoweb_basic_admin_index'),
-    '#weight' => 50,
   );
   $form['reload'] = array(
     '#type' => 'submit',
@@ -756,48 +741,74 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#submit' => array('edoweb_basic_admin_reload'),
     '#weight' => 100,
   );
-  $form['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#submit' => array('edoweb_basic_admin_delete'),
-    '#weight' => 200,
-  );
-  $form['transformers'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Transformers'),
-    '#weight' => 5,
-  );
-  $transformers = $api->getTransformers($entity);
-  $form['transformers']['transformers'] = array(
-    '#type' => 'checkboxes',
-    '#options' => array(
-      'epicur' => t('Register Urn'),
-      'aleph' => t('Copy to Catalog'),
-      'oaidc' => t('Support OAI-PMH'),
-      'pdfbox' => t('Allow Fulltext Search'),
-      'pdfa' => t('Prepare for Long Term Preservation'),
-    ),
-    '#default_value' => $transformers,
-    '#title' => t('Please choose the transformers to apply.'),
-  );
 
-  foreach ($transformers as $transformer) {
-    $label = $form['transformers']['transformers']['#options'][$transformer];
-    $edoweb_api_host = variable_get('edoweb_api_host');
-    $api_link = l(
-      $label,
-      "http://{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
-      array('attributes' => array('target'=>'_blank'))
-    );
-    $form['transformers']['transformers']['#options'][$transformer] = $api_link;
+  $entity_is_managable = false;
+  $namespace = variable_get('edoweb_api_namespace');
+  if ("$namespace:" === substr($entity->identifier(), 0, strlen($namespace) + 1)) {
+    $entity_is_managable = true;
   }
 
-  $form['transformers']['apply'] = array(
-    '#type' => 'submit',
-    '#value' => t('Apply'),
-    '#submit' => array('edoweb_basic_admin_apply_transformers'),
-    '#weight' => 200,
-  );
+  if ($entity_is_managable) {
+    $api = new EdowebAPIClient();
+    $has_urn = field_get_items('edoweb_basic', $entity, 'field_edoweb_urn') ? TRUE : FALSE;
+    if (!$has_urn) {
+      $form['urn'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add URN'),
+        '#submit' => array('edoweb_basic_admin_add_urn'),
+        '#weight' => 50,
+      );
+    }
+    $form['index'] = array(
+      '#type' => 'submit',
+      '#value' => t('Index'),
+      '#submit' => array('edoweb_basic_admin_index'),
+      '#weight' => 50,
+    );
+    $form['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#submit' => array('edoweb_basic_admin_delete'),
+      '#weight' => 200,
+    );
+    $form['transformers'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Transformers'),
+      '#weight' => 5,
+    );
+    $transformers = $api->getTransformers($entity);
+    $form['transformers']['transformers'] = array(
+      '#type' => 'checkboxes',
+      '#options' => array(
+        'epicur' => t('Register Urn'),
+        'aleph' => t('Copy to Catalog'),
+        'oaidc' => t('Support OAI-PMH'),
+        'pdfbox' => t('Allow Fulltext Search'),
+        'pdfa' => t('Prepare for Long Term Preservation'),
+      ),
+      '#default_value' => $transformers,
+      '#title' => t('Please choose the transformers to apply.'),
+    );
+
+    foreach ($transformers as $transformer) {
+      $label = $form['transformers']['transformers']['#options'][$transformer];
+      $edoweb_api_host = variable_get('edoweb_api_host');
+      $api_link = l(
+        $label,
+        "http://{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
+        array('attributes' => array('target'=>'_blank'))
+      );
+      $form['transformers']['transformers']['#options'][$transformer] = $api_link;
+    }
+
+    $form['transformers']['apply'] = array(
+      '#type' => 'submit',
+      '#value' => t('Apply'),
+      '#submit' => array('edoweb_basic_admin_apply_transformers'),
+      '#weight' => 200,
+    );
+  }
+
   _edoweb_build_breadcrumb($entity);
   return $form;
 }
