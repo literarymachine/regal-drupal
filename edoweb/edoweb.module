@@ -1291,6 +1291,7 @@ function edoweb_rdf_namespaces() {
     'lr' => 'http://lobid.org/resource/',
     'skos' => 'http://www.w3.org/2004/02/skos/core#',
     'ddc' => 'http://dewey.info/class/',
+    'regal' => 'http://hbz-nrw.de/regal#',
   );
 }
 

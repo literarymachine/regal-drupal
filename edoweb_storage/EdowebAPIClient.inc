@@ -51,13 +51,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *   The drupal entity to load data into
    */
   public function load($entity) {
-    // FIXME: hardcoded URL for datastreams
-    // TODO: decide on explicit rdf property for datastream links
-    $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-    if (_edoweb_field_access($entity, array('field_edoweb_datastream'))) {
-      $wrapper->field_edoweb_datastream =
-        "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
-    }
     $linkedDataClient = new LinkedDataClient();
     return $linkedDataClient->load($entity);
   }

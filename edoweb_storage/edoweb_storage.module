@@ -458,11 +458,11 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping[key($rdf_mapping)]);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-  // Modify subject URI for datastream metadata
   foreach ($rdf_mapping as $field_name => $mapping) {
     $rdf_predicate = new LibRDF_URINode(
       _edoweb_expand_curie($mapping['predicates'][0])
     );
+    // Modify subject URI for datastream metadata
     $rdf_subject = _get_rdf_subject($entity, $field_name);
     foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
       try {
@@ -508,7 +508,6 @@ function _get_rdf_subject($entity, $field_name) {
     'field_edoweb_filetype',
     'field_edoweb_label',
     'field_edoweb_filesize',
-    'field_edoweb_datastream',
   );
 
   if ('file' == $entity->bundle_type

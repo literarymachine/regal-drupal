@@ -45,7 +45,7 @@ function edoweb_field_field_info() {
       'instance_settings' => array('text_processing' => 0),
       'default_widget' => 'edoweb_upload_widget',
       'default_formatter' => 'edoweb_datastream_format',
-      'property_type' => 'uri',
+      'property_type' => 'text',
     ),
   );
 }
@@ -203,9 +203,10 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
       $elements = _edoweb_field_embed_entities($items, $entity->remote_id);
       break;
     case 'edoweb_datastream_format':
+      $edoweb_api_host = variable_get('edoweb_api_host');
       foreach ($items as $delta => $item) {
         $elements[$delta] = array(
-          '#markup' => l($item['value'], $item['value']),
+          '#markup' => l($item['value'], "http://$edoweb_api_host/resource/{$item['value']}"),
         );
       }
       break;
