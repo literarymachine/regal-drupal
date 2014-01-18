@@ -1332,15 +1332,9 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
   $term = $_GET['term'];
   $entities = _edoweb_lookup($bundle_name, $field_name, $term);
   $matches = array();
-  $namespace = variable_get('edoweb_api_namespace');
   foreach ($entities as $entity) {
-    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)) {
-      $value = $entity->remote_id;
-    } else {
-      $value = _edoweb_expand_curie($entity->remote_id);
-    }
     $matches[] = array(
-      'value' => $value,
+      'value' => $entity->identifier(),
       'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
     );
   }

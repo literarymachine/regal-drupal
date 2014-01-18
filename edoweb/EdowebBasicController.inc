@@ -57,12 +57,7 @@ class EdowebBasicController extends EntityAPIController {
 
   public function createFromRdf($subject_uri, $rdf_model) {
     // FIXME: Properly handle namespaces at loading level
-    $namespace = variable_get('edoweb_api_namespace');
-    if ("$namespace:" === substr($subject_uri, 0, strlen($namespace) + 1)) {
-      $remote_id = $subject_uri;
-    } else {
-      $remote_id = _edoweb_compact_uri($subject_uri);
-    }
+    $remote_id = _edoweb_compact_uri($subject_uri);
     $bundle_type = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
     $entity = parent::create(
       array(

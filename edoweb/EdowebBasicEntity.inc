@@ -23,15 +23,25 @@ class EdowebBasicEntity extends Entity {
   private $__source = null;
 
   protected function defaultUri() {
-    return array(
-      'path' => "resource/{$this->identifier()}",
-    );
+    if (isset($this->remote_id)) {
+      return array(
+        'path' => "resource/{$this->remote_id}",
+      );
+    }
   }
 
   public function identifier() {
-    return isset($this->remote_id)
-      ? $this->remote_id
-      : null;
+    $namespace = variable_get('edoweb_api_namespace');
+    if (isset($this->remote_id)
+        && ("$namespace:" === substr($this->remote_id, 0, strlen($namespace) + 1)
+          || 'local:' == substr($this->remote_id, 0, 6))) {
+      $remote_id = $this->remote_id;
+    } else if (isset($this->remote_id)) {
+      $remote_id = _edoweb_expand_curie($this->remote_id);
+    } else {
+      $remote_id = null;
+    }
+    return $remote_id;
   }
 
   public function internalIdentifier() {
