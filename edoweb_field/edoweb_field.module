@@ -509,8 +509,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           'edoweb_autocomplete_widget', $field_name, 'data'
         ),
       );
+      $referrer = isset($entity->remote_id) ? $entity->remote_id : null;
       $element['data'] += _edoweb_field_embed_entities(
-        $items, $entity->remote_id
+        $items, $referrer
       );
       foreach (array_keys($items) as $i) {
         // Hidden inputs for values
