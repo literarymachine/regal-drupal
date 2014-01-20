@@ -390,60 +390,71 @@ function edoweb_permission() {
   return $permissions;
 }
 
-function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $query) {
+function edoweb_basic_search_entities($form, &$form_state, EntityFieldQuery $efq, $advanced = FALSE) {
+  static $search_count = 0;
+
   $form['query'] = array(
+    '#tree' => TRUE,
+  );
+
+  $form['query'][$search_count]['term']= array(
     '#type' => 'textfield',
   );
 
-  $bundle_options = array_map(function($bundle) {
-    return $bundle['label'];
-  }, field_info_bundles(EDOWEB_ENTITY_TYPE));
-  $form['bundles'] = array(
-    '#type' => 'checkboxes',
-    '#options' => $bundle_options,
-    '#title' => t('Restrict list to these types'),
-  );
-
-  global $user;
-  $form['users'] = array(
-    '#type' => 'checkboxes',
-    '#options' => array($user->uid => 'Only entities submitted by me'),
-  );
-
-  $form['search_submit'] = array(
+  $form['query'][$search_count]['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Search'),
   );
-  $form['#method'] = 'get';
-  if (array_key_exists('query', $_GET) && !empty($_GET['query'])) {
-    $term = $_GET['query'];
-    $form['query']['#default_value'] = $term;
-    $query->addMetaData('term', $term);
-  }
-  if (array_key_exists('bundles', $_GET)) {
-    $target_bundles = array_keys($_GET['bundles']);
-    $query->entityCondition('bundle', $target_bundles);
-    $form['bundles']['#default_value'] = $target_bundles;
-  }
-  if (array_key_exists('users', $_GET)) {
-    $target_users = array_keys($_GET['users']);
-    $query->propertyCondition('uid', $target_users);
-    $form['users']['#default_value'] = $target_users;
-  }
-  $form['results'] = edoweb_basic_list_entities($query);
-  $form_state['redirect'] = false;
-  return $form;
-}
 
-function edoweb_basic_search_entities_submit($form, &$form_state) {
-  $form_state['rebuild'] = TRUE;
+  if ($advanced) {
+    $bundle_options = array_map(function($bundle) {
+      return $bundle['label'];
+    }, field_info_bundles(EDOWEB_ENTITY_TYPE));
+    $form['query'][$search_count]['bundles'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $bundle_options,
+      '#title' => t('Restrict list to these types'),
+    );
+
+    global $user;
+    $form['query'][$search_count]['users'] = array(
+      '#type' => 'checkboxes',
+      '#options' => array($user->uid => 'Only entities submitted by me'),
+    );
+  }
+
+  $form['#method'] = 'get';
+  if (array_key_exists('query', $_GET)
+      && !empty($_GET['query'])
+      && array_key_exists($search_count, $_GET['query'])
+  ) {
+    $query = $_GET['query'][$search_count];
+    if ($term = $query['term']) {
+      $form['query'][$search_count]['term']['#default_value'] = $term;
+      $efq->addMetaData('term', $term);
+    }
+    if (@$bundles = $query['bundles']) {
+      $target_bundles = array_keys($bundles);
+      $efq->entityCondition('bundle', $target_bundles);
+      $form['query'][$search_count]['bundles']['#default_value'] = $target_bundles;
+    }
+    if (@$users = $query['users']) {
+      $target_users = array_keys($users);
+      $efq->propertyCondition('uid', $target_users);
+      $form['query'][$search_count]['users']['#default_value'] = $target_users;
+    }
+  }
+  $form['results'] = edoweb_basic_list_entities($efq);
+  $form_state['redirect'] = false;
+  $search_count++;
+  return $form;
 }
 
 /**
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $query) {
+function edoweb_basic_list_entities(EntityFieldQuery $efq) {
   $content = array();
 
 
@@ -478,8 +489,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
     ),
   );
   // Load all of our entities.
-  $query->tableSort($header);
-  $result = $query->execute();
+  $efq->tableSort($header);
+  $result = $efq->execute();
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
@@ -508,7 +519,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $query) {
       '#header' => $header,
     );
     $content['pager'] = array(
-      '#markup' => theme('pager'),
+      '#theme' => 'pager',
+      '#element' => $efq->pager_num,
       '#weight' => 10,
     );
   }

@@ -387,25 +387,29 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   public function query(EntityFieldQuery $efq) {
+    static $query_count = 0;
+    $page = pager_find_page($query_count);
+    $efq->pager_num = $query_count;
 
     if (isset($efq->tags['elasticsearch'])) {
-      $results = $this->_query_elasticsearch($efq);
+      $results = $this->_query_elasticsearch($efq, $page);
     } else if (isset($efq->tags['lobid'])) {
-      $results = $this->_query_lobid($efq);
+      $results = $this->_query_lobid($efq, $page);
     }
 
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
-    pager_default_initialize($results['hits'], $results_per_page);
+    pager_default_initialize($results['hits'], $results_per_page, $query_count);
+    $query_count++;
     return $results;
   }
 
-  protected function _query_lobid(EntityFieldQuery $efq) {
+  protected function _query_lobid(EntityFieldQuery $efq, $page = 0) {
     $term = str_replace(
       ' ', '+', $efq->metaData['term']
     );
     $endpoint = $efq->metaData['endpoint'];
     $parameter = $efq->metaData['parameter'];
-    $page = pager_find_page();
+
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
     $from = $results_per_page * $page;
     $size = $results_per_page;
@@ -483,7 +487,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return $results;
   }
 
-  protected function _query_elasticsearch(EntityFieldQuery $efq) {
+  protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
     // Search resources
     $http_url = sprintf(
       'http://%s:%s@%s:9200/%s/_search',
@@ -492,7 +496,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       variable_get('edoweb_api_namespace')
     );
-    $query = $this->_efq_to_es($efq);
+    $query = $this->_efq_to_es($efq, $page);
 
     $http_response = $this->_http_post(
       $http_url, $query, 'application/json'
@@ -543,9 +547,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return $results;
   }
 
-  protected function _efq_to_es(EntityFieldQuery $efq) {
+  protected function _efq_to_es(EntityFieldQuery $efq, $page = 0) {
     $query = array();
-    $page = pager_find_page();
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
     $query['from'] = $results_per_page * $page;
     $query['size'] = $results_per_page;
