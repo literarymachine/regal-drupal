@@ -710,9 +710,9 @@ function _edoweb_installed_instances() {
      */
     'article' => array(
       'field_edoweb_title' => array(),
-      'field_edoweb_title_other' => array(),
       'field_edoweb_creator' => array(),
       'field_edoweb_contributor' => array(),
+      'field_edoweb_title_other' => array(),
       'field_edoweb_issued' => array(),
       'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),

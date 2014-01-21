@@ -279,7 +279,6 @@ function _edoweb_field_render_embedded_entity(
  *
  */
 function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-
   switch ($instance['widget']['type']) {
     case 'edoweb_autocomplete_widget':
 
@@ -290,7 +289,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       );
 
       // The entity being edited
-      $entity = menu_get_object(EDOWEB_ENTITY_TYPE);
+      $entity = $form['#entity'];
 
       // Get field configuration
       $field_info = field_info_field($field['field_name']);
@@ -310,6 +309,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       // Submitted search term
       if (array_key_exists('values', $form_state)
           && array_key_exists('edoweb_autocomplete_widget', $form_state['values'])
+          && array_key_exists($field_name, $form_state['values']['edoweb_autocomplete_widget'])
       ) {
         $term = $form_state['values']['edoweb_autocomplete_widget'][$field_name]['search'];
       } else {
