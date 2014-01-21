@@ -202,6 +202,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (FALSE !== $parents) {
       $data['parentPid'] = $parents[0]['value'];
     }
+
     $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
     if (200 != $http_response->code) {
       watchdog('edoweb_storage', 'Unable to save @id to @api.',

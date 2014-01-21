@@ -324,6 +324,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('orca:hasURN'),
       ),
     ),
@@ -390,6 +391,7 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('dc:subject'),
         'parameter' => 'name',
         'endpoint' => 'subject',
@@ -438,6 +440,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('rdfs:label'),
       ),
     ),
@@ -454,6 +457,7 @@ function _edoweb_installed_fields() {
       'type'        => 'number_integer',
       'settings'    => array(
         'metadata_type' => 'technical',
+        'read_only' => TRUE,
       ),
     ),
     'field_edoweb_filetype' => array(
@@ -461,6 +465,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('dc:format'),
       ),
     ),
@@ -477,7 +482,7 @@ function _edoweb_installed_fields() {
       ),
     ),
     'field_edoweb_struct_parent' => array(
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'cardinality' => 1,
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type'    => 'structural',

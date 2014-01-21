@@ -72,6 +72,11 @@ class EdowebBasicController extends EntityAPIController {
     )->fetchField();
   }
 
+  public function clearCache($remote_id) {
+    if ($local_id = $this->_get_local_id($remote_id)) {
+      cache_clear_all("field:edoweb_basic:{$local_id}", 'cache_field');
+    }
+  }
 
   public function createFromRdf($subject_uri, $rdf_model) {
     // FIXME: Properly handle namespaces at loading level
