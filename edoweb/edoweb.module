@@ -530,7 +530,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
       // Create tabular rows for our entities.
       $rows[] = array(
         'data' => array(
-          'id' => $entity->remote_id,
+          'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
           'updated' => format_date($entity->updated, 'custom', 'd.m.Y - H:i:s'),
           'title' => l(edoweb_basic_raw_title($entity), "resource/{$entity->remote_id}"),
           'issued' => 
@@ -836,7 +836,10 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
       $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
       $content['child']['add'][] = array(
         '#type' => 'item',
-        '#markup' => l(t("Add $child_bundle_label"), current_path() .  "/add/$child_bundle"),
+        '#markup' => l(
+          t("Add $child_bundle_label"),
+          "resource/{$entity->identifier()}/children/add/$child_bundle"
+        ),
       );
     }
   }
