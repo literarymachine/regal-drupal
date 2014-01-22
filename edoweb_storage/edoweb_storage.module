@@ -558,6 +558,12 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
    * jsonld_to_rdf returns N-Triples in utf-8, but currently
    * LibRDF expects ASCII with utf-8 hex values.
    */
+  $rdf_ntriples = _edoweb_escape_utf8($rdf_ntriples);
+  $rdf_parser = new LibRDF_Parser('ntriples');
+  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_ntriples, $rdf_parser);
+}
+
+function _edoweb_escape_utf8($string) {
   $char_map = array(
     '¢' => '\u00A2',
     '£' => '\u00A3',
@@ -637,9 +643,7 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
     'þ' => '\u00FE',
     'ÿ' => '\u00FF',
   );
-  $rdf_ntriples = strtr($rdf_ntriples, $char_map);
-  $rdf_parser = new LibRDF_Parser('ntriples');
-  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_ntriples, $rdf_parser);
+  return strtr($string, $char_map);
 }
 
 function _edoweb_expand_curie($curie) {

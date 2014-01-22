@@ -445,7 +445,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $options = array(
         'format' => 'application/nquads',
       );
-      $rdf_ntriples = jsonld_to_rdf($hit, $options);
+      $rdf_ntriples = _edoweb_escape_utf8(jsonld_to_rdf($hit, $options));
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
@@ -522,7 +522,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $options = array(
         'format' => 'application/nquads',
       );
-      $rdf_ntriples = jsonld_to_rdf($hit->_source, $options);
+      $rdf_ntriples = _edoweb_escape_utf8(jsonld_to_rdf($hit->_source, $options));
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
