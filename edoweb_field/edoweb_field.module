@@ -215,24 +215,25 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed') {
+  drupal_add_library('system', 'drupal.collapse');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
   $elements = array();
-  // Prevent recursion
-  static $referrers = array();
-  if (!is_null($referrer)) {
-    $referrers[] = $referrer;
-  }
   foreach ($items as $delta => $item) {
-    if (in_array($item['value'], $referrers)) {
-      continue;
-    }
-    $referrers[] = $item['value'];
-    $target_entity = edoweb_basic_load(
-      _edoweb_compact_uri($item['value'])
+    $remote_id = _edoweb_compact_uri($item['value']);
+    if (!$remote_id) continue;
+    $elements[$delta] = array(
+      '#type' => 'fieldset',
+      '#attributes' => array(
+        'class' => array('collapsible', $collapsed, 'edoweb_ld_reference'),
+      ),
+      '#title' => $remote_id,
+      'entity' => array(
+        '#type' => 'hidden',
+        '#value' => $remote_id,
+      ),
     );
-    // FIXME: Why is this null e.g. for dewey classifications?
-    if (!$target_entity) continue;
-    $elements[$delta] =
-      _edoweb_field_render_embedded_entity($target_entity, $collapsed);
   }
   return $elements;
 }
@@ -257,7 +258,7 @@ function _edoweb_field_render_embedded_entity(
     );
   } else {
     $entity_data = entity_view(
-      EDOWEB_ENTITY_TYPE, array($entity), 'teaser', null, TRUE
+      EDOWEB_ENTITY_TYPE, array($entity), 'teaser'
     );
   }
   return array(
@@ -265,7 +266,7 @@ function _edoweb_field_render_embedded_entity(
     '#attributes' => array(
       'class' => array('collapsible', $collapsed),
     ),
-    '#title' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
+    '#title' => $entity->remote_id,
     'entity' => $entity_data,
   );
 }

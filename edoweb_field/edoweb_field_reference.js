@@ -19,25 +19,26 @@
 
 (function($) {
 
-  Drupal.behaviors.edoweb_field_autocomplete = {
+  Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
-      window.location.hash = 'focus';
-      $('.edoweb_autocomplete_widget').each(function(index, element) {
-        var field_name = $(this).attr('class').split(/\s+/)[1];
-        var bundle_name = $(this).attr('class').split(/\s+/)[2];
-        $(this).autocomplete({
-          source: Drupal.settings.basePath + 'edoweb/autocomplete/' + bundle_name + '/' + field_name,
-          minLength: 2,
-          select: function(event, ui) {
-            var search_input = $('input[name="edoweb_autocomplete_widget[' + field_name + '][search]"]');
-            var search_button = $('input[name="edoweb_autocomplete_widget[' + field_name + '][submit]"]');
-            search_input.val(ui.item.label);
-            search_button.trigger('click');
-            return false;
-          }
-        });
+      $(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').bind('click', function(event) {
+        var title = event.target;
+        var link = $(title).closest('fieldset').children('div.fieldset-wrapper').children('input[type=hidden]').get(0);
+        if (link) {
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+          $(title).after(throbber);
+          entity_render_view('edoweb_basic', link.value).onload = function () {
+            if (this.status == 200) {
+              var entity_view = $(this.responseText);
+              $(link).replaceWith(entity_view);
+              Drupal.attachBehaviors(entity_view);
+            }
+            throbber.remove();
+          };
+        }
       });
     }
   };
 
 })(jQuery);
+
