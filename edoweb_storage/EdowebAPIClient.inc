@@ -291,19 +291,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return FALSE;
     }
 
-    // TODO: Load entity so that it is cached.
-    // $this->load($entity);
-
-    // Fetch and add child relations.
-    $children = $repository_data->getTargets(
-      new LibRDF_URINode($entity->remote_id),
-      new LibRDF_URINode('http://purl.org/dc/terms/hasPart')
-    );
-    foreach ($children as $child) {
-      $remote_id = substr($child, 1, -1);
-      $this->importEntity($remote_id, $import_mode);
-    }
-
     return TRUE;
 
   }
