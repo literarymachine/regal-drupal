@@ -1535,7 +1535,7 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
   foreach ($entities as $entity) {
     $matches[] = array(
       'value' => $entity->identifier(),
-      'label' => entity_label(EDOWEB_ENTITY_TYPE, $entity),
+      'label' => edoweb_basic_raw_title($entity),
     );
   }
   drupal_json_output($matches);
