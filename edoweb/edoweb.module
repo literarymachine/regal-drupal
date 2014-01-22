@@ -658,17 +658,21 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   }
 
   // OK, Field API done, now we can set up some of our own data.
-  $entity->content['bundle_type'] = array(
-    '#type' => 'item',
-    '#markup' => '<h1>'.edoweb_basic_bundle_name($entity->bundle_type).'</h1>',
-    '#weight' => -1,
-  );
-
   $entity->content['_created'] = array(
     '#type' => 'item',
     '#markup' => '<small>Letzte Änderung: ' . format_date($entity->created, 'custom', 'd.m.Y - H:i:s') . '</small>',
     '#weight' => 1000,
   );
+
+  $entity->content['_datastreams'] = array(
+    '#theme' => 'item_list',
+    '#title' => t('Files'),
+    '#type' => 'ul',
+    '#items' => _edoweb_list_datastreams(array($entity)),
+    '#weight' => 1000,
+  );
+
+
 
   $edoweb_api_host = variable_get('edoweb_api_host');
   $entity->content['remote_id'] = array(
@@ -712,6 +716,49 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   // And finally return the content.
   return $entity->content;
+}
+
+function _edoweb_list_datastreams($entities, $parent_trail = '') {
+  $datastreams = array();
+  $edoweb_api_host = variable_get('edoweb_api_host');
+  foreach ($entities as $entity) {
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
+    try {
+      $datastream = $wrapper->field_edoweb_datastream->value();
+      $datastream_link = l(
+        entity_label(EDOWEB_ENTITY_TYPE, $entity),
+        "http://$edoweb_api_host/resource/{$datastream}"
+      );
+      $datastreams[] = "{$parent_trail} » {$datastream_link}";
+    } catch (EntityMetadataWrapperException $e) {
+      // No datastreams found, do noting
+    }
+
+    $children_query = new EntityFieldQuery();
+    $children_query->addTag('elasticsearch');
+    $children_query->entityCondition(
+      'entity_type', 'edoweb_basic'
+    );
+    $children_query->fieldCondition(
+      'field_edoweb_struct_parent', 'value', $entity->remote_id
+    );
+    $children = $children_query->execute();
+    $trail_link = l(
+      entity_label(EDOWEB_ENTITY_TYPE, $entity), "resource/{$entity->remote_id}"
+    );
+    if ($parent_trail) {
+      $trail = "{$parent_trail} » {$trail_link}";
+    } else {
+      $trail = "{$trail_link}";
+    }
+    if ($children[EDOWEB_ENTITY_TYPE]) {
+      $child_datastreams = _edoweb_list_datastreams(
+        $children[EDOWEB_ENTITY_TYPE], $trail
+      );
+      $datastreams = array_merge($datastreams, $child_datastreams);
+    }
+  }
+  return $datastreams;
 }
 
 function _edoweb_build_parent_trail($entity, $trail = array()) {
