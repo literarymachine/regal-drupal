@@ -1445,9 +1445,7 @@ function edoweb_rdf_mapping() {
       if (isset($field_info['settings']['predicates'])) {
         $rdf_mapping['mapping'][$field_name]['predicates'] =
           $field_info['settings']['predicates'];
-        if (in_array($field_info['type'],
-            array('edoweb_ld_reference', 'entityreference'))
-        ) {
+        if ($field_info['type'] == 'edoweb_ld_reference') {
           $rdf_mapping['mapping'][$field_name]['type'] = 'rel';
         }
       }
