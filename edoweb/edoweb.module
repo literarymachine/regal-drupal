@@ -421,6 +421,9 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     $bundle_options = array_map(function($bundle) {
       return $bundle['label'];
     }, field_info_bundles(EDOWEB_ENTITY_TYPE));
+    // FIXME: static unsetting of non-edoweb bundles
+    unset($bundle_options['person']);
+    unset($bundle_options['subject']);
     $form['query'][$search_count]['bundles'] = array(
       '#type' => 'checkboxes',
       '#options' => $bundle_options,
@@ -1699,8 +1702,19 @@ function _update_edoweb_installed_fields($updated_fields = null) {
     $field_definition['field_name'] = $field_name;
     $installed_field = field_info_field($field_name);
     if (is_null($installed_field)) {
+      $field_definition['storage'] = array(
+        'type' => 'edoweb_storage',
+      );
       field_create_field($field_definition);
       drupal_set_message("Created field $field_name.");
+    } else if($installed_field['type'] != $field_definition['type']) {
+      field_delete_field($field_name);
+      field_purge_batch(10);
+      $field_definition['storage'] = array(
+        'type' => 'edoweb_storage',
+      );
+      field_create_field($field_definition);
+      drupal_set_message("Recreated field $field_name.");
     } else {
       field_update_field($field_definition);
       drupal_set_message("Updated field $field_name.");
@@ -1851,9 +1865,9 @@ function edoweb_update_7102() {
  * Remove superfluous fields
  */
 function edoweb_update_7103() {
-  field_remove_field('field_edoweb_creator_new');
-  field_remove_field('field_edoweb_contributor_new');
-  field_remove_field('field_edoweb_identifier');
+  field_delete_field('field_edoweb_creator_new');
+  field_delete_field('field_edoweb_contributor_new');
+  field_delete_field('field_edoweb_identifier');
   field_purge_batch(10);
 }
 
@@ -1868,4 +1882,14 @@ function edoweb_update_7104() {
     'default' => 0,
   );
   db_add_field('edoweb_basic', 'uid', $uid_column);
+}
+
+/**
+ * Update fields, field instances and RDF mappings
+ */
+function edoweb_update_7105() {
+  cache_clear_all('field:edoweb_basic:*', 'cache_field', TRUE);
+  _update_edoweb_installed_fields();
+  _update_edoweb_installed_instances();
+  _update_rdf_mapping();
 }

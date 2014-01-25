@@ -1009,32 +1009,31 @@ function _edoweb_generate_available_languages($input_file, $output_file) {
  * so that attached fields can be cleaned up.
  */
 function edoweb_uninstall() {
+
   // Delete bundles
-  field_attach_delete_bundle('edoweb_basic', 'monograph');
-  field_attach_delete_bundle('edoweb_basic', 'journal');
-  field_attach_delete_bundle('edoweb_basic', 'volume');
-  field_attach_delete_bundle('edoweb_basic', 'issue');
-  field_attach_delete_bundle('edoweb_basic', 'article');
-  field_attach_delete_bundle('edoweb_basic', 'file');
+  $bundles = array_keys(field_info_bundles(EDOWEB_ENTITY_TYPE));
+  foreach ($bundles as $bundle) {
+    field_attach_delete_bundle('edoweb_basic', $bundle);
+  }
 
   // Delete field instances for now.
   // Check status of http://drupal.org/node/1015846
-  $instances = _edoweb_installed_instances();
-  foreach ($instances as $instance) {
-    $instance['entity_type'] = 'edoweb_basic';
-    $bundles = $instance['bundles'];
-    unset($instance['bundles']);
-    foreach ($bundles as $bundle) {
-      $instance['bundle'] = $bundle;
-      field_delete_instance($instance);
+  foreach (_edoweb_installed_instances() as $bundle_type => $field_instances) {
+    foreach ($field_instances as $field_name => $field_instance) {
+      $field_instance['field_name'] = $field_name;
+      $field_instance['entity_type'] = 'edoweb_basic';
+      $field_instance['bundle'] = $bundle_type;
+      field_delete_instance($field_instance);
+      drupal_set_message("Deleted $field_name from $bundle_type");
     }
   }
+  field_purge_batch(100);
 
   // Revoke permissions and delete roles
   foreach (_edoweb_installed_roles() as $role_desc) {
     $role = user_role_load_by_name($role_desc['name']);
     user_role_revoke_permissions($role->rid, _edoweb_installed_permissions());
-    user_role_delete($role->rid);
+    user_role_delete($role_desc['name']);
   }
 
 }
