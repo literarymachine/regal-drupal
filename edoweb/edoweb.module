@@ -230,6 +230,13 @@ function edoweb_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  // Tunnel to API resource listing
+  $items['edoweb/config/resources'] = array(
+    'page callback' => '_edoweb_resource_list',
+    'access arguments' => array('view any edoweb_basic entity'),
+    'type' => MENU_CALLBACK
+  );
+
   // Module landing page, list entities
   $items['resource'] = array(
     'title' => t('Edoweb'),
@@ -1210,59 +1217,21 @@ function edoweb_basic_import_submit(&$form, &$form_state) {
 */
 function edoweb_bulk_import_form($form, &$form_state) {
 
-  // Drop-down list for resource type.
-  $form['edoweb_bundle_type'] = array(
-    '#type' => 'select',
-    '#title' => t('Resource Type'),
-    '#description' => t('The type of the resources to import.'),
-    '#options' => array(
-      'monograph' => t('Monograph'),
-      'journal' => t('eJournal'),
-    ),
-    '#required' => TRUE,
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/bulk_import.js'
   );
 
-  // Text field for id list
-  $form['edoweb_bundle_type_id_constraint'] = array(
-    '#type' => 'textfield',
-    '#title' => t('IDs'),
-    '#description' => t('Limit the import to the following comma-separated list of IDs'),
-  );
-
-  // Radio buttons for import mode
-  $form['edoweb_bundle_type_import_mode'] = array(
-    '#title' => t('Import mode'),
-    '#type' => 'radios',
-    '#options' => array(
-      'overwrite' => t('Overwrite'),
-      'clear' => t('Clear all'),
-    ),
-    '#default_value' => 'overwrite',
+  $form['bulk_import'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Import all entities from API',
   );
 
   // Submit button
-  $form['submit'] = array(
+  $form['bulk_import']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
   return $form;
-}
-
-/*
- * Bulk import resources of the given bundle type.
- */
-function edoweb_bulk_import_form_submit($form, &$form_state) {
-  $bundle_type = $form_state['values']['edoweb_bundle_type'];
-  $id_constraint = $form_state['values']['edoweb_bundle_type_id_constraint'];
-  $import_mode = $form_state['values']['edoweb_bundle_type_import_mode'];
-  $api = new EdowebAPIClient();
-  if ($id_constraint) {
-    foreach (explode(',', $id_constraint) as $id) {
-      $api->importEntity($id, $import_mode);
-    }
-  } else {
-    $api->import($bundle_type, $import_mode);
-  }
 }
 
 /**
@@ -1573,6 +1542,45 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   return $http_response;
+}
+
+function _edoweb_resource_list() {
+  $edoweb_api_host = variable_get('edoweb_api_host');
+  $edoweb_api_user = variable_get('edoweb_api_user');
+  $edoweb_api_pass = variable_get('edoweb_api_password');
+  $namespace = variable_get('edoweb_api_namespace');
+  $from = isset($_GET['from']) ? $_GET['from'] : 0;
+  $source = 'es';
+  $until = $from + 10;
+  // Build resource list url
+  $http_url = sprintf(
+    'http://%s:%s@%s/resource?getListingFrom=%s&from=%s&until=%s&namespace=%s',
+    $edoweb_api_user,
+    $edoweb_api_pass,
+    $edoweb_api_host,
+    $source,
+    $from,
+    $until,
+    $namespace
+  );
+
+  // Fetch resource list
+  $http_options = array(
+    'method' => 'GET',
+    'headers' => array('Accept' => 'application/json'),
+  );
+  $http_response = _edoweb_http_request($http_url, $http_options);
+  if ((200 != $http_response->code) || !isset($http_response->data)) {
+    watchdog('edoweb_storage', 'Unable to fetch resource listing from @api.',
+      array(
+        '@api' => variable_get('edoweb_api_host'),
+      )
+    );
+    drupal_json_output(array());
+    return;
+  }
+
+  drupal_json_output(json_decode($http_response->data)->list);
 }
 
 function _edoweb_autocomplete($bundle_name, $field_name) {

@@ -285,9 +285,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     // prevent needlessly writing objects back to the API
     try {
       drupal_write_record('edoweb_basic', $entity, $primary_keys);
-      drupal_set_message("Imported $remote_id.");
+      watchdog('edoweb_storage', 'Imported @id.',
+        array(
+          '@id' => $remote_id,
+        )
+      );
     } catch (PDOException $e) {
-      drupal_set_message("Failed to import $remote_id.");
+      watchdog('edoweb_storage', 'Failed to import @id.',
+        array(
+          '@id' => $remote_id,
+        )
+      );
       return FALSE;
     }
 
