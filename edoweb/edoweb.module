@@ -603,10 +603,10 @@ function edoweb_basic_raw_title($entity) {
   try {
     $title = $wrapper->$label_field->value();
   } catch (EntityMetadataWrapperException $e) {
-    $title = 'Untitled entity';
+    $title = '';
   }
 
-  return $title;
+  return $title ? $title : 'Untitled';
 
 }
 
