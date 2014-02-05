@@ -74,7 +74,7 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  // Password field for api user.
+  // Password field for api password.
   $form['edoweb_api_password'] = array(
     '#type' => 'password',
     '#default_value' => variable_get(
@@ -97,6 +97,20 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     ),
     '#title' => t('Namespace'),
     '#description' => t('The namespace of the primary resources.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for lobid api host.
+  $form['edoweb_lobid_host'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_lobid_host',
+      'api.lobid.org'
+    ),
+    '#title' => t('lobid API host'),
+    '#description' => t('The hostname or IP address of the lobid API, without leading http://'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,

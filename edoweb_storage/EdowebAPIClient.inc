@@ -400,6 +400,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   protected function _query_lobid(EntityFieldQuery $efq, $page = 0) {
+    $lobid_host = variable_get('edoweb_lobid_host');
     $term = str_replace(
       ' ', '+', $efq->metaData['term']
     );
@@ -410,14 +411,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $from = $results_per_page * $page;
     $size = $results_per_page;
     $http_url = sprintf(
-      'http://api.lobid.org/%s?%s=%s&from=%s&size=%s',
-      $endpoint, $parameter, $term, $from, $size
+      'http://%s/%s?%s=%s&from=%s&size=%s',
+      $lobid_host, $endpoint, $parameter, $term, $from, $size
     );
     $http_response = $this->_http_get(
       $http_url, 'application/json'
     );
     if (200 != $http_response->code || !isset($http_response->data)) {
-      watchdog('edoweb_storage', 'Unable to execute query on api.lobid.org');
+      watchdog('edoweb_storage', 'Unable to execute query on @api.',
+        array(
+          '@api' => $lobid_host,
+        )
+      );
       return FALSE;
     }
     $hits = json_decode($http_response->data);
@@ -429,10 +434,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     foreach ($hits as $hit) {
       // Load lobid.org json-ld context documents from cache
       $is_lobid_context = (
-        substr($hit->{'@context'}, 0, 29) == 'http://api.lobid.org/context/'
+        substr($hit->{'@context'}, 0, 16 + strlen($lobid_host))
+          == "http://$lobid_host/context/"
       );
       if ($is_lobid_context) {
-        $context_file = substr($hit->{'@context'}, 29);
+        $context_file = substr($hit->{'@context'}, 16 + strlen($lobid_host));
         $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/' .  $context_file;
       }
       // Parse results
