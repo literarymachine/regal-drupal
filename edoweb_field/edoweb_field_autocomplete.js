@@ -18,7 +18,9 @@
  */
 
 (function($) {
-
+  jQuery.fn.extend({
+    propAttr: $.fn.prop || $.fn.attr
+  });
   Drupal.behaviors.edoweb_field_autocomplete = {
     attach: function (context, settings) {
       window.location.hash = 'focus';
