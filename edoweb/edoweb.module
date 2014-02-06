@@ -980,7 +980,7 @@ function edoweb_basic_file($entity, $bundle_types = array()) {
     return array('value' => $remote_id);
   }, array_keys($files[EDOWEB_ENTITY_TYPE]));
   return _edoweb_field_embed_entities(
-    $values, $entity->identifier(), false
+    $values, $entity->identifier()
   );
 }
 

@@ -266,7 +266,7 @@ function _edoweb_field_render_embedded_entity(
     '#attributes' => array(
       'class' => array('collapsible', $collapsed),
     ),
-    '#title' => $entity->remote_id,
+    '#title' => entity_label(EDOWEB_ENTITY_TYPE, $entity) . " ({$entity->remote_id})",
     'entity' => $entity_data,
   );
 }

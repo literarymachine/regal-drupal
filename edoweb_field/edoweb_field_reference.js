@@ -21,17 +21,20 @@
 
   Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
-      $(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').bind('click', function(event) {
-        var title = event.target;
-        var link = $(title).closest('fieldset').children('div.fieldset-wrapper').children('input[type=hidden]').get(0);
+      $(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').each(function(i, element) {
+        var link = $(element).closest('fieldset').children('div.fieldset-wrapper').children('input[type=hidden]').get(0);
         if (link) {
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          $(title).after(throbber);
+          $(element).after(throbber);
           entity_render_view('edoweb_basic', link.value).onload = function () {
             if (this.status == 200) {
               var entity_view = $(this.responseText);
+              $(element).text($.trim(entity_view.find('h2').text()) + ' (' + link.value + ')');
               $(link).replaceWith(entity_view);
-              Drupal.attachBehaviors(entity_view);
+              $(element).bind('click', function(event) {
+                Drupal.attachBehaviors(entity_view);
+                $(element).unbind(event);
+              });
             }
             throbber.remove();
           };
