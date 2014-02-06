@@ -408,14 +408,19 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $parameter = $efq->metaData['parameter'];
 
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
-    $from = $results_per_page * $page;
-    $size = $results_per_page;
+    $from = array_key_exists('start', $efq->range)
+      ? $efq->range['start']
+      : $page * $results_per_page;
+    $size = array_key_exists('length', $efq->range)
+      ? $efq->range['length']
+      : $results_per_page;
+
     $http_url = sprintf(
       'http://%s/%s?%s=%s&from=%s&size=%s',
       $lobid_host, $endpoint, $parameter, $term, $from, $size
     );
     $http_response = $this->_http_get(
-      $http_url, 'application/json'
+      $http_url, 'text/plain'
     );
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to execute query on @api.',
@@ -425,66 +430,29 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    $hits = json_decode($http_response->data);
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdf_model->loadStatementsFromString(
+      $rdf_parser,
+      $http_response->data
+    );
+    $foaf_primary_topic = new LibRDF_URINode(
+      'http://xmlns.com/foaf/0.1/primaryTopic'
+    );
+    $primary_topics = $rdf_model->findStatements(
+      null, $foaf_primary_topic, null
+    );
     $results = array(
-      'hits' => count($hits),
+      'hits' => 0,
       EDOWEB_ENTITY_TYPE => array(),
     );
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    foreach ($hits as $hit) {
-      // Load lobid.org json-ld context documents from cache
-      $is_lobid_context = (
-        substr($hit->{'@context'}, 0, 16 + strlen($lobid_host))
-          == "http://$lobid_host/context/"
+    foreach ($primary_topics as $primary_topic) {
+      $remote_id = substr($primary_topic->getObject(), 1, -1);
+      $entity = entity_get_controller('edoweb_basic')->createFromRdf(
+        $remote_id, $rdf_model
       );
-      if ($is_lobid_context) {
-        $context_file = substr($hit->{'@context'}, 16 + strlen($lobid_host));
-        $hit->{'@context'} = 'file://' . dirname(__FILE__) .  '/' .  $context_file;
-      }
-      // Parse results
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      $options = array(
-        'format' => 'application/nquads',
-      );
-      $rdf_ntriples = _edoweb_escape_utf8(jsonld_to_rdf($hit, $options));
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      $rdf_model->loadStatementsFromString(
-        $rdf_parser,
-        $rdf_ntriples
-      );
-      // Identify primary resource(s)
-      if (array_key_exists('bundle', $efq->entityConditions)) {
-        $target_bundles = $efq->entityConditions['bundle']['value'];
-        if (!is_array($target_bundles)) {
-          $target_bundles = array($target_bundles);
-        }
-      } else {
-        $target_bundles = array();
-      }
-      $rdf_type_stmts = $rdf_model->findStatements(
-        null,
-        new LibRDF_URINode(
-          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-        ),
-        null
-      );
-      foreach($rdf_type_stmts as $rdf_type_stmt) {
-        $rdf_type = _edoweb_compact_uri(
-          substr($rdf_type_stmt->getObject(), 1, -1)
-        );
-        foreach (edoweb_rdf_types() as $bundle => $rdf_types) {
-          if (in_array($rdf_type, $rdf_types)
-              && in_array($bundle, $target_bundles)
-          ) {
-            // Create entity
-            $remote_id = substr($rdf_type_stmt->getSubject(), 1, -1);
-            $entity = entity_get_controller('edoweb_basic')->createFromRdf(
-              $remote_id, $rdf_model
-            );
-            $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
-          }
-        }
-      }
+      $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
+      $results['hits']++;
     }
     return $results;
   }
@@ -552,8 +520,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _efq_to_es(EntityFieldQuery $efq, $page = 0) {
     $query = array();
     $results_per_page = variable_get('edoweb_storage_results_per_page', 10);
-    $query['from'] = $results_per_page * $page;
-    $query['size'] = $results_per_page;
+    $query['from'] = array_key_exists('start', $efq->range)
+      ? $efq->range['start']
+      : $page * $results_per_page;
+    $query['size'] = array_key_exists('length', $efq->range)
+      ? $efq->range['length']
+      : $results_per_page;
 
     if (array_key_exists('term', $efq->metaData)) {
       $query['query']['bool']['must'][]['query_string']['query']
