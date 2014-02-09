@@ -29,7 +29,9 @@
           entity_render_view('edoweb_basic', link.value).onload = function () {
             if (this.status == 200) {
               var entity_view = $(this.responseText);
+              var download_link = entity_view.find('div[property="regal:hasData"]').children('a').clone();
               $(element).text($.trim(entity_view.find('h2').text()) + ' (' + link.value + ')');
+              $(element).siblings(":last").after(download_link.text('Download'));
               $(link).replaceWith(entity_view);
               $(element).bind('click', function(event) {
                 Drupal.attachBehaviors(entity_view);
