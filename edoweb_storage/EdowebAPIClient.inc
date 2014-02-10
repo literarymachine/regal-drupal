@@ -436,6 +436,21 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $rdf_parser,
       $http_response->data
     );
+
+    $ontology_file = 'file://' . __DIR__ . '/../edoweb/gnd.rdf';
+    $joint_model = new LibRDF_Model(new LibRDF_Storage());
+    $joint_model->loadStatementsFromUri(
+      new LibRDF_Parser('rdfxml'), $ontology_file
+    );
+    foreach ($rdf_model as $stmt) {
+      $joint_model->addStatement($stmt);
+    }
+    $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
+    $inferred_triples = $rdfs_reasoner->inferStatements($joint_model);
+    foreach ($inferred_triples as $stmt) {
+      $rdf_model->addStatement($stmt);
+    }
+
     $foaf_primary_topic = new LibRDF_URINode(
       'http://xmlns.com/foaf/0.1/primaryTopic'
     );

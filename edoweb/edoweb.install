@@ -498,7 +498,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('gnd:preferredNameForThePerson'),
+        'predicates' => array('gnd:preferredName'),
       ),
     ),
     'field_gnd_identifier' => array(
@@ -776,6 +776,7 @@ function _edoweb_installed_instances() {
      * Field instances in subject bundle
      */
     'subject' => array(
+      'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
       'field_skos_notation' => array(),
       'field_skos_pref_label' => array(),

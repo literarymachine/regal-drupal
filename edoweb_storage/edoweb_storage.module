@@ -710,7 +710,7 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
         $type = _edoweb_compact_uri(substr($rdf_type, 1, -1));
         foreach (edoweb_rdf_types() as $bundle => $types) {
           if (in_array($type, $types)) {
-            $bundle_type = $bundle;
+            return $bundle;
           }
         }
       }

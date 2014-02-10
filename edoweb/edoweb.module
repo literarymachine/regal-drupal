@@ -592,6 +592,7 @@ function edoweb_basic_raw_title($entity) {
       $label_field = 'field_edoweb_volume';
       break;
     case 'person':
+    case 'subject':
       $label_field = 'field_gnd_name';
       break;
     default:
@@ -1384,7 +1385,10 @@ function edoweb_rdf_types() {
       'gnd:DifferentiatedPerson',
       'gnd:UndifferentiatedPerson',
     ),
-    'subject' => array('skos:Concept', 'gnd:SubjectHeading'),
+    'subject' => array(
+      'skos:Concept',
+      'gnd:AuthorityResource'
+    ),
     'monograph' => array(
       'bibo:Book',
       'dc:BibliographicResource',
@@ -1840,5 +1844,18 @@ function edoweb_update_7105() {
   cache_clear_all('field:edoweb_basic:*', 'cache_field', TRUE);
   _update_edoweb_installed_fields();
   _update_edoweb_installed_instances();
+  _update_rdf_mapping();
+}
+
+/**
+ * Update RDF mapping for field_gnd_name
+ */
+function edoweb_update_7106() {
+  _update_edoweb_installed_fields(
+    array('field_gnd_name')
+  );
+  _update_edoweb_installed_instances(
+    array('subject' => array('field_gnd_name'))
+  );
   _update_rdf_mapping();
 }

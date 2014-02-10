@@ -69,6 +69,23 @@ class LinkedDataClient {
         array('@uri' => $resource_uri)
       );
     }
+
+    if ('dnb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $ontology_file = 'file://' . __DIR__ . '/gnd.rdf';
+      $joint_model = new LibRDF_Model(new LibRDF_Storage());
+      $joint_model->loadStatementsFromUri(
+        $rdf_parser, $ontology_file
+      );
+      foreach ($rdf_model as $stmt) {
+        $joint_model->addStatement($stmt);
+      }
+      $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
+      $inferred_triples = $rdfs_reasoner->inferStatements($joint_model);
+      foreach ($inferred_triples as $stmt) {
+        $rdf_model->addStatement($stmt);
+      }
+    }
+
     return $rdf_model;
   }
 
