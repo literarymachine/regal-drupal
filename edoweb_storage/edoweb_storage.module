@@ -130,7 +130,22 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#title' => t('Disable caching'),
   );
 
+  // Additional submit handler to reset caches
+  $form['#submit'][] = 'edoweb_storage_configuration_form_submit';
+
   return system_settings_form($form);
+}
+
+function edoweb_storage_configuration_form_submit($form, &$form_state) {
+  $api_host_changed = !(variable_get('edoweb_api_host')
+    == $form_state['values']['edoweb_api_host']);
+  $namespace_changed = !(variable_get('edoweb_api_namespace')
+    == $form_state['values']['edoweb_api_namespace']);
+  if ($api_host_changed || $namespace_changed) {
+    cache_clear_all('*', 'cache_field', TRUE);
+    db_truncate('edoweb_basic')->execute();
+    drupal_set_message('Entity caches cleared');
+  }
 }
 
 /**
