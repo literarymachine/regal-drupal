@@ -12,16 +12,11 @@ Installation on Ubuntu, your distribution may vary:
     $ sudo apt-get install php5-librdf
     $ sudo apt-get install php5-curl
 
-Clone the repository to Drupal's module directory:
+Clone the repository and submodules to Drupal's module directory:
 
     $ cd sites/all/modules
     $ git clone https://github.com/edoweb/regal-drupal.git
-
-Clone libraries:
-
-    $ cd sites/all/modules/regal-drupal/edoweb/lib
-    $ git clone https://github.com/literarymachine/LibRDF.git
-    $ git clone https://github.com/digitalbazaar/php-json-ld.git
+    $ git submodule update --init
 
 Download non Drupal-core dependency modules:
 
