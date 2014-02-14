@@ -1,0 +1,6 @@
+[submodule "edoweb/lib/LibRDF"]
+	path = edoweb/lib/LibRDF
+	url = https://github.com/literarymachine/LibRDF.git
+[submodule "edoweb/lib/php-json-ld"]
+	path = edoweb/lib/php-json-ld
+	url = https://github.com/literarymachine/php-json-ld
