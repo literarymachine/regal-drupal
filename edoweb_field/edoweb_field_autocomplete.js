@@ -32,7 +32,7 @@
           minLength: 2,
           select: function(event, ui) {
             var search_input = $('input[name="edoweb_autocomplete_widget[' + field_name + '][search]"]');
-            var search_button = $('input[name="edoweb_autocomplete_widget[' + field_name + '][submit]"]');
+            var search_button = $('input[name="edoweb_autocomplete_widget_' + field_name + '_submit"]');
             search_input.val(ui.item.label);
             search_button.trigger('click');
             return false;

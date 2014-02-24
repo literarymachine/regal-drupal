@@ -310,14 +310,11 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       ) ? $handler_settings['embedded_creation']
         : false;
 
-      // Submitted search term
-      if (array_key_exists('values', $form_state)
-          && array_key_exists('edoweb_autocomplete_widget', $form_state['values'])
-          && array_key_exists($field_name, $form_state['values']['edoweb_autocomplete_widget'])
-      ) {
-        $term = $form_state['values']['edoweb_autocomplete_widget'][$field_name]['search'];
+      // Element that triggered form submission
+      if (array_key_exists('triggering_element', $form_state)) {
+        $triggering_element = $form_state['triggering_element']['#name'];
       } else {
-        $term = '';
+        $triggering_element = FALSE;
       }
 
       // Widget Fieldset
@@ -336,9 +333,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       }
 
       $page = 0;
+      $term = '';
       // Handle button events
-      if (array_key_exists('triggering_element', $form_state)) {
-        $triggering_element = $form_state['triggering_element']['#name'];
+      if ($triggering_element) {
         $split_pos = strrpos($triggering_element, '_');
         $widget_name = substr($triggering_element, 0, $split_pos);
         $index = substr($triggering_element, $split_pos + 1);
@@ -356,31 +353,33 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
               array_unshift($items, array('value' => $added_value));
             }
           }
-          $term = '';
         }
+        // Handle paging of search results
         if ($widget_name == "edoweb_autocomplete_widget_search_{$field_name}_page") {
           $page = (int) $index;
+          $term = $form_state['values']['edoweb_autocomplete_widget'][$field_name]['search'];
         }
-      }
-
-      // Handle remove event - because of the way drupal works, the
-      // value needs to be empty but still present in the array, i.e.
-      // unset($items[$i]) will not work! This is why we need to track
-      // the actual count of set values separately in order to properly
-      // handle cardinality limits.
-      $value_count = 0;
-      foreach (array_keys($items) as $i) {
-        if (array_key_exists('triggering_element', $form_state)) {
-          if ($form_state['triggering_element']['#name']
-              == "edoweb_autocomplete_widget_remove_{$field_name}_{$i}"
+        // Handle submission of search term
+        if ($widget_name == "edoweb_autocomplete_widget_{$field_name}") {
+          $term = $form_state['values']['edoweb_autocomplete_widget'][$field_name]['search'];
+        }
+        // Handle remove event - because of the way drupal works, the
+        // value needs to be empty but still present in the array, i.e.
+        // unset($items[$i]) will not work! This is why we need to track
+        // the actual count of set values separately in order to properly
+        // handle cardinality limits.
+        $value_count = 0;
+        foreach (array_keys($items) as $i) {
+          if ($widget_name == "edoweb_autocomplete_widget_remove_{$field_name}"
+              && $i == $index
           ) {
             $form_state['values'][$field_name][LANGUAGE_NONE][$i]['value'] = '';
             $items[$i]['value'] = '';
             $element['#prefix'] = '<a name="focus"></a>';
           }
-        }
-        if ($items[$i]['value'] != '') {
-          $value_count++;
+          if ($items[$i]['value'] != '') {
+            $value_count++;
+          }
         }
       }
 
@@ -412,8 +411,8 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       // Submit button for search
       $element['edoweb_autocomplete_widget']['submit'] = array(
         '#type' => 'submit',
-        '#value' => t('Suchen'),
-        '#name' => "edoweb_autocomplete_widget[$field_name][submit]",
+        '#default_value' => t('Suchen'),
+        '#name' => "edoweb_autocomplete_widget_{$field_name}_submit",
         '#parents' => array(
           'edoweb_autocomplete_widget', $field_name, 'submit'
         ),
@@ -462,7 +461,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           $element['edoweb_autocomplete_widget']['option'][$i]['add'] = array(
             '#type' => 'submit',
             '#name' => "edoweb_autocomplete_widget_add_{$field_name}_{$i}",
-            '#value' => t('Hinzufügen'),
+            '#default_value' => t('Hinzufügen'),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
             '#parents' => array(
               'edoweb_autocomplete_widget', $field_name, 'option', $i, 'add'
@@ -483,7 +482,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           // Submit button for previous page
           $element['edoweb_autocomplete_widget']['prev_page'] = array(
             '#type' => 'submit',
-            '#value' => t('<'),
+            '#default_value' => t('<'),
             '#name' => "edoweb_autocomplete_widget_search_{$field_name}_page_{$prev_page}",
             '#parents' => array(
               'edoweb_autocomplete_widget', $field_name, 'prev_page'
@@ -495,7 +494,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           // Submit button for next page
           $element['edoweb_autocomplete_widget']['next_page'] = array(
             '#type' => 'submit',
-            '#value' => t('>'),
+            '#default_value' => t('>'),
             '#name' => "edoweb_autocomplete_widget_search_{$field_name}_page_{$next_page}",
             '#parents' => array(
               'edoweb_autocomplete_widget', $field_name, 'next_page'
@@ -528,7 +527,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           $element['data'][$i]['remove'] = array(
             '#type' => 'submit',
             '#name' => "edoweb_autocomplete_widget_remove_{$field_name}_{$i}",
-            '#value' => t('Entfernen'),
+            '#default_value' => t('Entfernen'),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
           );
         }
