@@ -419,6 +419,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'http://%s/%s?%s=%s&from=%s&size=%s',
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
+
     $http_response = $this->_http_get(
       $http_url, 'text/plain'
     );

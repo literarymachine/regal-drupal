@@ -164,7 +164,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:isPartOf'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -204,7 +204,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dce:creator'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -227,7 +227,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dce:contributor'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -393,7 +393,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'read_only' => TRUE,
         'predicates' => array('dc:subject'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -417,7 +417,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:hasFormat'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(

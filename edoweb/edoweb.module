@@ -1859,3 +1859,17 @@ function edoweb_update_7106() {
   );
   _update_rdf_mapping();
 }
+
+/**
+ * Update field definitions
+ */
+function edoweb_update_7107() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_subject',
+    'field_edoweb_parallel',
+  );
+  _update_edoweb_installed_fields($updated_fields);
+}
