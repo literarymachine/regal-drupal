@@ -417,6 +417,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           'edoweb_autocomplete_widget', $field_name, 'submit'
         ),
         '#submit' => array('edoweb_autocomplete_widget_update_value'),
+        '#validate' => array('edoweb_autocomplete_widget_validate_value'),
       );
 
       // Search result listing
@@ -463,6 +464,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
             '#name' => "edoweb_autocomplete_widget_add_{$field_name}_{$i}",
             '#default_value' => t('Hinzufügen'),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
+            '#validate' => array('edoweb_autocomplete_widget_validate_value'),
             '#parents' => array(
               'edoweb_autocomplete_widget', $field_name, 'option', $i, 'add'
             ),
@@ -488,6 +490,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
               'edoweb_autocomplete_widget', $field_name, 'prev_page'
             ),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
+            '#validate' => array('edoweb_autocomplete_widget_validate_value'),
           );
         }
         if ($next_page) {
@@ -500,6 +503,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
               'edoweb_autocomplete_widget', $field_name, 'next_page'
             ),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
+            '#validate' => array('edoweb_autocomplete_widget_validate_value'),
           );
         }
         $element['#prefix'] = '<a name="focus"></a>';
@@ -529,6 +533,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
             '#name' => "edoweb_autocomplete_widget_remove_{$field_name}_{$i}",
             '#default_value' => t('Entfernen'),
             '#submit' => array('edoweb_autocomplete_widget_update_value'),
+            '#validate' => array('edoweb_autocomplete_widget_validate_value'),
           );
         }
       }
@@ -558,6 +563,11 @@ function edoweb_autocomplete_widget_update_value($form, &$form_state) {
   unset($form_state['edoweb_autocomplete_widget']);
   unset($form_state['complete form']['edoweb_autocomplete_widget']);
   $form_state['rebuild'] = TRUE;
+}
+
+function edoweb_autocomplete_widget_validate_value($form, &$form_state) {
+  form_clear_error();
+  drupal_get_messages('error');
 }
 
 /**
