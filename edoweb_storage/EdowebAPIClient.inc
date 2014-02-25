@@ -172,8 +172,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
       $file_path = drupal_realpath($file_url);
       if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
-        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
-          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
+        unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
         cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
       } else {

@@ -206,7 +206,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
       $edoweb_api_host = variable_get('edoweb_api_host');
       foreach ($items as $delta => $item) {
         $elements[$delta] = array(
-          '#markup' => l($item['value'], "http://$edoweb_api_host/resource/{$item['value']}"),
+          '#markup' => l($item['value'], "resource/{$item['value']}"),
         );
       }
       break;
