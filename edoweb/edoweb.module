@@ -150,6 +150,15 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'corporate_body' => array(
+        'label' => t('Körperschaft'),
+        // 'admin' key is used by the Field UI to provide field and
+        // display UI pages.
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
     ),
     // View modes allow entities to be displayed differently based on context.
     'view modes' => array(
@@ -424,6 +433,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     // FIXME: static unsetting of non-edoweb bundles
     unset($bundle_options['person']);
     unset($bundle_options['subject']);
+    unset($bundle_options['corporate_body']);
     $form['query'][$search_count]['bundles'] = array(
       '#type' => 'checkboxes',
       '#options' => $bundle_options,
@@ -593,6 +603,7 @@ function edoweb_basic_raw_title($entity) {
       break;
     case 'person':
     case 'subject':
+    case 'corporate_body':
       $label_field = 'field_gnd_name';
       break;
     default:
@@ -1398,8 +1409,10 @@ function edoweb_rdf_mapping() {
 function edoweb_rdf_types() {
   return array(
     'person' => array(
-      'gnd:DifferentiatedPerson',
-      'gnd:UndifferentiatedPerson',
+      'gnd:Person',
+    ),
+    'corporate_body' => array(
+      'gnd:CorporateBody',
     ),
     'subject' => array(
       'skos:Concept',
@@ -1447,6 +1460,8 @@ function edoweb_rdf_namespaces() {
     'skos' => 'http://www.w3.org/2004/02/skos/core#',
     'ddc' => 'http://dewey.info/class/',
     'regal' => 'http://hbz-nrw.de/regal#',
+    'rdvocab' => 'http://rdvocab.info/Elements/',
+    'file' => 'http://downlode.org/Code/RDF/File_Properties/schema#',
   );
 }
 
@@ -1888,4 +1903,27 @@ function edoweb_update_7107() {
     'field_edoweb_parallel',
   );
   _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Update RDF mappings, add fields for alternative and short title
+ */
+function edoweb_update_7108() {
+  _update_edoweb_installed_fields();
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_title_alternative',
+      'field_edoweb_title_short',
+    ),
+    'journal' => array(
+      'field_edoweb_title_alternative',
+      'field_edoweb_title_short',
+    ),
+    'corporate_body' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
