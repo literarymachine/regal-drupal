@@ -468,7 +468,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
     // Search resources
     $http_url = sprintf(
-      'http://%s:%s@%s:9200/%s/_search',
+      'http://%s:%s@%s/search/%s/_search',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
