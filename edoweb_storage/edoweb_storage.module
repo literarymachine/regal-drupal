@@ -684,6 +684,9 @@ function _edoweb_expand_curie($curie) {
   }
   $rdf_namespaces = rdf_get_namespaces();
   list($curie_prefix, $curie_local) = explode(':', $curie);
+  if ($curie_prefix == 'ddc') {
+    $curie_local .= '/';
+  }
   return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
 
