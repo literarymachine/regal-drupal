@@ -277,7 +277,8 @@ function edoweb_menu() {
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edoweb_basic_form', 1),
-    'access arguments' => array('edit any edoweb_basic entity'),
+    'access callback' => '_edoweb_is_editable_entity',
+    'access arguments' => array(1, 'edit any edoweb_basic entity'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -1663,6 +1664,20 @@ function _edoweb_field_access($entity, $fields = array(), $permissions = null) {
     return $entity_has_field && user_access($permissions);
   } else {
     return $entity_has_field;
+  }
+}
+
+function _edoweb_is_editable_entity($entity, $permissions = null) {
+  $namespace = variable_get('edoweb_api_namespace');
+  if ("$namespace:" === substr($entity->identifier(), 0, strlen($namespace) + 1)) {
+    $entity_is_editable = TRUE;
+  } else {
+    $entity_is_editable = FALSE;
+  }
+  if (isset($permission)) {
+    return $entity_is_editable && user_access($permissions);
+  } else {
+    return $entity_is_editable;
   }
 }
 
