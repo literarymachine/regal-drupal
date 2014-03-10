@@ -159,12 +159,12 @@ function _edoweb_installed_fields() {
       ),
     ),
     'field_edoweb_parent' => array(
-      'cardinality' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:isPartOf'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -187,7 +187,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('isbd:P1004'),
+        'predicates' => array('dc:title'),
       ),
     ),
     'field_edoweb_title_other' => array(
@@ -195,7 +195,23 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('isbd:P1006'),
+        'predicates' => array('rdvocab:otherTitleInformation'),
+      ),
+    ),
+    'field_edoweb_title_alternative' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('dc:alternative'),
+      ),
+    ),
+    'field_edoweb_title_short' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('bibo:shortTitle'),
       ),
     ),
     'field_edoweb_creator' => array(
@@ -203,8 +219,8 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('dce:creator'),
-        'parameter' => 'name',
+        'predicates' => array('dc:creator'),
+        'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -226,8 +242,8 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('dce:contributor'),
-        'parameter' => 'name',
+        'predicates' => array('dc:contributor'),
+        'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -265,7 +281,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('isbd:P1016'),
+        'predicates' => array('rdvocab:placeOfPublication'),
       ),
     ),
     'field_edoweb_publisher' => array(
@@ -273,7 +289,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('isbd:P1017'),
+        'predicates' => array('dce:publisher'),
       ),
     ),
     'field_edoweb_issued' => array(
@@ -333,7 +349,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('bibo:isbn10'),
+        'predicates' => array('bibo:isbn'),
       ),
     ),
     'field_edoweb_isbn13' => array(
@@ -375,7 +391,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('dc:extent'),
+        'predicates' => array('isbd:P1053'),
       ),
     ),
     'field_edoweb_description' => array(
@@ -393,7 +409,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'read_only' => TRUE,
         'predicates' => array('dc:subject'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -417,7 +433,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:hasFormat'),
-        'parameter' => 'name',
+        'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -457,6 +473,7 @@ function _edoweb_installed_fields() {
       'type'        => 'number_integer',
       'settings'    => array(
         'metadata_type' => 'technical',
+        'predicates' => array('file:size'),
         'read_only' => TRUE,
       ),
     ),
@@ -559,6 +576,8 @@ function _edoweb_installed_instances() {
       'field_edoweb_volume' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
+      'field_edoweb_title_alternative' => array(),
+      'field_edoweb_title_short' => array(),
       'field_edoweb_creator' => array(),
       'field_edoweb_contributor' => array(),
       'field_edoweb_editor' => array(),
@@ -598,6 +617,8 @@ function _edoweb_installed_instances() {
       'field_edoweb_parent' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
+      'field_edoweb_title_alternative' => array(),
+      'field_edoweb_title_short' => array(),
       'field_edoweb_creator' => array(),
       'field_edoweb_contributor' => array(),
       'field_edoweb_editor' => array(),
@@ -781,6 +802,15 @@ function _edoweb_installed_instances() {
       'field_skos_notation' => array(),
       'field_skos_pref_label' => array(),
     ),
+
+    /*
+     * Field instances in corporate_body bundle
+     */
+    'corporate_body' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
   );
 }
 
@@ -805,6 +835,12 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_title_other' => array(
       'label' => 'Untertitel',
+    ),
+    'field_edoweb_title_alternative' => array(
+      'label' => 'Alternativer Titel',
+    ),
+    'field_edoweb_title_short' => array(
+      'label' => 'Kurztitel',
     ),
     'field_edoweb_creator' => array(
       'label' => 'Autor oder Körperschaft',

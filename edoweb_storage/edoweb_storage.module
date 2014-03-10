@@ -684,6 +684,9 @@ function _edoweb_expand_curie($curie) {
   }
   $rdf_namespaces = rdf_get_namespaces();
   list($curie_prefix, $curie_local) = explode(':', $curie);
+  if ($curie_prefix == 'ddc') {
+    $curie_local .= '/';
+  }
   return $rdf_namespaces[$curie_prefix] . $curie_local;
 }
 
@@ -692,6 +695,10 @@ function _edoweb_compact_uri($uri) {
   $split = strrpos($uri, '#');
   if (!$split) {
     $split = strrpos($uri, '/');
+  }
+  // Trailing slash
+  if ($split == strlen($uri) - 1) {
+    $split = strrpos($uri, '/', $split - strlen($uri) - 1);
   }
   $curie_prefix = array_search(
     substr($uri, 0, $split + 1), $rdf_namespaces

@@ -172,8 +172,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
       $file_path = drupal_realpath($file_url);
       if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
-        $entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'] =
-          "http://{$this->__edoweb_api_host}/resource/{$entity->remote_id}/data";
+        unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
         cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
       } else {
@@ -417,8 +416,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $http_url = sprintf(
       'http://%s/%s?%s=%s&from=%s&size=%s',
-      $lobid_host, $endpoint, $parameter, $term, $from, $size
+      $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
+
     $http_response = $this->_http_get(
       $http_url, 'text/plain'
     );
@@ -468,7 +468,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
     // Search resources
     $http_url = sprintf(
-      'http://%s:%s@%s:9200/%s/_search',
+      'http://%s:%s@%s/search/%s/_search',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
