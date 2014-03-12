@@ -1674,7 +1674,7 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
   } else {
     $entity_is_editable = FALSE;
   }
-  if (isset($permission)) {
+  if (isset($permissions)) {
     return $entity_is_editable && user_access($permissions);
   } else {
     return $entity_is_editable;
