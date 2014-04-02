@@ -1447,6 +1447,7 @@ function edoweb_rdf_namespaces() {
   $edoweb_api_namespace = variable_get('edoweb_api_namespace');
   return array(
     $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
+    'local' => "http://$edoweb_api_host/resource/local:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',

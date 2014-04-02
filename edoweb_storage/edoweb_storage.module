@@ -677,7 +677,6 @@ function _edoweb_escape_utf8($string) {
 
 function _edoweb_expand_curie($curie) {
   if ('http://' == substr($curie, 0, 7)
-      || 'local:' == substr($curie, 0, 6)
       || '_:' == substr($curie, 0, 2)
   ) {
     return $curie;
