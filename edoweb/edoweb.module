@@ -377,9 +377,6 @@ function edoweb_info_page() {
   $content['resource_list'] = edoweb_basic_search_entities(
     $query, TRUE
   );
-  unset($content['resource_list']['form_build_id']);
-  unset($content['resource_list']['form_id']);
-  unset($content['resource_list']['form_token']);
 
   return $content;
 }
@@ -473,6 +470,9 @@ function edoweb_basic_search_entities(
   $content['search'] = drupal_get_form(
     'edoweb_basic_search_entities_form', $advanced, $search_count, $query
   );
+  unset($content['search']['form_build_id']);
+  unset($content['search']['form_id']);
+  unset($content['search']['form_token']);
 
   if (@$term = $query['term']) {
     $efq->addMetaData('term', $term);
@@ -844,9 +844,7 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
     $content['parent']['parent_query'] = edoweb_basic_search_entities(
       $parent_query, FALSE, $operations
     );
-    unset($content['parent']['parent_query']['form_build_id']);
-    unset($content['parent']['parent_query']['form_id']);
-    unset($content['parent']['parent_query']['form_token']);
+
   }
 
 
@@ -887,9 +885,6 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
   $content['child']['child_list'] = edoweb_basic_search_entities(
     $child_query
   );
-  unset($content['child']['child_list']['form_build_id']);
-  unset($content['child']['child_list']['form_id']);
-  unset($content['child']['child_list']['form_token']);
 
   _edoweb_build_breadcrumb($entity);
   return $content;
