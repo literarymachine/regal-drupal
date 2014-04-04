@@ -440,7 +440,7 @@ function _edoweb_storage_entity_serialize_rdf(
             }
           }
         } else {
-          $rdf_object = new LibRDF_URINode($item);
+          $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
           if ($embedded_storage) {
             $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
               edoweb_basic_load($item), false, $metadata_types

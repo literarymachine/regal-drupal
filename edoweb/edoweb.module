@@ -379,6 +379,7 @@ function edoweb_info_page() {
   );
 
   return $content;
+
 }
 
 /**
@@ -681,6 +682,31 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   }
 
   // OK, Field API done, now we can set up some of our own data.
+
+  // Find fields linking to this entity
+  $fields_info = field_info_fields();
+  foreach ($fields_info as $field_name => $field_info) {
+    if (isset($field_info['settings']['inverse'])
+        && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
+      $inverse_query = new EntityFieldQuery();
+      $inverse_query->addTag('elasticsearch');
+      $inverse_query->entityCondition(
+        'entity_type', 'edoweb_basic'
+      );
+      $inverse_query->fieldCondition(
+        $field_name, 'value', $entity->identifier()
+      );
+      $entity->content[$field_name] = edoweb_basic_search_entities(
+        $inverse_query
+      );
+      $entity->content[$field_name] += array(
+        '#weight' => 900,
+        '#type' => 'fieldset',
+        '#title' => $field_info['settings']['inverse']['label'],
+      );
+    }
+  }
+
   $entity->content['_created'] = array(
     '#type' => 'item',
     '#markup' => '<small>Letzte Änderung: ' . format_date($entity->created, 'custom', 'd.m.Y - H:i:s') . '</small>',
@@ -1411,6 +1437,7 @@ function edoweb_rdf_types() {
     ),
     'corporate_body' => array(
       'gnd:CorporateBody',
+      'gnd:PlaceOrGeographicName',
     ),
     'subject' => array(
       'skos:Concept',
@@ -1939,4 +1966,16 @@ function edoweb_update_7108() {
   );
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
+}
+
+/**
+ * Configure inverse fields
+ */
+function edoweb_update_7109() {
+  $updated_fields = array(
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_subject',
+  );
+  _update_edoweb_installed_fields($updated_fields);
 }

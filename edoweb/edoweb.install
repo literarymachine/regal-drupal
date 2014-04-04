@@ -223,6 +223,10 @@ function _edoweb_installed_fields() {
         'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
+        'inverse' => array(
+          'label' => t('Creator of'),
+          'bundles' => array('person', 'corporate_body'),
+        ),
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
@@ -246,6 +250,10 @@ function _edoweb_installed_fields() {
         'parameter' => 'q',
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
+        'inverse' => array(
+          'label' => t('Contributed to'),
+          'bundles' => array('person', 'corporate_body'),
+        ),
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
@@ -412,6 +420,10 @@ function _edoweb_installed_fields() {
         'parameter' => 'q',
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
+        'inverse' => array(
+          'label' => t('Subject of'),
+          'bundles' => array('person', 'corporate_body', 'subject'),
+        ),
         'handler_settings' => array(
           'target_bundles' => array(
             'subject' => 'subject'
