@@ -42,22 +42,15 @@ class LinkedDataClient {
    * Load the RDF for a linked data resource
    */
   public function getRDF($resource_uri) {
-    if ('local:' == substr($resource_uri, 0, 6)) {
-      // Local entities are read from the file system
-      $file_name = substr($resource_uri, 6);
-      $file_path = drupal_realpath(file_default_scheme() . '://');
-      $rdf_data = file_get_contents("$file_path/$file_name.rdf");
+    $http_options = array(
+      'method' => 'GET',
+      'headers' => array('Accept' => 'application/rdf+xml'),
+    );
+    $http_response = _edoweb_http_request($resource_uri, $http_options);
+    if ((200 == $http_response->code) && isset($http_response->data)) {
+      $rdf_data = $http_response->data;
     } else {
-      $http_options = array(
-        'method' => 'GET',
-        'headers' => array('Accept' => 'application/rdf+xml'),
-      );
-      $http_response = _edoweb_http_request($resource_uri, $http_options);
-      if ((200 == $http_response->code) && isset($http_response->data)) {
-        $rdf_data = $http_response->data;
-      } else {
-        $rdf_data = '';
-      }
+      $rdf_data = '';
     }
 
     $rdf_parser = new LibRDF_Parser('rdfxml');
