@@ -246,7 +246,29 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK
   );
 
-  // Module landing page, list entities
+  // Add new resources
+  $items["resource/add/monograph"] = array(
+    'title' => "Add new Monograph",
+    'page callback' => 'edoweb_basic_add',
+    'page arguments' => array('monograph'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  $items["resource/import/monograph"] = array(
+    'title' => "Import Monograph",
+    'page callback' => 'edoweb_basic_import',
+    'page arguments' => array('monograph'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  $items["resource/import/journal"] = array(
+    'title' => "Import Journal",
+    'page callback' => 'edoweb_basic_import',
+    'page arguments' => array('journal'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  // Resource landing page, list entities
   $items['resource'] = array(
     'title' => t('Edoweb'),
     'page callback' => 'edoweb_info_page',
@@ -322,25 +344,6 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // Add entities.
-  $items['resource/add/%'] = array(
-    'title callback' => 'edoweb_basic_bundle_name',
-    'title arguments' => array(2),
-    'page callback' => 'edoweb_basic_add',
-    'page arguments' => array(2),
-    'access arguments' => array('create edoweb_basic entities'),
-    'type' => MENU_CALLBACK,
-  );
-
-  // Import entities.
-  $items['resource/import/%'] = array(
-    'title' => 'Import an Edoweb Basic Entity',
-    'page callback' => 'edoweb_basic_import',
-    'page arguments' => array(2),
-    'access arguments' => array('create edoweb_basic entities'),
-    'type' => MENU_CALLBACK,
-  );
-
   // GND Autocompletion
   $items['edoweb/autocomplete'] = array(
     'page callback' => '_edoweb_autocomplete',
@@ -354,22 +357,6 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-
-  if (user_access('create edoweb_basic entities')) {
-    $content['add monograph'] = array(
-      '#type' => 'item',
-      '#markup' => t('!add or !import a monograph', array(
-        '!add' => l(t('Add'), 'resource/add/monograph'),
-        '!import' => l(t('import'), 'resource/import/monograph'),
-      )),
-    );
-    $content['add journal'] = array(
-      '#type' => 'item',
-      '#markup' => t('!import a journal', array(
-        '!import' => l(t('Import'), 'resource/import/journal'),
-      )),
-    );
-  }
 
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
