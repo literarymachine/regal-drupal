@@ -440,7 +440,13 @@ function _edoweb_storage_entity_serialize_rdf(
             }
           }
         } else {
-          $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+          $namespace = variable_get('edoweb_api_namespace');
+          if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
+                || 'local:' == substr($item, 0, 6)) {
+            $rdf_object = new LibRDF_URINode($item);
+          } else {
+            $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+          }
           if ($embedded_storage) {
             $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
               edoweb_basic_load($item), false, $metadata_types
