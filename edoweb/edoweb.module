@@ -254,6 +254,15 @@ function edoweb_menu() {
     'access arguments' => array('create edoweb_basic entities'),
   );
 
+  $items['resource/add/%'] = array(
+    'title callback' => 'edoweb_basic_bundle_name',
+    'title arguments' => array(2),
+    'page callback' => 'edoweb_basic_add',
+    'page arguments' => array(2),
+    'access arguments' => array('create edoweb_basic entities'),
+    'type' => MENU_CALLBACK,
+  );
+
   $items["resource/import/monograph"] = array(
     'title' => "Import Monograph",
     'page callback' => 'edoweb_basic_import',
