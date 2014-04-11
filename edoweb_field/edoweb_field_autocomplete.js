@@ -39,6 +39,38 @@
           }
         });
       });
+
+      // Group lookup fieldsets by group name
+      var field_groups = {};
+      $('fieldset[data-field-group]').each(function() {
+        var field_group = $(this).attr('data-field-group');
+        var source_widget = $(this).closest('.field-widget-edoweb-autocomplete-widget');
+        if (field_groups[field_group]) {
+          field_groups[field_group].push(source_widget);
+        } else {
+          field_groups[field_group] = [source_widget];
+        }
+      });
+
+      $.each(field_groups, function (field_group, source_widgets) {
+        var selected = 0;
+        var tabbed_area = $('<div id="tabs-' + field_group + '"><ul /></div>');
+        tabbed_area.addClass('field-widget-tabs');
+        $.each(source_widgets, function(i, source_widget) {
+          var tab_content = $('<div id="tabs-' + field_group + '-' + i + '" />');
+          var focus_link = source_widget.find('a[name="focus"]').first();
+          if (focus_link.length > 0) {
+            tab_content.append(focus_link);
+            selected = i;
+          }
+          tab_content.append(source_widget.find('.fieldset-wrapper').first());
+          tabbed_area.append(tab_content);
+          tabbed_area.children('ul').append($('<li><a href="#tabs-' + field_group + '-' + i + '">' + source_widget.find('legend').first().text() + '</a></li>'));
+        });
+        source_widgets[0].replaceWith(tabbed_area);
+        $('#tabs-' + field_group).tabs({ selected: selected });
+      });
+      $('.field-widget-edoweb-autocomplete-widget').remove();
     }
   };
 

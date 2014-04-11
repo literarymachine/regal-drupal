@@ -288,6 +288,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 
       // Add autocomplete JS
       drupal_add_library('system', 'ui.autocomplete');
+      drupal_add_library('system', 'ui.tabs');
       drupal_add_js(
         drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js'
       );
@@ -299,6 +300,11 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       $field_info = field_info_field($field['field_name']);
       $field_name = $field_info['field_name'];
       $field_cardinality = $field_info['cardinality'];
+
+      $field_group = array_key_exists(
+        'field_group', $field_info['settings']
+      ) ? $field_info['settings']['field_group']
+        : false;
 
       $handler_settings = array_key_exists(
         'handler_settings', $field_info['settings']
@@ -391,6 +397,12 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           'edoweb_autocomplete_widget', $field_name
         ),
       );
+
+      if ($field_group) {
+        $element['edoweb_autocomplete_widget']['#attributes'] = array(
+          'data-field-group' => array($field_group),
+        );
+      }
 
       // Textfield for search input
       $element['edoweb_autocomplete_widget']['search'] = array(

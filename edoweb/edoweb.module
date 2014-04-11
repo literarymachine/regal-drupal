@@ -1966,3 +1966,17 @@ function edoweb_update_7109() {
   );
   _update_edoweb_installed_fields($updated_fields);
 }
+
+/**
+ * Configure field groups
+ */
+function edoweb_update_7110() {
+  $updated_fields = array(
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_subject',
+    'field_edoweb_parallel',
+    'field_edoweb_parent',
+  );
+  _update_edoweb_installed_fields($updated_fields);
+}

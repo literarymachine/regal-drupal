@@ -167,6 +167,7 @@ function _edoweb_installed_fields() {
         'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
+        'field_group' => 'resources',
         'handler_settings' => array(
           'target_bundles' => array(
             'monograph' => 'monograph'
@@ -227,6 +228,7 @@ function _edoweb_installed_fields() {
           'label' => t('Creator of'),
           'bundles' => array('person', 'corporate_body'),
         ),
+        'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
@@ -254,6 +256,7 @@ function _edoweb_installed_fields() {
           'label' => t('Contributed to'),
           'bundles' => array('person', 'corporate_body'),
         ),
+        'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
             'person' => 'person'
@@ -424,6 +427,7 @@ function _edoweb_installed_fields() {
           'label' => t('Subject of'),
           'bundles' => array('person', 'corporate_body', 'subject'),
         ),
+        'field_group' => 'subjects',
         'handler_settings' => array(
           'target_bundles' => array(
             'subject' => 'subject'
@@ -448,6 +452,7 @@ function _edoweb_installed_fields() {
         'parameter' => 'q',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
+        'field_group' => 'resources',
         'handler_settings' => array(
           'target_bundles' => array(
             'monograph' => 'monograph'
