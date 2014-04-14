@@ -743,3 +743,51 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
   }
   return $bundle_type;
 }
+
+function _field_name_to_jsonld_key($field_name) {
+  $field_info = field_info_field($field_name);
+  //TODO: Use Drupal's built in RDF mechanism
+  $curie = $field_info['settings']['predicates'][0];
+  list($prefix, $local) = explode(':', $curie);
+  $rdf_namespaces = rdf_get_namespaces();
+  $field_property_uri = $rdf_namespaces[$prefix] . $local;
+  $context_url = sprintf(
+    'http://%s/%s-resources.json',
+    variable_get('edoweb_api_host'),
+    variable_get('edoweb_api_namespace')
+  );
+  $context = json_decode(file_get_contents($context_url))->{'@context'};
+  foreach ($context as $key => $property) {
+    if (is_object($property)) {
+      $property = $property->{'@id'};
+    }
+    if ($property == $field_property_uri) {
+      return $key;
+    }
+  }
+  return $field_name;
+}
+
+function _jsonld_key_to_field_name($jsonld_key) {
+  $context_url = sprintf(
+    'http://%s/%s-resources.json',
+    variable_get('edoweb_api_host'),
+    variable_get('edoweb_api_namespace')
+  );
+  $context = json_decode(file_get_contents($context_url))->{'@context'};
+  if (is_object($context->$jsonld_key)) {
+    $property_uri = $context->$jsonld_key->{'@id'};
+  } else {
+    $property_uri = $context->$jsonld_key;
+  }
+  $rdf_namespaces = rdf_get_namespaces();
+  foreach (field_info_fields() as $field_name => $field_info) {
+    if (!isset($field_info['settings']['predicates'])) continue;
+    $curie = $field_info['settings']['predicates'][0];
+    list($prefix, $local) = explode(':', $curie);
+    $rdf_namespaces = rdf_get_namespaces();
+    $field_property_uri = $rdf_namespaces[$prefix] . $local;
+    if ($field_property_uri == $property_uri) return $field_name;
+  }
+  return $jsonld_key;
+}

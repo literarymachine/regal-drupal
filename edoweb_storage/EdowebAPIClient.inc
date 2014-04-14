@@ -468,6 +468,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_response = $this->_http_post(
       $http_url, $query, 'application/json'
     );
+
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to execute query on @api.',
         array(
@@ -476,9 +477,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    $hits = json_decode($http_response->data)->hits;
+
+    $json_response = json_decode($http_response->data);
+    $hits = $json_response->hits;
+    $facets = $json_response->facets;
+
     $results = array(
       'hits' => $hits->total,
+      'facets' => $facets,
       EDOWEB_ENTITY_TYPE => array(),
     );
     $rdf_parser = new LibRDF_Parser('ntriples');
@@ -533,7 +539,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       : $results_per_page;
 
     if (array_key_exists('term', $efq->metaData)) {
-      $query['query']['bool']['must'][]['query_string']['query']
+      $query['query']['filtered']['query']['query_string']['query']
         = $efq->metaData['term'];
     }
 
@@ -542,7 +548,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"]
+      $query['query']['filtered']['filter']['and'][]['term']["@graph.contentType"]
         = implode(' OR ', $target_bundles);
     }
 
@@ -554,24 +560,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           if (!is_array($uids)) {
             $uids = array($uids);
           }
-          $query['query']['bool']['must'][]['field']
+          $query['query']['filtered']['filter']['and'][]['term']
             ["@graph.http://purl.org/dc/elements/1.1/creator.@value"]
               = implode(' OR ', $uids);
           break;
       }
     }
 
-    $rdf_namespaces = rdf_get_namespaces();
     foreach($efq->fieldConditions as $field_condition) {
       $field_name = $field_condition['field']['field_name'];
-      $field_info = field_info_field($field_name);
-      //TODO: Use Drupal's built in RDF mechanism
-      $curie = $field_info['settings']['predicates'][0];
-      list($prefix, $local) = explode(':', $curie);
-      $field_property = $rdf_namespaces[$prefix] . $local;
-      $value_type = $field_info['type'] == 'edoweb_ld_reference' ? 'id' : 'value';
+      $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
-      $query['query']['bool']['must'][]['field']["@graph.$field_property.@$value_type"] = "\"$field_value\"";
+      $query['query']['filtered']['filter']['and'][]['term']["@graph.$json_ld_property"] = "$field_value";
     }
 
     if (!isset($query['query'])) {
@@ -580,38 +580,37 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $query['sort'] = array();
     foreach($efq->order as $sort) {
-      $field_property = null;
-      $value_type = null;
       switch ($sort['type']) {
         case 'property':
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
-            $field_property = _edoweb_expand_curie('dc:modified');
-            $value_type = 'value';
+            $jsonld_property = 'modified.@value';
           }
           break;
         case 'field':
-          // FIXME: retrieve property from actual mapping
-          // (problem is, we don't have a specific bundle type here)
           $field_name = $sort['specifier']['field']['field_name'];
-          $field_info = field_info_field($field_name);
-          $field_property = _edoweb_expand_curie(
-            $field_info['settings']['predicates'][0]
-          );
-          $value_type = 'value';
+          $jsonld_property = _field_name_to_jsonld_key($field_name);
           break;
         default:
           break;
       }
       $order = $sort['direction'];
-      if ($field_property && $value_type) {
-        $query['sort'][]["@graph.$field_property.@$value_type"] = array(
+      if ($jsonld_property) {
+        $query['sort'][]["@graph.$jsonld_property"] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,
         );
       }
     }
 
+    $query['facets']['creator']['terms']['field']
+      = '@graph.creator';
+    $query['facets']['contentType']['terms']['field']
+      = '@graph.contentType';
+    $query['facets']['subject']['terms']['field']
+      = '@graph.subject';
+    $query['facets']['issued']['terms']['field']
+      = '@graph.issued';
     return json_encode($query);
   }
 

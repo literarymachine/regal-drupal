@@ -184,8 +184,8 @@ function edoweb_entity_info() {
  * the path: resource/%edoweb_basic in
  * hook_menu() tells Drupal to call edoweb_basic_load().
  *
- * @param $local_id
- *   Integer specifying the basic entity id.
+ * @param $remote_id
+ *   Integer specifying the basic entity uri.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  * @return
@@ -411,6 +411,17 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     '#type' => 'form',
   );
 
+  $url_params = explode('&', $_SERVER['QUERY_STRING']);
+  foreach ($url_params as $param) {
+    if (empty($param)) continue;
+    list($key, $value) = explode('=', $param);
+    $form['query']['url_params'][] = array(
+      '#type' => 'hidden',
+      '#value' => urldecode($value),
+      '#name' => urldecode($key),
+    );
+  }
+
   $form['query'][$search_count]['term']= array(
     '#type' => 'textfield',
     '#default_value' => isset($query['term']) ? $query['term'] : '',
@@ -422,21 +433,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
   );
 
   if ($advanced) {
-    $bundle_options = array_map(function($bundle) {
-      return $bundle['label'];
-    }, field_info_bundles(EDOWEB_ENTITY_TYPE));
-    // FIXME: static unsetting of non-edoweb bundles
-    unset($bundle_options['person']);
-    unset($bundle_options['subject']);
-    unset($bundle_options['corporate_body']);
-    $form['query'][$search_count]['bundles'] = array(
-      '#type' => 'checkboxes',
-      '#options' => $bundle_options,
-      '#title' => t('Restrict list to these types'),
-      '#default_value' =>
-        isset($query['bundles']) ? array_keys($query['bundles']) : array(),
-    );
-
     global $user;
     $form['query'][$search_count]['users'] = array(
       '#type' => 'checkboxes',
@@ -474,16 +470,12 @@ function edoweb_basic_search_entities(
   if (@$term = $query['term']) {
     $efq->addMetaData('term', $term);
   }
-  if (@$bundles = $query['bundles']) {
-    $target_bundles = array_keys($bundles);
-    $efq->entityCondition('bundle', $target_bundles);
-  }
   if (@$users = $query['users']) {
     $target_users = array_keys($users);
     $efq->propertyCondition('uid', $target_users);
   }
 
-  $content['results'] = edoweb_basic_list_entities($efq, $operations);
+  $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets']);
   $search_count++;
   return $content;
 }
@@ -492,9 +484,9 @@ function edoweb_basic_search_entities(
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
-  $content = array();
+function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_count = 0, $active_facets) {
 
+  // Prepare query: header for table sort
   $header = array(
     array(
       'data' => 'ID',
@@ -528,14 +520,87 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
       'data' => t('Operations')
     ),
   );
-  // Load all of our entities.
   $efq->tableSort($header);
+
+  $content = array();
+
+  // Prepare query: apply active facets
+  $content['filters'] = array(
+    '#theme' => 'item_list',
+    '#type' => 'ul',
+    '#title' => t('Filters'),
+    '#weight' => -100,
+  );
+  $applied_facets = array();
+  if ($active_facets) foreach ($active_facets as $jsonld_property => $facet) {
+    foreach ($facet as $key => $value) {
+      $applied_facets[$jsonld_property][$value] = TRUE;
+      // Add link to remove facet
+      $params = drupal_get_query_parameters();
+      unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
+      $content['filters']['#items'][] = "$jsonld_property: $value "
+       . l(t('Remove'), current_path(), array('query' => $params));
+      // Add facet to query
+      if ('contentType' == $jsonld_property) {
+        $efq->entityCondition('bundle', array($value));
+      } else {
+        $field_name = _jsonld_key_to_field_name($jsonld_property);
+        $efq->fieldCondition(
+          $field_name, 'value', $value
+        );
+      }
+    }
+  }
+
+  // Execute query
   $result = $efq->execute();
+
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
     $entities = $result['edoweb_basic'];
   }
+
+
+  // Available facets
+  if (isset($result['facets'])) {
+    // Add list of available facets
+    drupal_add_library('system', 'drupal.collapse');
+    $content['facets'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Facets'),
+      '#attributes' => array(
+        'class' => array('collapsible', 'collapsed')
+      ),
+      '#weight' => -50,
+    );
+    foreach ($result['facets'] as $jsonld_property => $facet) {
+      $content['facets'][$jsonld_property] = array(
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#title' => $jsonld_property,
+      );
+      foreach ($facet->terms as $term) {
+        // Don't add facets that are already applied to the list
+        if (isset($applied_facets[$jsonld_property][$term->term]))
+          continue;
+        $params = drupal_get_query_parameters();
+        $facet_entity_uri = $term->term;
+        $facet_entity_count = $term->count;
+        //$label = entity_label(
+        //  EDOWEB_ENTITY_TYPE, edoweb_basic_load($facet_entity_uri)
+        //);
+        $label = $facet_entity_uri;
+        $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
+        $content['facets'][$jsonld_property]['#items'][] = l(
+          "$label ($facet_entity_count)", current_path(),
+          array('query' => $params)
+        );
+      }
+    }
+  }
+
+
   if (!empty($entities)) {
     foreach ( $entities as $i => $entity ) {
       $operation_elements = '';
@@ -560,6 +625,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
         ),
       );
     }
+
     // Put our entities into a themed table. See theme_table() for details.
     $content['entity_table'] = array(
       '#theme' => 'table',
@@ -571,8 +637,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
       '#element' => $efq->pager_num,
       '#weight' => 10,
     );
-  }
-  else {
+
+  } else {
     // There were no entities. Tell the user.
     $content[] = array(
       '#type' => 'item',
