@@ -378,7 +378,7 @@ function _edoweb_storage_entity_serialize_rdf(
 
   // Add non-field properties
   $rdf_about_subject = new LibRDF_URINode(
-    substr($rdf_subject, 1, -1) .  '.rdf'
+    $rdf_subject->getValue() .  '.rdf'
   );
   $rdf_model->addStatement(
     new LibRDF_Statement(
@@ -486,7 +486,6 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     // TODO: log errors
     // drupal_set_message($e->getMessage(), 'error');
   }
-  LibRDF_LiteralNode::setPlainOutput(true);
 
   $entity->setSource($rdf_model);
 
@@ -503,18 +502,17 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
       try {
         if ($value instanceOf LibRDF_LiteralNode) {
           // Fix escaped unicode characters such as \u00E4
-          $value = json_decode('"'.$value.'"');
+          $value = json_decode('"'.$value->getValue().'"');
           if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
             $wrapper->{$field_name} = (string) $value;
           } else {
             $wrapper->{$field_name}[] = (string) $value;
           }
         } else {
-          $value = substr($value, 1, -1);
           if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-            $wrapper->{$field_name} = $value;
+            $wrapper->{$field_name} = $value->getValue();
           } else {
-            $wrapper->{$field_name}[] = $value;
+            $wrapper->{$field_name}[] = $value->getValue();
           }
         }
         //drupal_set_message("Populated $field_name.");
@@ -529,7 +527,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     $entity->updated = strtotime($rdf_model->getTarget(
         $rdf_about_subject,
         new LibRDF_URINode(_edoweb_expand_curie('dc:modified'))
-    ));
+    )->getValue());
   } catch (LibRDF_LookupError $e) {
     // No update time available, ignore
   }
@@ -717,7 +715,6 @@ function _edoweb_compact_uri($uri) {
 }
 
 function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
-  LibRDF_LiteralNode::setPlainOutput(true);
   // If all fails, resort to generic bundle
   $bundle_type = 'generic';
   try {
@@ -725,7 +722,7 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
     $bundle_type = (string) $rdf_data->getTarget(
       new LibRDF_URINode($remote_id),
       new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
-    );
+    )->getValue();
   } catch (LibRDF_LookupError $e) {
     try {
       // Determine bundle based on RDF type
@@ -734,7 +731,7 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
         new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
       );
       foreach ($rdf_types as $rdf_type) {
-        $type = _edoweb_compact_uri(substr($rdf_type, 1, -1));
+        $type = _edoweb_compact_uri($rdf_type->getValue());
         foreach (edoweb_rdf_types() as $bundle => $types) {
           if (in_array($type, $types)) {
             return $bundle;

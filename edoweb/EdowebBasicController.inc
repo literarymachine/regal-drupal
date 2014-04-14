@@ -60,7 +60,6 @@ class EdowebBasicController extends EntityAPIController {
         $local_ids[] = $local_id;
       }
     }
-    LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($local_ids, $conditions);
     return $entities;
   }

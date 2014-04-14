@@ -248,7 +248,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Import the entity itself
-    LibRDF_LiteralNode::setPlainOutput(true);
     $bundle_type = _edoweb_bundle_type_from_rdf(
       $remote_id, $repository_data
     );
@@ -445,7 +444,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       EDOWEB_ENTITY_TYPE => array(),
     );
     foreach ($primary_topics as $primary_topic) {
-      $remote_id = substr($primary_topic->getObject(), 1, -1);
+      $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(
         $remote_id, $rdf_model
       );
@@ -513,7 +512,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       )->current();
       // Create entity
       if ($ore_describes) {
-        $remote_id = substr($ore_describes->getObject(), 1, -1);
+        $remote_id = $ore_describes->getObject()->getValue();
         $entity = entity_get_controller('edoweb_basic')->createFromRdf(
           $remote_id, $rdf_model
         );
