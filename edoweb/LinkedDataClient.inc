@@ -41,7 +41,16 @@ class LinkedDataClient {
   /*
    * Load the RDF for a linked data resource
    */
-  public function getRDF($resource_uri) {
+  public function getRDF($resource_uri, $loaded_uris = array()) {
+
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+
+    // Prevent recursion
+    if (in_array($resource_uri, $loaded_uris)) {
+      return $rdf_model;
+    }
+
     $http_options = array(
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
@@ -53,8 +62,6 @@ class LinkedDataClient {
       $rdf_data = '';
     }
 
-    $rdf_parser = new LibRDF_Parser('rdfxml');
-    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
     try {
       $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
     } catch (LibRDF_Error $e) {
@@ -68,11 +75,33 @@ class LinkedDataClient {
       $ontology_model->loadStatementsFromUri(
         $rdf_parser, 'file://' . __DIR__ . '/gnd.rdf'
       );
-      $rdfs_reasoner = new LibRDF_Reasoner();
+      $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
       $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
     }
 
+    $loaded_uris[] = $resource_uri;
+    $OWL = new LibRDF_NS('http://www.w3.org/2002/07/owl#');
+    $equivalent_resources = $rdf_model->getTargets(
+      new LibRDF_URINode($resource_uri), $OWL->sameAs
+    );
+    foreach ($equivalent_resources as $equivalent_resource) {
+      $same_as_rdf = $this->getRDF(
+        $equivalent_resource->getValue(), $loaded_uris
+      );
+      foreach ($same_as_rdf as $stmt) {
+        if ($stmt->getSubject()->isEqual($equivalent_resource)) {
+          $subject = new LibRDF_URINode($resource_uri);
+        } else {
+          $subject = $stmt->getSubject();
+        }
+        $rdf_model->addStatement(new LibRDF_Statement(
+          $subject, $stmt->getPredicate(), $stmt->getObject()
+        ));
+      }
+    }
+
     return $rdf_model;
+
   }
 
   public static function setTripleStore($triple_store) {
