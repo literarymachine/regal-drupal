@@ -769,9 +769,9 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     }
   }
 
-  $entity->content['_created'] = array(
+  $entity->content['_updated'] = array(
     '#type' => 'item',
-    '#markup' => '<small>Letzte Änderung: ' . format_date($entity->created, 'custom', 'd.m.Y - H:i:s') . '</small>',
+    '#markup' => '<small>Letzte Änderung: ' .  format_date($entity->updated, 'custom', 'd.m.Y - H:i:s') . '</small>',
     '#weight' => 1000,
   );
 

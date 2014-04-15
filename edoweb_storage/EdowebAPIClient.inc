@@ -248,15 +248,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Import the entity itself
-    $bundle_type = _edoweb_bundle_type_from_rdf(
+    $entity = entity_get_controller('edoweb_basic')->createFromRdf(
       $remote_id, $repository_data
     );
-    $entity = entity_get_controller('edoweb_basic')->create(
-      array(
-        'bundle_type' => $bundle_type,
-        'uid' => 0,
-      )
-    );
+
+    // Get local ID in case of overwriting
     if ('overwrite' == $import_mode) {
       $local_id = db_select('edoweb_basic')
         ->condition('remote_id', $remote_id, '=')
@@ -266,7 +262,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->local_id = $local_id;
     }
     $entity->created = time();
-    $entity->remote_id = $remote_id;
     $primary_keys = $entity->local_id ? 'local_id' : array();
 
     // Directly write out the entity record bypassing the controller to
