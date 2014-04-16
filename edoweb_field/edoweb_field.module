@@ -51,6 +51,33 @@ function edoweb_field_field_info() {
 }
 
 /**
+ * Implement hook_menu().
+ */
+function edoweb_field_menu() {
+  $items['edoweb_entity_label'] = array(
+    'page callback' => 'edoweb_entity_label',
+    'page arguments' => array(1,2),
+    'access callback' => 'entity_js_access',
+    'access arguments' => array(1, 'read'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Label entity function for JavaScript callbacks.
+ */
+function edoweb_entity_label($entity_type, $entity_id) {
+  if ($entity = entity_load_single($entity_type, $entity_id)) {
+    if (isset($entity->type) && !user_access($entity_type . ' entity js read ' . $entity->type)) {
+      return drupal_access_denied();
+    }
+    print entity_label($entity_type, $entity);
+  }
+  exit();
+}
+
+/**
  * Implements hook_field_validate().
  */
 function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {

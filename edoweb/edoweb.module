@@ -486,6 +486,10 @@ function edoweb_basic_search_entities(
  */
 function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_count = 0, $active_facets) {
 
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
+
   // Prepare query: header for table sort
   $header = array(
     array(
