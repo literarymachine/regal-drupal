@@ -530,28 +530,42 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
 
   // Prepare query: apply active facets
   $content['filters'] = array(
-    '#theme' => 'item_list',
-    '#type' => 'ul',
-    '#title' => t('Filters'),
+    '#type' => 'fieldset',
+    '#title' => t('Facets'),
+    '#attributes' => array(
+      'class' => array('collapsible')
+    ),
     '#weight' => -100,
   );
   $applied_facets = array();
-  if ($active_facets) foreach ($active_facets as $jsonld_property => $facet) {
-    foreach ($facet as $key => $value) {
-      $applied_facets[$jsonld_property][$value] = TRUE;
-      // Add link to remove facet
-      $params = drupal_get_query_parameters();
-      unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
-      $content['filters']['#items'][] = "$jsonld_property: $value "
-       . l(t('Remove'), current_path(), array('query' => $params));
-      // Add facet to query
-      if ('contentType' == $jsonld_property) {
-        $efq->entityCondition('bundle', array($value));
-      } else {
-        $field_name = _jsonld_key_to_field_name($jsonld_property);
-        $efq->fieldCondition(
-          $field_name, 'value', $value
-        );
+  if ($active_facets) {
+    foreach (array_keys($active_facets) as $jsonld_property) {
+      $content['filters'][$jsonld_property] = array(
+        '#title' => $jsonld_property,
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#weight' => -200,
+      );
+    }
+    foreach ($active_facets as $jsonld_property => $facet) {
+      $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      foreach ($facet as $key => $value) {
+        $applied_facets[$jsonld_property][$value] = TRUE;
+        // Link to remove facet
+        $params = drupal_get_query_parameters();
+        unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
+        $item = $is_ref ? '<span data-curie="' . _edoweb_compact_uri($value) . '">' . $value .  '</span>' : $value;
+        $item .= l(t(' Remove'), current_path(), array('query' => $params));
+        $content['filters'][$jsonld_property]['#items'][] = $item;
+        // Add facet to query
+        if ('contentType' == $jsonld_property) {
+          $efq->entityCondition('bundle', array($value));
+        } else {
+          $field_name = _jsonld_key_to_field_name($jsonld_property);
+          $efq->fieldCondition(
+            $field_name, 'value', $value
+          );
+        }
       }
     }
   }
@@ -570,20 +584,21 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
   if (isset($result['facets'])) {
     // Add list of available facets
     drupal_add_library('system', 'drupal.collapse');
-    $content['facets'] = array(
+    $content['filters']['facets'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Facets'),
+      '#title' => t('Add Facet'),
       '#attributes' => array(
         'class' => array('collapsible', 'collapsed')
       ),
       '#weight' => -50,
     );
     foreach ($result['facets'] as $jsonld_property => $facet) {
-      $content['facets'][$jsonld_property] = array(
+      $content['filters']['facets'][$jsonld_property] = array(
         '#theme' => 'item_list',
         '#type' => 'ul',
         '#title' => $jsonld_property,
       );
+      $is_ref = in_array($jsonld_property, array('creator', 'subject'));
       foreach ($facet->terms as $term) {
         // Don't add facets that are already applied to the list
         if (isset($applied_facets[$jsonld_property][$term->term]))
@@ -591,15 +606,14 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
         $params = drupal_get_query_parameters();
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
-        //$label = entity_label(
-        //  EDOWEB_ENTITY_TYPE, edoweb_basic_load($facet_entity_uri)
-        //);
-        $label = $facet_entity_uri;
         $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
-        $content['facets'][$jsonld_property]['#items'][] = l(
-          "$label ($facet_entity_count)", current_path(),
-          array('query' => $params)
-        );
+        $content['filters']['facets'][$jsonld_property]['#items'][] = l(
+          "$facet_entity_uri", current_path(),
+          array(
+            'query' => $params,
+            'attributes' => $is_ref ? array('data-curie' => _edoweb_compact_uri($facet_entity_uri)) : array(),
+          )
+        ) . " ($facet_entity_count)";
       }
     }
   }
