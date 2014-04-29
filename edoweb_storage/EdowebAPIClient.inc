@@ -614,6 +614,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'data' => "@$file_path",
       'type' => $content_type,
       'label' => $file_name,
+      'checksum' => md5_file($file_path),
     );
     $ch = curl_init($request_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -621,8 +622,22 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
     $response = curl_exec($ch);
-    if (curl_errno($ch) && 1 == variable_get('edoweb_api_debug')) {
-      drupal_set_message(curl_error($ch));
+    $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (417 == $response_code) {
+      $admin_mail = variable_get('site_mail', ini_get('sendmail_from'));
+      drupal_set_message(t("
+        Beim Übertragen der Datei ist ein Problem aufgetreten. Bitte
+        laden Sie die Datei erneut hoch. Sollte das Problem weiterhin
+        bestehen, wenden Sie sich an <a href=\"mailto:$admin_mail\">
+        $admin_mail</a>."), 'error'
+      );
+    } else if (curl_errno($ch) || 200 != $response_code) {
+      watchdog('edoweb_storage', 'Error uploading file @file to @api.',
+        array(
+          '@file' => $file_path,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
       return FALSE;
     } else {
       return TRUE;
