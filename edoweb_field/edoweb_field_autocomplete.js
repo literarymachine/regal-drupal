@@ -53,22 +53,23 @@
       });
 
       $.each(field_groups, function (field_group, source_widgets) {
-        var selected = 0;
-        var tabbed_area = $('<div id="tabs-' + field_group + '"><ul /></div>');
-        tabbed_area.addClass('field-widget-tabs');
-        $.each(source_widgets, function(i, source_widget) {
-          var tab_content = $('<div id="tabs-' + field_group + '-' + i + '" />');
-          var focus_link = source_widget.find('a[name="focus"]').first();
-          if (focus_link.length > 0) {
-            tab_content.append(focus_link);
-            selected = i;
-          }
-          tab_content.append(source_widget.find('.fieldset-wrapper').first());
-          tabbed_area.append(tab_content);
-          tabbed_area.children('ul').append($('<li><a href="#tabs-' + field_group + '-' + i + '">' + source_widget.find('legend').first().text() + '</a></li>'));
+        var group_fieldset = $('<fieldset><legend><select /></legend></fieldset>');
+        group_fieldset.find('select').change(function() {
+          group_fieldset.children('div[class="fieldset-wrapper"]').hide();
+          $(group_fieldset.children('div[class="fieldset-wrapper"]').get(this.selectedIndex)).show();
         });
-        source_widgets[0].replaceWith(tabbed_area);
-        $('#tabs-' + field_group).tabs({ selected: selected });
+        $.each(source_widgets, function(i, source_widget) {
+          var focus_link = source_widget.find('a[name="focus"]').first();
+          var content = source_widget.find('.fieldset-wrapper').first().hide();
+          group_fieldset.find('select').append($('<option>' + source_widget.find('legend').first().text() + '</option>'));
+          if (focus_link.length > 0) {
+            group_fieldset.prepend(focus_link);
+            group_fieldset.find('select').get(0).selectedIndex = i;
+          }
+          group_fieldset.append(content);
+        });
+        source_widgets[0].before(group_fieldset);
+        $(group_fieldset.children('div[class="fieldset-wrapper"]').get(group_fieldset.find('select').get(0).selectedIndex)).show();
       });
       $('.field-widget-edoweb-autocomplete-widget').remove();
     }
