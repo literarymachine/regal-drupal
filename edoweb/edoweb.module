@@ -366,7 +366,6 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
@@ -1568,6 +1567,7 @@ function edoweb_rdf_namespaces() {
     'regal' => 'http://hbz-nrw.de/regal#',
     'rdvocab' => 'http://rdvocab.info/Elements/',
     'file' => 'http://downlode.org/Code/RDF/File_Properties/schema#',
+    'marcrel' => 'http://id.loc.gov/vocabulary/relators/',
   );
 }
 
@@ -2072,4 +2072,13 @@ function edoweb_update_7110() {
     'field_edoweb_parent',
   );
   _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Add extensive list of MARC relator fields
+ */
+function edoweb_update_7111() {
+  _update_edoweb_installed_fields();
+  _update_edoweb_installed_instances();
+  _update_rdf_mapping();
 }
