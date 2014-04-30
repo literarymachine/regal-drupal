@@ -23,7 +23,6 @@
   });
   Drupal.behaviors.edoweb_field_autocomplete = {
     attach: function (context, settings) {
-      window.location.hash = 'focus';
       $('.edoweb_autocomplete_widget').each(function(index, element) {
         var field_name = $(this).attr('class').split(/\s+/)[1];
         var bundle_name = $(this).attr('class').split(/\s+/)[2];
@@ -72,6 +71,7 @@
         $(group_fieldset.children('div[class="fieldset-wrapper"]').get(group_fieldset.find('select').get(0).selectedIndex)).show();
       });
       $('.field-widget-edoweb-autocomplete-widget').remove();
+      window.location.hash = 'focus';
     }
   };
 
