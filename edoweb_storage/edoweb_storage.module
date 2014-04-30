@@ -449,7 +449,7 @@ function _edoweb_storage_entity_serialize_rdf(
           }
           if ($embedded_storage) {
             $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-              edoweb_basic_load($item), false, $metadata_types
+              edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
             );
             foreach ($embedded_item_graph as $embedded_item_statement) {
               $rdf_model->addStatement($embedded_item_statement);

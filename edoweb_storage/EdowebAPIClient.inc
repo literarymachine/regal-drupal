@@ -425,7 +425,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $ontology_model->loadStatementsFromUri(
       new LibRDF_Parser('rdfxml'), 'file://' . __DIR__ . '/../edoweb/gnd.rdf'
     );
-    $rdfs_reasoner = new LibRDF_Reasoner();
+    $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
     $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
 
     $foaf_primary_topic = new LibRDF_URINode(
@@ -562,11 +562,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
     }
 
+    $bool_op = isset($efq->tags['or_query']) ? 'or' : 'and';
     foreach($efq->fieldConditions as $field_condition) {
       $field_name = $field_condition['field']['field_name'];
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
-      $query['query']['filtered']['filter']['and'][]['term']["@graph.$json_ld_property"] = "$field_value";
+      $query['query']['filtered']['filter'][$bool_op][]['term']["@graph.$json_ld_property"] = "$field_value";
     }
 
     if (!isset($query['query'])) {

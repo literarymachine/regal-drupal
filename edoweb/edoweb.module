@@ -763,27 +763,32 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   // OK, Field API done, now we can set up some of our own data.
 
   // Find fields linking to this entity
+  $inverse_query = new EntityFieldQuery();
+  $inverse_query->addTag('or_query');
+  $inverse_query->addTag('elasticsearch');
+  $inverse_query->entityCondition(
+    'entity_type', 'edoweb_basic'
+  );
   $fields_info = field_info_fields();
+  $has_inverse = FALSE;
   foreach ($fields_info as $field_name => $field_info) {
     if (isset($field_info['settings']['inverse'])
         && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
-      $inverse_query = new EntityFieldQuery();
-      $inverse_query->addTag('elasticsearch');
-      $inverse_query->entityCondition(
-        'entity_type', 'edoweb_basic'
-      );
+      $has_inverse = TRUE;
       $inverse_query->fieldCondition(
         $field_name, 'value', $entity->identifier()
       );
-      $entity->content[$field_name] = edoweb_basic_search_entities(
-        $inverse_query
-      );
-      $entity->content[$field_name] += array(
-        '#weight' => 900,
-        '#type' => 'fieldset',
-        '#title' => $field_info['settings']['inverse']['label'],
-      );
     }
+  }
+  if ($has_inverse) {
+    $entity->content['related'] = edoweb_basic_search_entities(
+      $inverse_query
+    );
+    $entity->content['related'] += array(
+      '#weight' => 900,
+      '#type' => 'fieldset',
+      '#title' => 'Related resources',
+    );
   }
 
   $entity->content['_updated'] = array(

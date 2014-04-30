@@ -227,7 +227,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Creator of'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -255,7 +254,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Contributed to'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -283,7 +281,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -311,7 +308,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -339,7 +335,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -367,7 +362,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -395,7 +389,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -423,7 +416,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -451,7 +443,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -479,7 +470,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -507,7 +497,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -535,7 +524,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -563,7 +551,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -591,7 +578,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -619,7 +605,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -647,7 +632,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -675,7 +659,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -703,7 +686,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -731,7 +713,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -759,7 +740,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -787,7 +767,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -815,7 +794,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -843,7 +821,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -871,7 +848,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -899,7 +875,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -927,7 +902,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -955,7 +929,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -983,7 +956,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'person',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Edited'),
           'bundles' => array('person', 'corporate_body'),
         ),
         'field_group' => 'agents',
@@ -1146,7 +1118,6 @@ function _edoweb_installed_fields() {
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'label' => t('Subject of'),
           'bundles' => array('person', 'corporate_body', 'subject'),
         ),
         'handler_settings' => array(
