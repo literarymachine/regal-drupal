@@ -475,7 +475,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $json_response = json_decode($http_response->data);
     $hits = $json_response->hits;
-    $facets = $json_response->facets;
+    $facets = isset($json_response->facets)
+      ? $json_response->facets : array();
 
     $results = array(
       'hits' => $hits->total,
@@ -562,12 +563,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
     }
 
-    $bool_op = isset($efq->tags['or_query']) ? 'or' : 'and';
     foreach($efq->fieldConditions as $field_condition) {
+      $bool_op = empty($field_condition['delta_group'])
+        ? 'and' : $field_condition['delta_group'];
       $field_name = $field_condition['field']['field_name'];
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
-      $query['query']['filtered']['filter'][$bool_op][]['term']["@graph.$json_ld_property"] = "$field_value";
+      $query['query']['filtered']['filter']['bool']['must'][$bool_op][]['term']["@graph.$json_ld_property"] = "$field_value";
     }
 
     if (!isset($query['query'])) {

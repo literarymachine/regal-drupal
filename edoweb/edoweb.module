@@ -764,7 +764,6 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   // Find fields linking to this entity
   $inverse_query = new EntityFieldQuery();
-  $inverse_query->addTag('or_query');
   $inverse_query->addTag('elasticsearch');
   $inverse_query->entityCondition(
     'entity_type', 'edoweb_basic'
@@ -776,7 +775,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
         && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
       $has_inverse = TRUE;
       $inverse_query->fieldCondition(
-        $field_name, 'value', $entity->identifier()
+        $field_name, 'value', $entity->identifier(), null, 'or'
       );
     }
   }
