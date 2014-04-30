@@ -1359,19 +1359,19 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#name' => 'submit',
-    '#weight' => 100,
+    '#weight' => 1000,
   );
   $form['finish'] = array(
     '#type' => 'submit',
     '#value' => t('Finish'),
     '#name' => 'finish',
-    '#weight' => 100,
+    '#weight' => 1000,
   );
   $form['cancel'] = array(
     '#type' => 'submit',
     '#value' => t('Cancel'),
     '#submit' => array('edoweb_basic_edit_cancel'),
-    '#weight' => 150,
+    '#weight' => 1500,
     '#limit_validation_errors' => array(),
   );
 
@@ -1857,6 +1857,14 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
+      $widget_weight = array_search(
+        $field_name, array_keys($installed_instances[$bundle_type])
+      );
+      if (FALSE !== $widget_weight) {
+        $field_instance['widget']['weight'] = $widget_weight;
+        drupal_set_message("Setting widget weight for $field_name in
+        bundle $bundle_type to $widget_weight");
+      }
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -2081,4 +2089,12 @@ function edoweb_update_7111() {
   _update_edoweb_installed_fields();
   _update_edoweb_installed_instances();
   _update_rdf_mapping();
+}
+
+/**
+ * Update title fields to text_long, apply field weights
+ */
+function edoweb_update_7112() {
+  _update_edoweb_installed_fields();
+  _update_edoweb_installed_instances();
 }

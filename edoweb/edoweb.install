@@ -102,10 +102,12 @@ function edoweb_install() {
   // Create all the instances for our fields.
   // http://api.drupal.org/api/function/field_create_instance/7
   foreach (_edoweb_installed_instances() as $bundle_type => $field_instances) {
+    $i = 0;
     foreach ($field_instances as $field_name => $field_instance) {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
+      $field_instance['widget']['weight'] = $i;
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -117,6 +119,7 @@ function edoweb_install() {
         ? $defaults['default_value']
         : null;
       field_create_instance($field_instance);
+      $i++;
     }
   }
 
@@ -192,7 +195,7 @@ function _edoweb_installed_fields() {
     ),
     'field_edoweb_title_other' => array(
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
+      'type'        => 'text_long',
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('rdvocab:otherTitleInformation'),
@@ -200,7 +203,7 @@ function _edoweb_installed_fields() {
     ),
     'field_edoweb_title_alternative' => array(
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-      'type'        => 'text',
+      'type'        => 'text_long',
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:alternative'),
