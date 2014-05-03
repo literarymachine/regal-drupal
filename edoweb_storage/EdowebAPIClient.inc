@@ -544,8 +544,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['filtered']['filter']['and'][]['term']["@graph.contentType"]
-        = implode(' OR ', $target_bundles);
+      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType"]
+        = array_values($target_bundles);
     }
 
     foreach($efq->propertyConditions as $property_condition) {
@@ -556,9 +556,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           if (!is_array($uids)) {
             $uids = array($uids);
           }
-          $query['query']['filtered']['filter']['and'][]['term']
-            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"]
-              = implode(' OR ', $uids);
+          $query['query']['filtered']['filter']['bool']['must'][]['terms']
+            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"] = $uids;
           break;
       }
     }
@@ -569,7 +568,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $field_name = $field_condition['field']['field_name'];
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
-      $query['query']['filtered']['filter']['bool']['must'][$bool_op][]['term']["@graph.$json_ld_property"] = "$field_value";
+      if ($bool_op == 'and') {
+        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property"] = "$field_value";
+      } else if ($bool_op == 'or') {
+        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property"] = "$field_value";
+      }
     }
 
     if (!isset($query['query'])) {
