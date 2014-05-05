@@ -52,6 +52,7 @@
       });
 
       $.each(field_groups, function (field_group, source_widgets) {
+        var insert_position = source_widgets[0].prev();
         var group_fieldset = $('<fieldset><legend><select /></legend></fieldset>');
         group_fieldset.find('select').change(function() {
           group_fieldset.children('div[class="fieldset-wrapper"]').hide();
@@ -66,11 +67,11 @@
             group_fieldset.find('select').get(0).selectedIndex = i;
           }
           group_fieldset.append(content);
+          source_widget.remove();
         });
-        source_widgets[0].before(group_fieldset);
+        insert_position.after(group_fieldset);
         $(group_fieldset.children('div[class="fieldset-wrapper"]').get(group_fieldset.find('select').get(0).selectedIndex)).show();
       });
-      $('.field-widget-edoweb-autocomplete-widget').remove();
       window.location.hash = 'focus';
     }
   };

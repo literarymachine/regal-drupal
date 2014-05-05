@@ -2102,3 +2102,19 @@ function edoweb_update_7112() {
   _update_edoweb_installed_fields();
   _update_edoweb_installed_instances();
 }
+
+/**
+ * Ungroup parent, parallel and subject fields
+ */
+function edoweb_update_7113() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_parallel',
+    'field_edoweb_subject',
+  );
+  foreach ($updated_fields as $updated_field) {
+    $field_info = field_info_field($updated_field);
+    $field_info['settings']['field_group'] = null;
+    field_update_field($field_info);
+  }
+}
