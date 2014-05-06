@@ -376,17 +376,19 @@ function _edoweb_storage_entity_serialize_rdf(
     $rdf_model->addStatement($rdf_type_statement);
   }
 
-  // Add non-field properties
-  $rdf_about_subject = new LibRDF_URINode(
-    $rdf_subject->getValue() .  '.rdf'
-  );
-  $rdf_model->addStatement(
-    new LibRDF_Statement(
-      $rdf_about_subject,
-      new LibRDF_URINode(_edoweb_expand_curie('dce:creator')),
-      new LibRDF_LiteralNode($entity->uid)
-    )
-  );
+  // Link metadata record to drupal user URI
+  $namespace = variable_get('edoweb_api_namespace');
+  if ("$namespace:" === substr($rdf_subject->getValue(), 0, strlen($namespace) + 1)
+        || 'local:' == substr($rdf_subject->getValue(), 0, 6)) {
+    $user_uri = url("user/{$entity->uid}", array('absolute' => TRUE));
+    $rdf_model->addStatement(
+      new LibRDF_Statement(
+        new LibRDF_URINode($rdf_subject->getValue() . '.rdf'),
+        new LibRDF_URINode(_edoweb_expand_curie('dc:creator')),
+        new LibRDF_URINode($user_uri)
+      )
+    );
+  }
 
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   // Following elements contain predicate mappings
