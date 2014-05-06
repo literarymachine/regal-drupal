@@ -414,6 +414,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
   foreach ($url_params as $param) {
     if (empty($param)) continue;
     list($key, $value) = explode('=', $param);
+    if ("query[$search_count][term]" == urldecode($key) || 'op' == $key) continue;
     $form['query']['url_params'][] = array(
       '#type' => 'hidden',
       '#value' => urldecode($value),
