@@ -323,12 +323,12 @@ function edoweb_menu() {
   );
 
   // 'Files' tab for entities that can have files.
-  $items['resource/%edoweb_basic/files'] = array(
-    'title' => 'Files',
-    'page callback' => 'edoweb_basic_file',
+  $items['resource/%edoweb_basic/children'] = array(
+    'title' => 'Children',
+    'page callback' => 'edoweb_basic_children',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_field_has_value_type',
-    'access arguments' => array(1, 'field_edoweb_struct_child', 'file'),
+    'access callback' => '_edoweb_field_access',
+    'access arguments' => array(1, array('field_edoweb_struct_child')),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -338,7 +338,7 @@ function edoweb_menu() {
     'page callback' => 'edoweb_basic_structure',
     'page arguments' => array(1),
     'access callback' => '_edoweb_field_access',
-    'access arguments' => array(1, array('field_edoweb_struct_child', 'field_edoweb_struct_parent')),
+    'access arguments' => array(1, array('field_edoweb_struct_parent')),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -926,6 +926,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  */
 function edoweb_basic_structure($entity, $bundle_types = array()) {
 
+  $content = array();
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
 
   if (isset($wrapper->field_edoweb_struct_parent)) {
@@ -962,45 +963,6 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
     );
 
   }
-
-
-  // Children
-  $content['child'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Children',
-  );
-
-  // Add children
-  if (user_access('create edoweb_basic entities')) {
-    // Fetch and link to add possible child bundles
-    $field_info_instance = field_info_instance(
-      'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
-    );
-    $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
-    if ($child_bundles) foreach ($child_bundles as $child_bundle) {
-      $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
-      $content['child']['add'][] = array(
-        '#type' => 'item',
-        '#markup' => l(
-          t("Add $child_bundle_label"),
-          "resource/{$entity->identifier()}/children/add/$child_bundle"
-        ),
-      );
-    }
-  }
-
-  // List children
-  $child_query = new EntityFieldQuery();
-  $child_query->addTag('elasticsearch');
-  $child_query->entityCondition(
-    'entity_type', 'edoweb_basic'
-  );
-  $child_query->fieldCondition(
-    'field_edoweb_struct_parent', 'value', $entity->remote_id
-  );
-  $content['child']['child_list'] = edoweb_basic_search_entities(
-    $child_query
-  );
 
   _edoweb_build_breadcrumb($entity);
   return $content;
@@ -1052,22 +1014,51 @@ function edoweb_forms($form_id, $args) {
 /**
  * Provides a wrapper on the edit form to add a new file to an entity.
  */
-function edoweb_basic_file($entity, $bundle_types = array()) {
-  $query = new EntityFieldQuery();
-  $query->addTag('elasticsearch');
-  $query->entityCondition('entity_type', 'edoweb_basic');
-  $query->fieldCondition('field_edoweb_struct_parent', 'value', $entity->remote_id);
-  $query->entityCondition('bundle', 'file');
-  $query->range(0, 10000);
-  $files = $query->execute();
+function edoweb_basic_children($entity, $bundle_types = array()) {
+
+  $content = array();
+
+  // Children
+  $content['child'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Children',
+  );
+
+  // Add children
+  if (user_access('create edoweb_basic entities')) {
+    // Fetch and link to add possible child bundles
+    $field_info_instance = field_info_instance(
+      'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
+    );
+    $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
+    if ($child_bundles) foreach ($child_bundles as $child_bundle) {
+      $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
+      $content['child']['add'][] = array(
+        '#type' => 'item',
+        '#markup' => l(
+          t("Add $child_bundle_label"),
+          "resource/{$entity->identifier()}/children/add/$child_bundle"
+        ),
+      );
+    }
+  }
+
+  // List children
+  $child_query = new EntityFieldQuery();
+  $child_query->addTag('elasticsearch');
+  $child_query->entityCondition(
+    'entity_type', 'edoweb_basic'
+  );
+  $child_query->fieldCondition(
+    'field_edoweb_struct_parent', 'value', $entity->remote_id
+  );
+  $content['child']['child_list'] = edoweb_basic_search_entities(
+    $child_query
+  );
 
   _edoweb_build_breadcrumb($entity);
-  $values = array_map(function($remote_id) {
-    return array('value' => $remote_id);
-  }, array_keys($files[EDOWEB_ENTITY_TYPE]));
-  return _edoweb_field_embed_entities(
-    $values, $entity->identifier(), false
-  );
+  return $content;
+
 }
 
 /**
