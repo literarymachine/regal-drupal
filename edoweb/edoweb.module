@@ -425,6 +425,9 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
   $form['query'][$search_count]['term']= array(
     '#type' => 'textfield',
     '#default_value' => isset($query['term']) ? $query['term'] : '',
+    '#attributes' => array(
+      'title' => t( 'Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.')
+    ),
   );
 
   $form['query'][$search_count]['submit'] = array(
@@ -492,14 +495,12 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
 
   // Prepare query: header for table sort
   $header = array(
-    array(
-      'data' => 'ID',
-    ),
+    'ID',
     array(
       'data' => 'Updated',
       'type' => 'property',
       'specifier' => 'updated',
-      'sort' => 'desc',
+      'sort' => isset($efq->metaData['term']) ? null : 'desc',
     ),
     array(
       'data' => 'Title',
@@ -517,12 +518,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
         'column' => 'value',
       ),
     ),
-    array(
-      'data' => 'Type',
-    ),
-    array(
-      'data' => t('Operations')
-    ),
+    'Type',
+    'Operations',
   );
   $efq->tableSort($header);
 
