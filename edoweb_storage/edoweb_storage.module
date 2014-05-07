@@ -376,17 +376,19 @@ function _edoweb_storage_entity_serialize_rdf(
     $rdf_model->addStatement($rdf_type_statement);
   }
 
-  // Add non-field properties
-  $rdf_about_subject = new LibRDF_URINode(
-    substr($rdf_subject, 1, -1) .  '.rdf'
-  );
-  $rdf_model->addStatement(
-    new LibRDF_Statement(
-      $rdf_about_subject,
-      new LibRDF_URINode(_edoweb_expand_curie('dce:creator')),
-      new LibRDF_LiteralNode($entity->uid)
-    )
-  );
+  // Link metadata record to drupal user URI
+  $namespace = variable_get('edoweb_api_namespace');
+  if ("$namespace:" === substr($rdf_subject->getValue(), 0, strlen($namespace) + 1)
+        || 'local:' == substr($rdf_subject->getValue(), 0, 6)) {
+    $user_uri = url("user/{$entity->uid}", array('absolute' => TRUE));
+    $rdf_model->addStatement(
+      new LibRDF_Statement(
+        new LibRDF_URINode($rdf_subject->getValue() . '.rdf'),
+        new LibRDF_URINode(_edoweb_expand_curie('dc:creator')),
+        new LibRDF_URINode($user_uri)
+      )
+    );
+  }
 
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   // Following elements contain predicate mappings
@@ -440,10 +442,16 @@ function _edoweb_storage_entity_serialize_rdf(
             }
           }
         } else {
-          $rdf_object = new LibRDF_URINode($item);
+          $namespace = variable_get('edoweb_api_namespace');
+          if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
+                || 'local:' == substr($item, 0, 6)) {
+            $rdf_object = new LibRDF_URINode($item);
+          } else {
+            $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+          }
           if ($embedded_storage) {
             $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-              edoweb_basic_load($item), false, $metadata_types
+              edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
             );
             foreach ($embedded_item_graph as $embedded_item_statement) {
               $rdf_model->addStatement($embedded_item_statement);
@@ -480,7 +488,6 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     // TODO: log errors
     // drupal_set_message($e->getMessage(), 'error');
   }
-  LibRDF_LiteralNode::setPlainOutput(true);
 
   $entity->setSource($rdf_model);
 
@@ -497,18 +504,17 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
       try {
         if ($value instanceOf LibRDF_LiteralNode) {
           // Fix escaped unicode characters such as \u00E4
-          $value = json_decode('"'.$value.'"');
+          $value = json_decode('"'.$value->getValue().'"');
           if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
             $wrapper->{$field_name} = (string) $value;
           } else {
             $wrapper->{$field_name}[] = (string) $value;
           }
         } else {
-          $value = substr($value, 1, -1);
           if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-            $wrapper->{$field_name} = $value;
+            $wrapper->{$field_name} = $value->getValue();
           } else {
-            $wrapper->{$field_name}[] = $value;
+            $wrapper->{$field_name}[] = $value->getValue();
           }
         }
         //drupal_set_message("Populated $field_name.");
@@ -523,7 +529,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     $entity->updated = strtotime($rdf_model->getTarget(
         $rdf_about_subject,
         new LibRDF_URINode(_edoweb_expand_curie('dc:modified'))
-    ));
+    )->getValue());
   } catch (LibRDF_LookupError $e) {
     // No update time available, ignore
   }
@@ -677,7 +683,6 @@ function _edoweb_escape_utf8($string) {
 
 function _edoweb_expand_curie($curie) {
   if ('http://' == substr($curie, 0, 7)
-      || 'local:' == substr($curie, 0, 6)
       || '_:' == substr($curie, 0, 2)
   ) {
     return $curie;
@@ -712,7 +717,6 @@ function _edoweb_compact_uri($uri) {
 }
 
 function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
-  LibRDF_LiteralNode::setPlainOutput(true);
   // If all fails, resort to generic bundle
   $bundle_type = 'generic';
   try {
@@ -720,7 +724,7 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
     $bundle_type = (string) $rdf_data->getTarget(
       new LibRDF_URINode($remote_id),
       new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
-    );
+    )->getValue();
   } catch (LibRDF_LookupError $e) {
     try {
       // Determine bundle based on RDF type
@@ -729,7 +733,7 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
         new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
       );
       foreach ($rdf_types as $rdf_type) {
-        $type = _edoweb_compact_uri(substr($rdf_type, 1, -1));
+        $type = _edoweb_compact_uri($rdf_type->getValue());
         foreach (edoweb_rdf_types() as $bundle => $types) {
           if (in_array($type, $types)) {
             return $bundle;
@@ -740,4 +744,52 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
     }
   }
   return $bundle_type;
+}
+
+function _field_name_to_jsonld_key($field_name) {
+  $field_info = field_info_field($field_name);
+  //TODO: Use Drupal's built in RDF mechanism
+  $curie = $field_info['settings']['predicates'][0];
+  list($prefix, $local) = explode(':', $curie);
+  $rdf_namespaces = rdf_get_namespaces();
+  $field_property_uri = $rdf_namespaces[$prefix] . $local;
+  $context_url = sprintf(
+    'http://%s/%s-resources.json',
+    variable_get('edoweb_api_host'),
+    variable_get('edoweb_api_namespace')
+  );
+  $context = json_decode(file_get_contents($context_url))->{'@context'};
+  foreach ($context as $key => $property) {
+    if (is_object($property)) {
+      $property = $property->{'@id'};
+    }
+    if ($property == $field_property_uri) {
+      return $key;
+    }
+  }
+  return $field_name;
+}
+
+function _jsonld_key_to_field_name($jsonld_key) {
+  $context_url = sprintf(
+    'http://%s/%s-resources.json',
+    variable_get('edoweb_api_host'),
+    variable_get('edoweb_api_namespace')
+  );
+  $context = json_decode(file_get_contents($context_url))->{'@context'};
+  if (is_object($context->$jsonld_key)) {
+    $property_uri = $context->$jsonld_key->{'@id'};
+  } else {
+    $property_uri = $context->$jsonld_key;
+  }
+  $rdf_namespaces = rdf_get_namespaces();
+  foreach (field_info_fields() as $field_name => $field_info) {
+    if (!isset($field_info['settings']['predicates'])) continue;
+    $curie = $field_info['settings']['predicates'][0];
+    list($prefix, $local) = explode(':', $curie);
+    $rdf_namespaces = rdf_get_namespaces();
+    $field_property_uri = $rdf_namespaces[$prefix] . $local;
+    if ($field_property_uri == $property_uri) return $field_name;
+  }
+  return $jsonld_key;
 }

@@ -19,6 +19,15 @@
 
 (function($) {
 
+  /**
+   * Function returns an entities label.
+   */
+  function entity_label(entity_type, entity_id) {
+    return (function ($) {
+      return $.get(Drupal.settings.basePath + 'edoweb_entity_label/' + entity_type + '/' + entity_id);
+    })(jQuery);
+  }
+
   Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
       $(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').each(function(i, element) {
@@ -47,6 +56,14 @@
             throbber.remove();
           };
         }
+      });
+      $(context).find('*[data-curie]').each(function() {
+        var link = $(this);
+        entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+          if (this.status == 200) {
+            link.text(this.responseText);
+          }
+        };
       });
     }
   };

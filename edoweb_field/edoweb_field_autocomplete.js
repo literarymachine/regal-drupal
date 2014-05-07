@@ -23,7 +23,6 @@
   });
   Drupal.behaviors.edoweb_field_autocomplete = {
     attach: function (context, settings) {
-      window.location.hash = 'focus';
       $('.edoweb_autocomplete_widget').each(function(index, element) {
         var field_name = $(this).attr('class').split(/\s+/)[1];
         var bundle_name = $(this).attr('class').split(/\s+/)[2];
@@ -39,6 +38,41 @@
           }
         });
       });
+
+      // Group lookup fieldsets by group name
+      var field_groups = {};
+      $('fieldset[data-field-group]').each(function() {
+        var field_group = $(this).attr('data-field-group');
+        var source_widget = $(this).closest('.field-widget-edoweb-autocomplete-widget');
+        if (field_groups[field_group]) {
+          field_groups[field_group].push(source_widget);
+        } else {
+          field_groups[field_group] = [source_widget];
+        }
+      });
+
+      $.each(field_groups, function (field_group, source_widgets) {
+        var insert_position = source_widgets[0].prev();
+        var group_fieldset = $('<fieldset><legend><select /></legend></fieldset>');
+        group_fieldset.find('select').change(function() {
+          group_fieldset.children('div[class="fieldset-wrapper"]').hide();
+          $(group_fieldset.children('div[class="fieldset-wrapper"]').get(this.selectedIndex)).show();
+        });
+        $.each(source_widgets, function(i, source_widget) {
+          var focus_link = source_widget.find('a[name="focus"]').first();
+          var content = source_widget.find('.fieldset-wrapper').first().hide();
+          group_fieldset.find('select').append($('<option>' + source_widget.find('legend').first().text() + '</option>'));
+          if (focus_link.length > 0) {
+            group_fieldset.prepend(focus_link);
+            group_fieldset.find('select').get(0).selectedIndex = i;
+          }
+          group_fieldset.append(content);
+          source_widget.remove();
+        });
+        insert_position.after(group_fieldset);
+        $(group_fieldset.children('div[class="fieldset-wrapper"]').get(group_fieldset.find('select').get(0).selectedIndex)).show();
+      });
+      window.location.hash = 'focus';
     }
   };
 

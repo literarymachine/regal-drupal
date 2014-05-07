@@ -60,7 +60,6 @@ class EdowebBasicController extends EntityAPIController {
         $local_ids[] = $local_id;
       }
     }
-    LibRDF_LiteralNode::setPlainOutput(true);
     $entities = parent::load($local_ids, $conditions);
     return $entities;
   }
@@ -172,6 +171,12 @@ class EdowebBasicController extends EntityAPIController {
       $transaction = db_transaction();
       try {
         foreach ($entities as $entity) {
+          $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
+          if (FALSE !== $parents) {
+            foreach($parents as $parent) {
+              $this->clearCache($parent['value']);
+            }
+          }
           $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
           if (FALSE !== $children) {
             foreach($children as $child) {

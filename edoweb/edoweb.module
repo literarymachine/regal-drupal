@@ -184,8 +184,8 @@ function edoweb_entity_info() {
  * the path: resource/%edoweb_basic in
  * hook_menu() tells Drupal to call edoweb_basic_load().
  *
- * @param $local_id
- *   Integer specifying the basic entity id.
+ * @param $remote_id
+ *   Integer specifying the basic entity uri.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  * @return
@@ -246,7 +246,38 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK
   );
 
-  // Module landing page, list entities
+  // Add new resources
+  $items["resource/add/monograph"] = array(
+    'title' => "Add new Monograph",
+    'page callback' => 'edoweb_basic_add',
+    'page arguments' => array('monograph'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  $items['resource/add/%'] = array(
+    'title callback' => 'edoweb_basic_bundle_name',
+    'title arguments' => array(2),
+    'page callback' => 'edoweb_basic_add',
+    'page arguments' => array(2),
+    'access arguments' => array('create edoweb_basic entities'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items["resource/import/monograph"] = array(
+    'title' => "Import Monograph",
+    'page callback' => 'edoweb_basic_import',
+    'page arguments' => array('monograph'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  $items["resource/import/journal"] = array(
+    'title' => "Import Journal",
+    'page callback' => 'edoweb_basic_import',
+    'page arguments' => array('journal'),
+    'access arguments' => array('create edoweb_basic entities'),
+  );
+
+  // Resource landing page, list entities
   $items['resource'] = array(
     'title' => t('Edoweb'),
     'page callback' => 'edoweb_info_page',
@@ -322,25 +353,6 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // Add entities.
-  $items['resource/add/%'] = array(
-    'title callback' => 'edoweb_basic_bundle_name',
-    'title arguments' => array(2),
-    'page callback' => 'edoweb_basic_add',
-    'page arguments' => array(2),
-    'access arguments' => array('create edoweb_basic entities'),
-    'type' => MENU_CALLBACK,
-  );
-
-  // Import entities.
-  $items['resource/import/%'] = array(
-    'title' => 'Import an Edoweb Basic Entity',
-    'page callback' => 'edoweb_basic_import',
-    'page arguments' => array(2),
-    'access arguments' => array('create edoweb_basic entities'),
-    'type' => MENU_CALLBACK,
-  );
-
   // GND Autocompletion
   $items['edoweb/autocomplete'] = array(
     'page callback' => '_edoweb_autocomplete',
@@ -354,34 +366,15 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-
-  if (user_access('create edoweb_basic entities')) {
-    $content['add monograph'] = array(
-      '#type' => 'item',
-      '#markup' => t('!add or !import a monograph', array(
-        '!add' => l(t('Add'), 'resource/add/monograph'),
-        '!import' => l(t('import'), 'resource/import/monograph'),
-      )),
-    );
-    $content['add journal'] = array(
-      '#type' => 'item',
-      '#markup' => t('!import a journal', array(
-        '!import' => l(t('Import'), 'resource/import/journal'),
-      )),
-    );
-  }
-
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $content['resource_list'] = edoweb_basic_search_entities(
     $query, TRUE
   );
-  unset($content['resource_list']['form_build_id']);
-  unset($content['resource_list']['form_id']);
-  unset($content['resource_list']['form_token']);
 
   return $content;
+
 }
 
 /**
@@ -417,9 +410,24 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     '#type' => 'form',
   );
 
+  $url_params = explode('&', $_SERVER['QUERY_STRING']);
+  foreach ($url_params as $param) {
+    if (empty($param)) continue;
+    list($key, $value) = explode('=', $param);
+    if ("query[$search_count][term]" == urldecode($key) || 'op' == $key) continue;
+    $form['query']['url_params'][] = array(
+      '#type' => 'hidden',
+      '#value' => urldecode($value),
+      '#name' => urldecode($key),
+    );
+  }
+
   $form['query'][$search_count]['term']= array(
     '#type' => 'textfield',
     '#default_value' => isset($query['term']) ? $query['term'] : '',
+    '#attributes' => array(
+      'title' => t( 'Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.')
+    ),
   );
 
   $form['query'][$search_count]['submit'] = array(
@@ -428,21 +436,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
   );
 
   if ($advanced) {
-    $bundle_options = array_map(function($bundle) {
-      return $bundle['label'];
-    }, field_info_bundles(EDOWEB_ENTITY_TYPE));
-    // FIXME: static unsetting of non-edoweb bundles
-    unset($bundle_options['person']);
-    unset($bundle_options['subject']);
-    unset($bundle_options['corporate_body']);
-    $form['query'][$search_count]['bundles'] = array(
-      '#type' => 'checkboxes',
-      '#options' => $bundle_options,
-      '#title' => t('Restrict list to these types'),
-      '#default_value' =>
-        isset($query['bundles']) ? array_keys($query['bundles']) : array(),
-    );
-
     global $user;
     $form['query'][$search_count]['users'] = array(
       '#type' => 'checkboxes',
@@ -473,20 +466,19 @@ function edoweb_basic_search_entities(
   $content['search'] = drupal_get_form(
     'edoweb_basic_search_entities_form', $advanced, $search_count, $query
   );
+  unset($content['search']['form_build_id']);
+  unset($content['search']['form_id']);
+  unset($content['search']['form_token']);
 
   if (@$term = $query['term']) {
     $efq->addMetaData('term', $term);
-  }
-  if (@$bundles = $query['bundles']) {
-    $target_bundles = array_keys($bundles);
-    $efq->entityCondition('bundle', $target_bundles);
   }
   if (@$users = $query['users']) {
     $target_users = array_keys($users);
     $efq->propertyCondition('uid', $target_users);
   }
 
-  $content['results'] = edoweb_basic_list_entities($efq, $operations);
+  $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets']);
   $search_count++;
   return $content;
 }
@@ -495,18 +487,20 @@ function edoweb_basic_search_entities(
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
-  $content = array();
+function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_count = 0, $active_facets) {
 
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
+
+  // Prepare query: header for table sort
   $header = array(
-    array(
-      'data' => 'ID',
-    ),
+    'ID',
     array(
       'data' => 'Updated',
       'type' => 'property',
       'specifier' => 'updated',
-      'sort' => 'desc',
+      'sort' => isset($efq->metaData['term']) ? null : 'desc',
     ),
     array(
       'data' => 'Title',
@@ -524,21 +518,113 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
         'column' => 'value',
       ),
     ),
-    array(
-      'data' => 'Type',
-    ),
-    array(
-      'data' => t('Operations')
-    ),
+    'Type',
+    'Operations',
   );
-  // Load all of our entities.
   $efq->tableSort($header);
+
+  $content = array();
+
+  // Prepare query: apply active facets
+  $content['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Facets'),
+    '#attributes' => array(
+      'class' => array('collapsible')
+    ),
+    '#weight' => -100,
+  );
+  $applied_facets = array();
+  if ($active_facets) {
+    foreach (array_keys($active_facets) as $jsonld_property) {
+      $content['filters'][$jsonld_property] = array(
+        '#title' => $jsonld_property,
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#weight' => -200,
+      );
+    }
+    foreach ($active_facets as $jsonld_property => $facet) {
+      $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      foreach ($facet as $key => $value) {
+        $applied_facets[$jsonld_property][$value] = TRUE;
+        // Link to remove facet
+        $params = drupal_get_query_parameters();
+        unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
+        $item = $is_ref ? '<span data-curie="' . _edoweb_compact_uri($value) . '">' . $value .  '</span>' : $value;
+        $item .= l(t(' Remove'), current_path(), array('query' => $params));
+        $content['filters'][$jsonld_property]['#items'][] = $item;
+        // Add facet to query
+        if ('contentType' == $jsonld_property) {
+          $efq->entityCondition('bundle', array($value));
+        } else {
+          $field_name = _jsonld_key_to_field_name($jsonld_property);
+          $efq->fieldCondition(
+            $field_name, 'value', $value
+          );
+        }
+      }
+    }
+  }
+
+  // Execute query
   $result = $efq->execute();
+
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
   } else {
     $entities = $result['edoweb_basic'];
   }
+
+  $content['total_hits'] = array(
+    '#type' => 'item',
+    '#markup' => t(
+      'Your search returned ' . $result['hits'] . '
+      results. You may apply the following facets to further limit your
+      search:'
+    ),
+    '#weight' => -300,
+  );
+
+  // Available facets
+  if (isset($result['facets'])) {
+    // Add list of available facets
+    drupal_add_library('system', 'drupal.collapse');
+    $content['filters']['facets'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Add Facet'),
+      '#attributes' => array(
+        'class' => array('collapsible', 'collapsed')
+      ),
+      '#weight' => -50,
+    );
+    foreach ($result['facets'] as $jsonld_property => $facet) {
+      $content['filters']['facets'][$jsonld_property] = array(
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#title' => $jsonld_property,
+      );
+      $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      foreach ($facet->terms as $term) {
+        // Don't add facets that are already applied to the list
+        if (isset($applied_facets[$jsonld_property][$term->term]))
+          continue;
+        $params = drupal_get_query_parameters();
+        $facet_entity_uri = $term->term;
+        $facet_entity_count = $term->count;
+        $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
+        $content['filters']['facets'][$jsonld_property]['#items'][] = l(
+          "$facet_entity_uri", current_path(),
+          array(
+            'query' => $params,
+            'attributes' => $is_ref ? array('data-curie' => _edoweb_compact_uri($facet_entity_uri)) : array(),
+          )
+        ) . " ($facet_entity_count)";
+      }
+    }
+  }
+
+
   if (!empty($entities)) {
     foreach ( $entities as $i => $entity ) {
       $operation_elements = '';
@@ -563,6 +649,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
         ),
       );
     }
+
     // Put our entities into a themed table. See theme_table() for details.
     $content['entity_table'] = array(
       '#theme' => 'table',
@@ -574,8 +661,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations) {
       '#element' => $efq->pager_num,
       '#weight' => 10,
     );
-  }
-  else {
+
+  } else {
     // There were no entities. Tell the user.
     $content[] = array(
       '#type' => 'item',
@@ -681,9 +768,38 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   }
 
   // OK, Field API done, now we can set up some of our own data.
-  $entity->content['_created'] = array(
+
+  // Find fields linking to this entity
+  $inverse_query = new EntityFieldQuery();
+  $inverse_query->addTag('elasticsearch');
+  $inverse_query->entityCondition(
+    'entity_type', 'edoweb_basic'
+  );
+  $fields_info = field_info_fields();
+  $has_inverse = FALSE;
+  foreach ($fields_info as $field_name => $field_info) {
+    if (isset($field_info['settings']['inverse'])
+        && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
+      $has_inverse = TRUE;
+      $inverse_query->fieldCondition(
+        $field_name, 'value', $entity->identifier(), null, 'or'
+      );
+    }
+  }
+  if ($has_inverse) {
+    $entity->content['related'] = edoweb_basic_search_entities(
+      $inverse_query
+    );
+    $entity->content['related'] += array(
+      '#weight' => 900,
+      '#type' => 'fieldset',
+      '#title' => 'Related resources',
+    );
+  }
+
+  $entity->content['_updated'] = array(
     '#type' => 'item',
-    '#markup' => '<small>Letzte Änderung: ' . format_date($entity->created, 'custom', 'd.m.Y - H:i:s') . '</small>',
+    '#markup' => '<small>Letzte Änderung: ' .  format_date($entity->updated, 'custom', 'd.m.Y - H:i:s') . '</small>',
     '#weight' => 1000,
   );
 
@@ -844,9 +960,7 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
     $content['parent']['parent_query'] = edoweb_basic_search_entities(
       $parent_query, FALSE, $operations
     );
-    unset($content['parent']['parent_query']['form_build_id']);
-    unset($content['parent']['parent_query']['form_id']);
-    unset($content['parent']['parent_query']['form_token']);
+
   }
 
 
@@ -887,9 +1001,6 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
   $content['child']['child_list'] = edoweb_basic_search_entities(
     $child_query
   );
-  unset($content['child']['child_list']['form_build_id']);
-  unset($content['child']['child_list']['form_id']);
-  unset($content['child']['child_list']['form_token']);
 
   _edoweb_build_breadcrumb($entity);
   return $content;
@@ -1259,19 +1370,19 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#name' => 'submit',
-    '#weight' => 100,
+    '#weight' => 1000,
   );
   $form['finish'] = array(
     '#type' => 'submit',
     '#value' => t('Finish'),
     '#name' => 'finish',
-    '#weight' => 100,
+    '#weight' => 1000,
   );
   $form['cancel'] = array(
     '#type' => 'submit',
     '#value' => t('Cancel'),
     '#submit' => array('edoweb_basic_edit_cancel'),
-    '#weight' => 150,
+    '#weight' => 1500,
     '#limit_validation_errors' => array(),
   );
 
@@ -1416,6 +1527,7 @@ function edoweb_rdf_types() {
     ),
     'corporate_body' => array(
       'gnd:CorporateBody',
+      'gnd:PlaceOrGeographicName',
     ),
     'subject' => array(
       'skos:Concept',
@@ -1447,6 +1559,7 @@ function edoweb_rdf_namespaces() {
   $edoweb_api_namespace = variable_get('edoweb_api_namespace');
   return array(
     $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
+    'local' => "http://$edoweb_api_host/resource/local:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
@@ -1465,6 +1578,7 @@ function edoweb_rdf_namespaces() {
     'regal' => 'http://hbz-nrw.de/regal#',
     'rdvocab' => 'http://rdvocab.info/Elements/',
     'file' => 'http://downlode.org/Code/RDF/File_Properties/schema#',
+    'marcrel' => 'http://id.loc.gov/vocabulary/relators/',
   );
 }
 
@@ -1754,6 +1868,14 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
+      $widget_weight = array_search(
+        $field_name, array_keys($installed_instances[$bundle_type])
+      );
+      if (FALSE !== $widget_weight) {
+        $field_instance['widget']['weight'] = $widget_weight;
+        drupal_set_message("Setting widget weight for $field_name in
+        bundle $bundle_type to $widget_weight");
+      }
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -1943,4 +2065,63 @@ function edoweb_update_7108() {
   );
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
+}
+
+/**
+ * Configure inverse fields
+ */
+function edoweb_update_7109() {
+  $updated_fields = array(
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_subject',
+  );
+  _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Configure field groups
+ */
+function edoweb_update_7110() {
+  $updated_fields = array(
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_subject',
+    'field_edoweb_parallel',
+    'field_edoweb_parent',
+  );
+  _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Add extensive list of MARC relator fields
+ */
+function edoweb_update_7111() {
+  _update_edoweb_installed_fields();
+  _update_edoweb_installed_instances();
+  _update_rdf_mapping();
+}
+
+/**
+ * Update title fields to text_long, apply field weights
+ */
+function edoweb_update_7112() {
+  _update_edoweb_installed_fields();
+  _update_edoweb_installed_instances();
+}
+
+/**
+ * Ungroup parent, parallel and subject fields
+ */
+function edoweb_update_7113() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_parallel',
+    'field_edoweb_subject',
+  );
+  foreach ($updated_fields as $updated_field) {
+    $field_info = field_info_field($updated_field);
+    $field_info['settings']['field_group'] = null;
+    field_update_field($field_info);
+  }
 }

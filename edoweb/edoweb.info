@@ -10,6 +10,7 @@ dependencies[] = rdf
 dependencies[] = edoweb_storage
 dependencies[] = entity
 dependencies[] = edoweb_field
+dependencies[] = entity_js
 files[] = edoweb.test
 files[] = EdowebBasicEntity.inc
 files[] = EdowebBasicController.inc

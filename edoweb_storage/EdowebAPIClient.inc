@@ -113,21 +113,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function save($entity) {
 
     // Local entities are stored in the file system
-    if ('local:' == substr($entity->remote_id, 0, 6)) {
-      $rdf_serializer = new LibRDF_Serializer('rdfxml');
-      $metadata = _edoweb_storage_entity_serialize_rdf(
-        $entity, $rdf_serializer, array('descriptive')
-      );
-      $file_name = substr($entity->remote_id, 6);
-      $file_path = drupal_realpath(file_default_scheme() . '://');
-      file_put_contents("$file_path/$file_name.rdf", $metadata);
-    } else {
-      $this->saveResource($entity);
-      // Store attached files first, as entity metadata has to be
-      // updated with corresponding new file URIs
-      $this->saveFiles($entity);
-      $this->saveMetadata($entity);
-    }
+    $this->saveResource($entity);
+    // Store attached files first, as entity metadata has to be
+    // updated with corresponding new file URIs
+    $this->saveFiles($entity);
+    $this->saveMetadata($entity);
   }
 
   public function saveMetadata($entity) {
@@ -258,16 +248,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     // Import the entity itself
-    LibRDF_LiteralNode::setPlainOutput(true);
-    $bundle_type = _edoweb_bundle_type_from_rdf(
+    $entity = entity_get_controller('edoweb_basic')->createFromRdf(
       $remote_id, $repository_data
     );
-    $entity = entity_get_controller('edoweb_basic')->create(
-      array(
-        'bundle_type' => $bundle_type,
-        'uid' => 0,
-      )
-    );
+
+    // Get local ID in case of overwriting
     if ('overwrite' == $import_mode) {
       $local_id = db_select('edoweb_basic')
         ->condition('remote_id', $remote_id, '=')
@@ -277,7 +262,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->local_id = $local_id;
     }
     $entity->created = time();
-    $entity->remote_id = $remote_id;
     $primary_keys = $entity->local_id ? 'local_id' : array();
 
     // Directly write out the entity record bypassing the controller to
@@ -441,7 +425,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $ontology_model->loadStatementsFromUri(
       new LibRDF_Parser('rdfxml'), 'file://' . __DIR__ . '/../edoweb/gnd.rdf'
     );
-    $rdfs_reasoner = new LibRDF_Reasoner();
+    $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
     $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
 
     $foaf_primary_topic = new LibRDF_URINode(
@@ -455,7 +439,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       EDOWEB_ENTITY_TYPE => array(),
     );
     foreach ($primary_topics as $primary_topic) {
-      $remote_id = substr($primary_topic->getObject(), 1, -1);
+      $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(
         $remote_id, $rdf_model
       );
@@ -479,6 +463,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_response = $this->_http_post(
       $http_url, $query, 'application/json'
     );
+
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to execute query on @api.',
         array(
@@ -487,9 +472,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    $hits = json_decode($http_response->data)->hits;
+
+    $json_response = json_decode($http_response->data);
+    $hits = $json_response->hits;
+    $facets = isset($json_response->facets)
+      ? $json_response->facets : array();
+
     $results = array(
       'hits' => $hits->total,
+      'facets' => $facets,
       EDOWEB_ENTITY_TYPE => array(),
     );
     $rdf_parser = new LibRDF_Parser('ntriples');
@@ -499,7 +490,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $options = array(
         'format' => 'application/nquads',
       );
-      $rdf_ntriples = _edoweb_escape_utf8(jsonld_to_rdf($hit->_source, $options));
+
+      try {
+        $rdf_ntriples = _edoweb_escape_utf8(
+          jsonld_to_rdf($hit->_source, $options)
+        );
+      } catch(JsonLdException $e) {
+        watchdog('edoweb_storage', 'Unable to parse JSON LD');
+        return FALSE;
+      }
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
@@ -515,7 +514,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       )->current();
       // Create entity
       if ($ore_describes) {
-        $remote_id = substr($ore_describes->getObject(), 1, -1);
+        $remote_id = $ore_describes->getObject()->getValue();
         $entity = entity_get_controller('edoweb_basic')->createFromRdf(
           $remote_id, $rdf_model
         );
@@ -536,7 +535,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       : $results_per_page;
 
     if (array_key_exists('term', $efq->metaData)) {
-      $query['query']['bool']['must'][]['query_string']['query']
+      $query['query']['filtered']['query']['query_string']['query']
         = $efq->metaData['term'];
     }
 
@@ -545,8 +544,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['bool']['must'][]['field']["@graph.http://hbz-nrw.de/regal#contentType.@value"]
-        = implode(' OR ', $target_bundles);
+      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType"]
+        = array_values($target_bundles);
     }
 
     foreach($efq->propertyConditions as $property_condition) {
@@ -557,39 +556,23 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           if (!is_array($uids)) {
             $uids = array($uids);
           }
-          $query['query']['bool']['must'][]['field']
-            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"]
-              = implode(' OR ', $uids);
+          $query['query']['filtered']['filter']['bool']['must'][]['terms']
+            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"] = $uids;
           break;
       }
     }
 
-    $rdf_mapping = rdf_mapping_load(EDOWEB_ENTITY_TYPE);
-    $rdf_namespaces = rdf_get_namespaces();
     foreach($efq->fieldConditions as $field_condition) {
+      $bool_op = empty($field_condition['delta_group'])
+        ? 'and' : $field_condition['delta_group'];
       $field_name = $field_condition['field']['field_name'];
+      $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
-      // Special cases for unmapped structural fields
-      // TODO: remove superfluous special cases
-      switch ($field_name) {
-        case 'field_edoweb_struct_parent':
-          $field_property = 'http://purl.org/dc/terms/isPartOf';
-          $value_type = 'id';
-          break;
-        case 'field_edoweb_struct_child':
-          $field_property = 'http://purl.org/dc/terms/hasPart';
-          $value_type = 'id';
-        default:
-          // Map field name to full property URI
-          // TODO: use OR query and all predicates
-          $curie = $rdf_mapping[$field_name]['predicates'][0];
-          list($prefix, $local) = explode(':', $curie);
-          $field_property = $rdf_namespaces[$prefix] . $local;
-          $value_type =
-            (isset($rdf_mapping['type']) && $rdf_mapping['type'] == 'rel') ? 'id' : 'value';
-          break;
+      if ($bool_op == 'and') {
+        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property"] = "$field_value";
+      } else if ($bool_op == 'or') {
+        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property"] = "$field_value";
       }
-      $query['query']['bool']['must'][]['field']["@graph.$field_property.@$value_type"] = "\"$field_value\"";
     }
 
     if (!isset($query['query'])) {
@@ -598,38 +581,37 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $query['sort'] = array();
     foreach($efq->order as $sort) {
-      $field_property = null;
-      $value_type = null;
       switch ($sort['type']) {
         case 'property':
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
-            $field_property = _edoweb_expand_curie('dc:modified');
-            $value_type = 'value';
+            $jsonld_property = 'modified.@value';
           }
           break;
         case 'field':
-          // FIXME: retrieve property from actual mapping
-          // (problem is, we don't have a specific bundle type here)
           $field_name = $sort['specifier']['field']['field_name'];
-          $field_info = field_info_field($field_name);
-          $field_property = _edoweb_expand_curie(
-            $field_info['settings']['predicates'][0]
-          );
-          $value_type = 'value';
+          $jsonld_property = _field_name_to_jsonld_key($field_name);
           break;
         default:
           break;
       }
       $order = $sort['direction'];
-      if ($field_property && $value_type) {
-        $query['sort'][]["@graph.$field_property.@$value_type"] = array(
+      if ($jsonld_property) {
+        $query['sort'][]["@graph.$jsonld_property"] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,
         );
       }
     }
 
+    $query['facets']['creator']['terms']['field']
+      = '@graph.creator';
+    $query['facets']['contentType']['terms']['field']
+      = '@graph.contentType';
+    $query['facets']['subject']['terms']['field']
+      = '@graph.subject';
+    $query['facets']['issued']['terms']['field']
+      = '@graph.issued';
     return json_encode($query);
   }
 
@@ -638,6 +620,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'data' => "@$file_path",
       'type' => $content_type,
       'label' => $file_name,
+      'checksum' => md5_file($file_path),
     );
     $ch = curl_init($request_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -645,8 +628,22 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
     $response = curl_exec($ch);
-    if (curl_errno($ch) && 1 == variable_get('edoweb_api_debug')) {
-      drupal_set_message(curl_error($ch));
+    $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (417 == $response_code) {
+      $admin_mail = variable_get('site_mail', ini_get('sendmail_from'));
+      drupal_set_message(t("
+        Beim Übertragen der Datei ist ein Problem aufgetreten. Bitte
+        laden Sie die Datei erneut hoch. Sollte das Problem weiterhin
+        bestehen, wenden Sie sich an <a href=\"mailto:$admin_mail\">
+        $admin_mail</a>."), 'error'
+      );
+    } else if (curl_errno($ch) || 200 != $response_code) {
+      watchdog('edoweb_storage', 'Error uploading file @file to @api.',
+        array(
+          '@file' => $file_path,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
       return FALSE;
     } else {
       return TRUE;
