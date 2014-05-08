@@ -113,10 +113,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function save($entity) {
 
     // Local entities are stored in the file system
-    $this->saveResource($entity);
+    //$this->saveResource($entity);
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    $this->saveFiles($entity);
+    //$this->saveFiles($entity);
     $this->saveMetadata($entity);
   }
 
@@ -125,6 +125,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_post_data = _edoweb_storage_entity_serialize_ntriples(
       $entity, array('descriptive')
     );
+    header("Content-Type: text/plain");
+    die( $http_post_data );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
@@ -492,6 +494,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
 
       try {
+        $context_url = $hit->_source->{'@context'};
+        // Cache context file for performance
+        if (!file_exists('/tmp/' . basename($context_url))) {
+          file_put_contents(
+            '/tmp/' . basename($context_url),
+            file_get_contents($context_url)
+          );
+        }
+        $hit->_source->{'@context'} = 'file:///tmp/' . basename($context_url);
         $rdf_ntriples = _edoweb_escape_utf8(
           jsonld_to_rdf($hit->_source, $options)
         );
