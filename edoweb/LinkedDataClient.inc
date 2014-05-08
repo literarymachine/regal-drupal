@@ -41,9 +41,13 @@ class LinkedDataClient {
   /*
    * Load the RDF for a linked data resource
    */
-  public function getRDF($resource_uri, $loaded_uris = array(), $format = 'rdfxml') {
+  public function getRDF($resource_uri, $loaded_uris = array()) {
 
-    $rdf_parser = new LibRDF_Parser($format);
+    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $rdf_parser = new LibRDF_Parser('turtle');
+    } else {
+      $rdf_parser = new LibRDF_Parser('rdfxml');
+    }
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
 
     // Prevent recursion
@@ -65,10 +69,9 @@ class LinkedDataClient {
     try {
       $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
     } catch (LibRDF_Error $e) {
-      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri in @format',
-        array('@uri' => $resource_uri, '@format' => $format)
+      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri',
+        array('@uri' => $resource_uri)
       );
-      return $this->getRDF($resource_uri, $loaded_uris, 'turtle');
     }
 
     if ('dnb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
