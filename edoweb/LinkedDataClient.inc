@@ -41,9 +41,9 @@ class LinkedDataClient {
   /*
    * Load the RDF for a linked data resource
    */
-  public function getRDF($resource_uri, $loaded_uris = array()) {
+  public function getRDF($resource_uri, $loaded_uris = array(), $format = 'rdfxml') {
 
-    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdf_parser = new LibRDF_Parser($format);
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
 
     // Prevent recursion
@@ -65,9 +65,10 @@ class LinkedDataClient {
     try {
       $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
     } catch (LibRDF_Error $e) {
-      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri',
-        array('@uri' => $resource_uri)
+      watchdog('edoweb', 'Unable to retrieve Linked Data for @uri in @format',
+        array('@uri' => $resource_uri, '@format' => $format)
       );
+      return $this->getRDF($resource_uri, $loaded_uris, 'turtle');
     }
 
     if ('dnb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
@@ -77,6 +78,23 @@ class LinkedDataClient {
       );
       $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
       $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
+    }
+
+    // Workaround for dct:hasVesion in DDC
+    if ('ddc:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $version_uri = new LibRDF_URINode($resource_uri . '2009/03/about.de');
+      $version_stmts = $rdf_model->findStatements(
+        $version_uri, null, null
+      );
+      foreach ($version_stmts as $version_stmt) {
+        $rdf_model->addStatement(
+          new LibRDF_Statement(
+            new LibRDF_URINode($resource_uri),
+            $version_stmt->getPredicate(),
+            $version_stmt->getObject()
+          )
+        );
+      }
     }
 
     $loaded_uris[] = $resource_uri;
