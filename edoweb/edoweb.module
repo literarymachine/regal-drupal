@@ -685,28 +685,43 @@ function edoweb_basic_title($entity) {
 
 function edoweb_basic_raw_title($entity) {
 
+  $label_fields = array();
+
   switch ($entity->bundle_type) {
+    case 'monograph':
+    case 'journal':
+    case 'issue':
+    case 'article':
+      $label_fields[] = 'field_edoweb_title';
+      break;
     case 'volume':
-      $label_field = 'field_edoweb_volume';
+      $label_fields[] = 'field_edoweb_volume';
       break;
     case 'person':
-    case 'subject':
     case 'corporate_body':
-      $label_field = 'field_gnd_name';
+    case 'subject':
+      $label_fields[] = 'field_gnd_name';
+      $label_fields[] = 'field_skos_pref_label';
       break;
     default:
-      $label_field = 'field_edoweb_title';
+      $label_fields[] = 'field_edoweb_label';
       break;
   }
 
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-  try {
-    $title = $wrapper->$label_field->value();
-  } catch (EntityMetadataWrapperException $e) {
-    $title = _edoweb_expand_curie($entity->remote_id);
+  $title_values = array();
+  foreach ($label_fields as $label_field) {
+    try {
+      $title_value = $wrapper->$label_field->value();
+      if ($title_value) $title_values[] = $title_value;
+    } catch (EntityMetadataWrapperException $e) {
+      // Field not available, ignore
+    }
   }
 
-  return $title ? $title : 'Untitled';
+  return empty($title_values)
+    ? _edoweb_expand_curie($entity->remote_id)
+    : implode(' | ', $title_values);
 
 }
 
@@ -1577,6 +1592,7 @@ function edoweb_rdf_namespaces() {
     'rdvocab' => 'http://rdvocab.info/Elements/',
     'file' => 'http://downlode.org/Code/RDF/File_Properties/schema#',
     'marcrel' => 'http://id.loc.gov/vocabulary/relators/',
+    'rpb' => 'http://purl.org/lobid/rpb#',
   );
 }
 

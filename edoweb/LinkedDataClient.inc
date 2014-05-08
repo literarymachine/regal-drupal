@@ -43,7 +43,11 @@ class LinkedDataClient {
    */
   public function getRDF($resource_uri, $loaded_uris = array()) {
 
-    $rdf_parser = new LibRDF_Parser('rdfxml');
+    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $rdf_parser = new LibRDF_Parser('turtle');
+    } else {
+      $rdf_parser = new LibRDF_Parser('rdfxml');
+    }
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
 
     // Prevent recursion
@@ -77,6 +81,23 @@ class LinkedDataClient {
       );
       $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
       $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
+    }
+
+    // Workaround for dct:hasVesion in DDC
+    if ('ddc:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $version_uri = new LibRDF_URINode($resource_uri . '2009/03/about.de');
+      $version_stmts = $rdf_model->findStatements(
+        $version_uri, null, null
+      );
+      foreach ($version_stmts as $version_stmt) {
+        $rdf_model->addStatement(
+          new LibRDF_Statement(
+            new LibRDF_URINode($resource_uri),
+            $version_stmt->getPredicate(),
+            $version_stmt->getObject()
+          )
+        );
+      }
     }
 
     $loaded_uris[] = $resource_uri;
