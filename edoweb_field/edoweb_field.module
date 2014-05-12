@@ -81,7 +81,17 @@ function edoweb_entity_label($entity_type, $entity_id) {
  * Implements hook_field_validate().
  */
 function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
-  // Overwrite default autocomplete behaviour
+
+  // Re-attach all necessary JS to display field after failed validation
+  // since this is not done automatically when validating.
+  drupal_add_library('system', 'drupal.collapse');
+  drupal_add_library('system', 'ui.autocomplete');
+  drupal_add_js(array('edoweb_field' => array(
+    'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
+  )), 'setting');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
     array('weight' => '100')
@@ -315,7 +325,6 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 
       // Add autocomplete JS
       drupal_add_library('system', 'ui.autocomplete');
-      drupal_add_library('system', 'ui.tabs');
       drupal_add_js(
         drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js'
       );
