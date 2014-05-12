@@ -1597,6 +1597,53 @@ function edoweb_rdf_namespaces() {
 }
 
 /**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ *
+ */
+function edoweb_block_info() {
+  $blocks = array();
+  $blocks['edoweb_search_block'] = array(
+    'info' => t('Edoweb search'),
+    'visibility' => BLOCK_VISIBILITY_NOTLISTED,
+    'pages' => 'resource',
+    'status' => 1,
+    'region' => 'sidebar_first',
+    'weight' => '100',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function edoweb_block_view($delta = '') {
+  $block = array();
+  // The $delta parameter tells us which block is being requested.
+  switch ($delta) {
+    case 'edoweb_search_block':
+      drupal_add_css(
+        '.block .form-text {max-width: 100%;}',
+        array('type' => 'inline')
+      );
+      $block['subject'] = t('Search');
+      $block['content'] = drupal_get_form(
+        'edoweb_basic_search_entities_form', FALSE, 0, array()
+      );
+      $block['content']['#action'] = url('resource');
+      unset($block['content']['form_build_id']);
+      unset($block['content']['form_id']);
+      unset($block['content']['form_token']);
+      break;
+  }
+  return $block;
+}
+
+/**
  * Implements hook_help().
  */
 function edoweb_help($path, $arg) {

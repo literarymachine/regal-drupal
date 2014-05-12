@@ -115,7 +115,7 @@ function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $
             !_edoweb_value_is_valid_uri($item['value'])) {
           $errors[$field['field_name']][$langcode][$delta][] = array(
             'error' => 'edoweb_field_uri_invalid',
-            'message' => t('Value must be a valid, absolute URI.'),
+            'message' => t($instance['label'] . ' must be a valid, absolute URI.'),
           );
         }
       }
