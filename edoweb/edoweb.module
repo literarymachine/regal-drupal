@@ -719,7 +719,7 @@ function edoweb_basic_raw_title($entity) {
     }
   }
 
-  return empty($title_values)
+  return (empty($title_values) && isset($entity->remote_id))
     ? _edoweb_expand_curie($entity->remote_id)
     : implode(' | ', $title_values);
 
@@ -1448,7 +1448,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   field_attach_submit('edoweb_basic', $entity, $form, $form_state);
 
   // Save the entity
-  $entity = edoweb_basic_save($entity);
+  edoweb_basic_save($entity);
 
   // Reset cache to force reload of structural metadata from API
   $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
