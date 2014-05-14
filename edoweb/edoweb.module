@@ -496,6 +496,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
   // Prepare query: header for table sort
   $header = array(
     'ID',
+    'HT-Nummer',
     array(
       'data' => 'Updated',
       'type' => 'property',
@@ -638,6 +639,10 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations, $search_
       $rows[] = array(
         'data' => array(
           'id' => l($entity->remote_id, "resource/{$entity->remote_id}"),
+          'hbzid' =>
+            ($hbzid = field_get_items(
+              'edoweb_basic', $entity, 'field_edoweb_identifier_ht'
+            )) ? $hbzid[0]['value'] : '',
           'updated' => format_date($entity->updated, 'custom', 'd.m.Y - H:i:s'),
           'title' => l(edoweb_basic_raw_title($entity), "resource/{$entity->remote_id}"),
           'issued' => 
