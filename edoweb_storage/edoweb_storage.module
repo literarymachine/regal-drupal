@@ -732,10 +732,13 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
         new LibRDF_URINode(_edoweb_expand_curie($remote_id)),
         new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
       );
+      $rdf_type_curies = array();
       foreach ($rdf_types as $rdf_type) {
-        $type = _edoweb_compact_uri($rdf_type->getValue());
-        foreach (edoweb_rdf_types() as $bundle => $types) {
-          if (in_array($type, $types)) {
+        $rdf_type_curies[] = _edoweb_compact_uri($rdf_type->getValue());
+      }
+      foreach (edoweb_rdf_types() as $bundle => $types) {
+        foreach ($rdf_type_curies as $rdf_type_curie) {
+          if (in_array($rdf_type_curie, $types)) {
             return $bundle;
           }
         }
