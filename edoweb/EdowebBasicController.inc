@@ -107,8 +107,12 @@ class EdowebBasicController extends EntityAPIController {
     }
     // If our entity has no remote_id, create one.
     if (empty($entity->remote_id)) {
-      $namespace = variable_get('edoweb_api_namespace');
-      $entity->remote_id = "$namespace:" . self::uuid_v4();
+      if (in_array($entity->bundle_type, array('person', 'subject'))) {
+        $entity->remote_id = "local:" . self::uuid_v4();
+      } else {
+        $namespace = variable_get('edoweb_api_namespace');
+        $entity->remote_id = "$namespace:" . self::uuid_v4();
+      }
     }
     // If our entity has no owner, set current user.
     if (empty($entity->uid)) {

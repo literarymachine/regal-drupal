@@ -113,10 +113,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function save($entity) {
 
     // Local entities are stored in the file system
-    //$this->saveResource($entity);
+    $this->saveResource($entity);
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
-    //$this->saveFiles($entity);
+    $this->saveFiles($entity);
     $this->saveMetadata($entity);
   }
 
@@ -126,7 +126,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity, array('descriptive')
     );
     header("Content-Type: text/plain");
-    die( $http_post_data );
+//    die( $http_post_data );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
@@ -430,23 +430,39 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
     $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
 
+    // Retrieve hit count
+    $search_total_results = new LibRDF_URINode(
+      'http://sindice.com/vocab/search#totalResults'
+    );
+    try {
+      //FIXME: why does query URL as subject not work?
+      //$hits = $rdf_model->getTarget(
+      //  new LibRDF_URINode($http_url), $search_total_results
+      //)->getValue();
+      $hits = $rdf_model->findStatements(
+        null, $search_total_results, null
+      )->current()->getObject()->getValue();
+    } catch (LibRDF_LookupError $e) {
+      $hits = 0;
+    }
+    $results = array(
+      'hits' => $hits
+    );
+
+    // Retrieve primary topics, i.e. actual result resources
     $foaf_primary_topic = new LibRDF_URINode(
       'http://xmlns.com/foaf/0.1/primaryTopic'
     );
     $primary_topics = $rdf_model->findStatements(
       null, $foaf_primary_topic, null
     );
-    $results = array(
-      'hits' => 0,
-      EDOWEB_ENTITY_TYPE => array(),
-    );
+
     foreach ($primary_topics as $primary_topic) {
       $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(
         $remote_id, $rdf_model
       );
       $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
-      $results['hits']++;
     }
     return $results;
   }

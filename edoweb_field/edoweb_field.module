@@ -68,6 +68,13 @@ function edoweb_field_menu() {
     'access arguments' => array(1, 'read'),
     'type' => MENU_CALLBACK,
   );
+  $items['edoweb_entity_add'] = array(
+    'page callback' => 'edoweb_entity_add',
+    'page arguments' => array(1, 2, 3),
+    'access callback' => 'entity_js_access',
+    'access arguments' => array(1, 'create'),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -93,6 +100,22 @@ function edoweb_entity_list($entity_type) {
   $header = edoweb_basic_table_header();
   $output = edoweb_basic_entity_table($header, $entities);
   die(drupal_render($output));
+}
+
+/**
+ * Raw edit form for JavaScript callbacks.
+ */
+function edoweb_entity_add($entity_type, $bundle_type, $entity_id = null) {
+  // Create a basic entity structure to be used and passed to the validation
+  // and submission functions.
+  $entity = entity_get_controller($entity_type)->create(
+    array('bundle_type' => $bundle_type)
+  );
+  $form = drupal_get_form('edoweb_basic_form', $entity);
+  unset($form['submit']);
+  unset($form['cancel']);
+  $form['#action'] = url("resource/add/{$bundle_type}");
+  die(drupal_render($form));
 }
 
 /**
@@ -343,6 +366,10 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 
       $field_name = $field['field_name'];
       $bundle_name = $instance['bundle'];
+      $field_group = array_key_exists(
+        'field_group', $field['settings']
+      ) ? $field['settings']['field_group']
+        : false;
 
       drupal_add_library('system', 'drupal.collapse');
       drupal_add_library('system', 'ui.dialog');
@@ -372,6 +399,10 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           'data-bundle' => $bundle_name,
         ),
       );
+      if ($field_group) {
+        $element['edoweb_autocomplete_widget']['value']
+          ['#attributes']['data-field-group'] = $field_group;
+      }
 
       // Submit button to add new values
       $element['edoweb_autocomplete_widget']['submit'] = array(
@@ -407,17 +438,22 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
 
       // List items
       foreach ($items as $i => $item) {
-        $item_uri = $item['value']
-          ? _edoweb_expand_curie($item['value']) : '';
         $item_curie = $item['value']
           ? _edoweb_compact_uri($item['value']) : '';
 
         $element[$i]['value'] = array(
           '#type' => 'textfield',
           '#attributes' => array(
-            'value' => $item_uri,
+            'value' => $item_curie,
             'data-curie' => $item_curie,
           ),
+        );
+      }
+
+      if (empty($items)) {
+        $element['edoweb_autocomplete_widget']['note'] = array(
+          '#type' => 'item',
+          '#markup' => '<em>Es liegen keine Einträge für '.$instance['label'].' vor. Klicken Sie zum Hinzufügen oben auf [+].</em>',
         );
       }
 

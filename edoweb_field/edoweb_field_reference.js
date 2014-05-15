@@ -35,11 +35,8 @@
     return $.get(Drupal.settings.basePath + 'edoweb_entity_list/' + entity_type + '?' + $.param({ids: entity_curies}));
   }
 
-  var attached = false;
   Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
-      if (attached) return;
-      attached = true;
       // Load entity into fieldset
       $(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').each(function(i, element) {
         var link = $(element).closest('fieldset').children('div.fieldset-wrapper').children('input[type=hidden]').get(0);
@@ -79,15 +76,30 @@
         };
       });
 
+      // Tooltips
+      $(context).find('form#edoweb-basic-form div.description').each(function() {
+        var tooltip_icon = $('<img />')
+          .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+          .attr('title', $(this).text())
+          .css('height', '1em');
+        $(this).prevAll('label').append(tooltip_icon);
+        $(this).remove();
+      });
+
       // Attach lookup overlay to form
-      var lookup_overlay = $('<div />').dialog({
+      var modal_overlay = $('<div />').dialog({
+        position: 'center',
         autoOpen: false,
+        modal: true,
         //resizable: false,
         width: 'auto'
       });
 
       $(context).find('.field-type-edoweb-ld-reference').each(function() {
         var source = $(this);
+        // Prevent multiple behaviour attach
+        if (source.hasClass('edoweb-field-behaviour-attached')) return false;
+        source.addClass('edoweb-field-behaviour-attached');
         // Hide input elements
         source.find('input.edoweb_autocomplete_widget').hide();
         source.find('input[type="submit"]').hide();
@@ -128,75 +140,166 @@
 
         // Open lookup overlay
         var button = $('<a href="#"> [+]</a>').click(function(e) {
-          lookup_overlay.html('<div />');
-          refreshTable(lookup_overlay, source);
-          lookup_overlay.dialog('open');
+          modal_overlay.html('<div />');
+          refreshTable(modal_overlay, source);
+          modal_overlay.dialog('open');
           return false;
         });
         source.find('label').append(button);
       });
+
+      // Group lookup fieldsets by group name
+      var field_groups = {};
+      $(context).find('input.edoweb_autocomplete_widget[data-field-group]').each(function() {
+        // Prevent multiple behaviour attach
+        if ($(this).hasClass('edoweb-field-behaviour-attached')) return false;
+        $(this).addClass('edoweb-field-behaviour-attached');
+        var field_group = $(this).attr('data-field-group');
+        var source_widget = $(this).closest('.field-widget-edoweb-autocomplete-widget');
+        if (field_groups[field_group]) {
+          field_groups[field_group].push(source_widget);
+        } else {
+          field_groups[field_group] = [source_widget];
+        }
+      });
+
+      $.each(field_groups, function (field_group, source_widgets) {
+        var insert_position = source_widgets[0].prev();
+        var group_fieldset = $('<div><label>' + field_group + ': <select /></label></div>');
+        var select = group_fieldset.find('select');
+        select.change(function() {
+          $.each(source_widgets, function(i, source_widget) {
+            source_widget.hide();
+            select.nextAll('span').hide();
+          });
+          $(select.nextAll('span').get(this.selectedIndex)).show();
+          source_widgets[this.selectedIndex].show();
+        });
+        $.each(source_widgets, function(i, source_widget) {
+          var focus_link = source_widget.find('a[name="focus"]').first();
+          group_fieldset.find('select').append($('<option>' + source_widget.find('label').get(0).childNodes[0].data + '</option>'));
+          if (focus_link.length > 0) {
+            group_fieldset.prepend(focus_link);
+            select.get(0).selectedIndex = i;
+          }
+          var meta = $('<span />');
+          meta.append(source_widget.find('label img'));
+          meta.append(source_widget.find('label a'));
+          source_widget.find('label').remove();
+          select.closest('label').append(meta.hide());
+          group_fieldset.append(source_widget.hide());
+        });
+        insert_position.after(group_fieldset);
+        $(select.nextAll('span').get(select.get(0).selectedIndex)).show();
+        source_widgets[select.get(0).selectedIndex].show();
+      });
+
+      // Live search result updates
+      var delay = (function(){
+        var timer = 0;
+        return function(callback, ms) {
+          clearTimeout (timer);
+          timer = setTimeout(callback, ms);
+        };
+      })();
+      $(context).find('.edoweb_live_search').bind('keypress', function() {
+        var trigger_button = $(this).parent().next('input');
+        delay(function() {
+          trigger_button.click();
+        }, 300);
+      });
     }
+
   };
 
-function refreshTable(container, source, page, sort, order, term) {
-  if(!page) page = 0;
-  if(!sort) sort = '';
-  if(!order) order = '';
-  if(!term) term = '';
+  function refreshTable(container, source, page, sort, order, term) {
+    if(!page) page = 0;
+    if(!sort) sort = '';
+    if(!order) order = '';
+    if(!term) term = '';
 
-  var bundle_name = source.find('input.edoweb_autocomplete_widget').attr('data-bundle');
-  var field_name = source.find('input.edoweb_autocomplete_widget').attr('data-field');
-  var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    var bundle_name = source.find('input.edoweb_autocomplete_widget').attr('data-bundle');
+    var field_name = source.find('input.edoweb_autocomplete_widget').attr('data-field');
+    var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
 
-  jQuery.ajax({
-    cache: false,
-    url: qurl,
-    data: {page: page, sort: sort, order: order, 'query[0][term]': term},
-    dataType: 'text',
-    error: function(request, status, error) {
-      alert(status);
-    },
-    success: function(data, status, request) {
-      var html = data;
+    jQuery.ajax({
+      cache: false,
+      url: qurl,
+      data: {page: page, sort: sort, order: order, 'query[0][term]': term},
+      dataType: 'text',
+      error: function(request, status, error) {
+        console.log(status);
+      },
+      success: function(data, status, request) {
+        var html = $(data);
 
-      container.html(html);
+        html.find('a[data-bundle]').each(function() {
 
-      container.find('th a')
-        .add(container.find('.pager-item a'))
-        .add(container.find('.pager-first a'))
-        .add(container.find('.pager-previous a'))
-        .add(container.find('.pager-next a'))
-        .add(container.find('.pager-last a'))
-          .click(function(el, a, b, c) {
-            var url = jQuery.url(el.currentTarget.getAttribute('href'));
-            refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'));
-            return (false);
-          });
+          if (!('person' == this.getAttribute('data-bundle'))) {
+            $(this).remove();
+            return false;
+          }
 
-      container.find('input[name="op"]').click(function() {
-        var term = container.find('input[type="text"]').val();
-        refreshTable(container, source, null, null, null, term);
-        return false;
-      });
-
-      container.find('.sticky-enabled > tbody > tr').each(function() {
-        var row = jQuery(this);
-        jQuery(this).children('td').last()
-          .append('<button>Hinzufügen</button>')
-          .bind('click', function(event) {
-            var resource_uri = row.children('td').first().children('a').first().text();
-            source.find('input.edoweb_autocomplete_widget').val(resource_uri);
-            source.find('input[type="submit"]').click();
-            container.dialog('close');
+          $(this).bind('click', function(e) {
+            var url = Drupal.settings.basePath + '?q=edoweb_entity_add/edoweb_basic/' + this.getAttribute('data-bundle');
+            $.get(url, function(data) {
+              var form = $(data);
+              form.submit(function() {
+                var post_data = $(this).serializeArray();
+                var form_url = $(this).attr('action');
+                $.post(form_url, post_data, function(data, textStatus, jqXHR) {
+                  var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
+                  container.dialog('close');
+                  source.find('input.edoweb_autocomplete_widget').val(resource_uri);
+                  source.find('input[type="submit"]').click();
+                });
+                return false;
+              });
+              container.html(form);
+              Drupal.attachBehaviors(container);
+            });
             return false;
           });
-      });
+        });
 
-      Drupal.attachBehaviors(container);
+        container.html(html);
 
-    }
-  });
-}
+        container.find('th a')
+          .add(container.find('.pager-item a'))
+          .add(container.find('.pager-first a'))
+          .add(container.find('.pager-previous a'))
+          .add(container.find('.pager-next a'))
+          .add(container.find('.pager-last a'))
+            .click(function(el, a, b, c) {
+              var url = jQuery.url(el.currentTarget.getAttribute('href'));
+              refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'));
+              return (false);
+            });
+
+        container.find('input[name="op"]').click(function() {
+          var term = container.find('input[type="text"]').val();
+          refreshTable(container, source, null, null, null, term);
+          return false;
+        });
+
+        container.find('.sticky-enabled > tbody > tr').each(function() {
+          var row = jQuery(this);
+          jQuery(this).children('td').last()
+            .append('<button>Hinzufügen</button>')
+            .bind('click', function(event) {
+              container.dialog('close');
+              var resource_uri = row.children('td').first().children('a').first().text();
+              source.find('input.edoweb_autocomplete_widget').val(resource_uri);
+              source.find('input[type="submit"]').click();
+              return false;
+            });
+        });
+
+        Drupal.attachBehaviors(container);
+
+      }
+    });
+  }
 
 })(jQuery);
 

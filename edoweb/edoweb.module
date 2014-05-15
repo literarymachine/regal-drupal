@@ -373,12 +373,15 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
-  drupal_add_js(drupal_get_path('module', 'edoweb') . '/edoweb_search.js');
-  drupal_add_library('system', 'drupal.collapse');
-  drupal_add_js('initializeTable("#table-container");Drupal.attachBehaviors(jQuery("#table-container"));', 'inline');
+  drupal_add_library('system', 'ui.dialog');
+  $query = new EntityFieldQuery();
+  $query->addTag('elasticsearch');
+  $query->entityCondition('entity_type', 'edoweb_basic');
+  $content['resource_list'] = edoweb_basic_search_entities(
+    $query, TRUE
+  );
 
-  return ('<div id="table-container"></div>');
+  return $content;
 }
 
 /**
@@ -447,7 +450,7 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
 
 }
 
-function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query) {
+function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query, $live_search = TRUE) {
 
   $form['#method'] = 'get';
 
@@ -468,13 +471,18 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     );
   }
 
-  $form['query'][$search_count]['term']= array(
+  $form['query'][$search_count]['term'] = array(
     '#type' => 'textfield',
     '#default_value' => isset($query['term']) ? $query['term'] : '',
     '#attributes' => array(
-      'title' => t( 'Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.')
+      'title' => t('Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.'),
     ),
   );
+
+  if ($live_search) {
+    $form['query'][$search_count]['term']['#attributes']['class']
+      = array('edoweb_live_search');
+  }
 
   $form['query'][$search_count]['submit'] = array(
     '#type' => 'submit',
@@ -515,6 +523,21 @@ function edoweb_basic_search_entities(
   unset($content['search']['form_build_id']);
   unset($content['search']['form_id']);
   unset($content['search']['form_token']);
+
+  if (isset($efq->entityConditions['bundle'])) {
+    $links = '';
+    foreach($efq->entityConditions['bundle']['value'] as $target_bundle) {
+      $links .= l(
+        "Add {$target_bundle}",
+        "resource/add/{$target_bundle}",
+        array('attributes' => array('data-bundle' => $target_bundle))
+      );
+    }
+    $content['add'] = array(
+      '#type' => 'item',
+      '#markup' => $links,
+    );
+  }
 
   if (@$users = $query['users']) {
     $target_users = array_keys($users);
@@ -625,6 +648,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
  */
 function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null) {
 
+  drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
@@ -699,7 +723,6 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
   // Available facets
   if (isset($result['facets'])) {
     // Add list of available facets
-    drupal_add_library('system', 'drupal.collapse');
     $content['filters']['facets'] = array(
       '#type' => 'fieldset',
       '#title' => t('Add Facet'),
@@ -933,6 +956,9 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     $entity->content, $entity_type);
 
   _edoweb_build_breadcrumb($entity);
+
+  // Add custom HTTP header for AJAX requests
+  drupal_add_http_header('X-Edoweb-Entity', $entity->remote_id);
 
   // And finally return the content.
   return $entity->content;
@@ -1534,11 +1560,12 @@ function edoweb_basic_form_submit($form, &$form_state) {
     }
   }
 
-  if ($form_state['triggering_element']['#name'] == 'finish') {
-    $form_state['redirect'] = "resource/{$entity->remote_id}";
-  } else if ($form_state['triggering_element']['#name'] == 'save') {
+  if ($form_state['triggering_element']['#name'] == 'save') {
     $form_state['redirect'] = "resource/{$entity->remote_id}/edit";
+  } else {
+    $form_state['redirect'] = "resource/{$entity->remote_id}";
   }
+  $form_state['redirect'] = "resource/{$entity->remote_id}";
 }
 
 /**
@@ -1708,7 +1735,7 @@ function edoweb_block_view($delta = '') {
       );
       $block['subject'] = t('Search');
       $block['content'] = drupal_get_form(
-        'edoweb_basic_search_entities_form', FALSE, 0, array()
+        'edoweb_basic_search_entities_form', FALSE, 0, array(), FALSE
       );
       $block['content']['#action'] = url('resource');
       unset($block['content']['form_build_id']);
