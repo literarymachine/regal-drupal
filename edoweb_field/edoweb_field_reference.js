@@ -235,7 +235,9 @@
 
         html.find('a[data-bundle]').each(function() {
 
-          if (!('person' == this.getAttribute('data-bundle'))) {
+          if (!('person' == this.getAttribute('data-bundle'))
+              && !('corporate_body' == this.getAttribute('data-bundle')))
+          {
             $(this).remove();
             return false;
           }

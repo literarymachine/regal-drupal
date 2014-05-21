@@ -418,10 +418,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
     $rdf_parser = new LibRDF_Parser('ntriples');
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdf_model->loadStatementsFromString(
-      $rdf_parser,
-      $http_response->data
-    );
+
+    try {
+      $rdf_model->loadStatementsFromString(
+        $rdf_parser,
+        $http_response->data
+      );
+    } catch (LibRDF_Error $e) {
+      return FALSE;
+    }
 
     $ontology_model = new LibRDF_Model(new LibRDF_Storage());
     $ontology_model->loadStatementsFromUri(

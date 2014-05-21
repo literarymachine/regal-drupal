@@ -527,11 +527,11 @@ function edoweb_basic_search_entities(
   if (isset($efq->entityConditions['bundle'])) {
     $links = '';
     foreach($efq->entityConditions['bundle']['value'] as $target_bundle) {
-      $links .= l(
+      $links .= '[' . l(
         "Add {$target_bundle}",
         "resource/add/{$target_bundle}",
         array('attributes' => array('data-bundle' => $target_bundle))
-      );
+      ) . '] ';
     }
     $content['add'] = array(
       '#type' => 'item',
@@ -799,7 +799,6 @@ function edoweb_basic_raw_title($entity) {
     case 'corporate_body':
     case 'subject':
       $label_fields[] = 'field_gnd_name';
-      $label_fields[] = 'field_skos_pref_label';
       break;
     default:
       $label_fields[] = 'field_edoweb_label';
@@ -2288,4 +2287,58 @@ function edoweb_update_7113() {
     $field_info['settings']['field_group'] = null;
     field_update_field($field_info);
   }
+}
+
+/**
+ * Update field and instance definitions:
+ * - use name parameter for lobid lookups
+ * - delete SKOS-specific fields
+ */
+function edoweb_update_7114() {
+  field_delete_field('field_skos_pref_label');
+  field_delete_field('field_skos_notation');
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_editor',
+    'field_edoweb_edt',
+    'field_edoweb_translator',
+    'field_edoweb_ill',
+    'field_edoweb_act',
+    'field_edoweb_drt',
+    'field_edoweb_clb',
+    'field_edoweb_pht',
+    'field_edoweb_cnd',
+    'field_edoweb_cmp',
+    'field_edoweb_aui',
+    'field_edoweb_aus',
+    'field_edoweb_col',
+    'field_edoweb_ctb',
+    'field_edoweb_prf',
+    'field_edoweb_cng',
+    'field_edoweb_ant',
+    'field_edoweb_voc',
+    'field_edoweb_ivr',
+    'field_edoweb_ive',
+    'field_edoweb_ctg',
+    'field_edoweb_mus',
+    'field_edoweb_aft',
+    'field_edoweb_pro',
+    'field_edoweb_egr',
+    'field_edoweb_dte',
+    'field_edoweb_subject',
+    'field_edoweb_parallel',
+    'field_gnd_profession',
+    'field_gnd_name',
+    'field_gnd_identifier',
+  );
+  $updated_instances = array(
+    'person' => array(
+      'field_gnd_profession',
+    ),
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
