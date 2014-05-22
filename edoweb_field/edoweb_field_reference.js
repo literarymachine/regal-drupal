@@ -246,8 +246,14 @@
             var url = Drupal.settings.basePath + '?q=edoweb_entity_add/edoweb_basic/' + this.getAttribute('data-bundle');
             $.get(url, function(data) {
               var form = $(data);
-              form.submit(function() {
+              // TODO: implement unlimited nesting, i.e. allow modal
+              // dialog over modal dialog
+              form.find('.field-type-edoweb-ld-reference').remove();
+              form.submit(function(e) {
                 var post_data = $(this).serializeArray();
+                // Need to set this manually so that Drupal detects the
+                // proper triggering element!
+                post_data.push({name: 'save', value: 'Save'})
                 var form_url = $(this).attr('action');
                 $.post(form_url, post_data, function(data, textStatus, jqXHR) {
                   var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
