@@ -96,8 +96,9 @@ function edoweb_entity_label($entity_type, $entity_id) {
  */
 function edoweb_entity_list($entity_type) {
   $ids = isset($_GET['ids']) ? $_GET['ids'] : array();
+  $columns = isset($_GET['columns']) ? $_GET['columns'] : 'generic';
   $entities = edoweb_basic_load_multiple($ids);
-  $header = edoweb_basic_table_header();
+  $header = edoweb_basic_table_header($columns);
   $output = edoweb_basic_entity_table($header, $entities);
   die(drupal_render($output));
 }
@@ -112,6 +113,7 @@ function edoweb_entity_add($entity_type, $bundle_type, $entity_id = null) {
     array('bundle_type' => $bundle_type)
   );
   $form = drupal_get_form('edoweb_basic_form', $entity);
+
   unset($form['submit']);
   unset($form['cancel']);
   $form['#action'] = url("resource/add/{$bundle_type}");
@@ -370,6 +372,9 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         'field_group', $field['settings']
       ) ? $field['settings']['field_group']
         : false;
+      $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
+        ? array_values($instance['settings']['handler_settings']['target_bundles'])
+        : array_values($field['settings']['handler_settings']['target_bundles']);
 
       drupal_add_library('system', 'drupal.collapse');
       drupal_add_library('system', 'ui.dialog');
@@ -397,6 +402,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           'class' => array('edoweb_autocomplete_widget', $field_name),
           'data-field' => $field_name,
           'data-bundle' => $bundle_name,
+          'data-target-bundle' => implode(' ' ,$target_bundles),
         ),
       );
       if ($field_group) {

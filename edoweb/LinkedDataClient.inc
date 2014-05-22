@@ -41,7 +41,7 @@ class LinkedDataClient {
   /*
    * Load the RDF for a linked data resource
    */
-  public function getRDF($resource_uri, $loaded_uris = array()) {
+  public function getRDF($resource_uri, $loaded_uris = 0) {
 
     if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
       $rdf_parser = new LibRDF_Parser('turtle');
@@ -51,7 +51,7 @@ class LinkedDataClient {
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
 
     // Prevent recursion
-    if (in_array($resource_uri, $loaded_uris)) {
+    if ($loaded_uris > 1) {
       return $rdf_model;
     }
 
@@ -100,14 +100,13 @@ class LinkedDataClient {
       }
     }
 
-    $loaded_uris[] = $resource_uri;
     $OWL = new LibRDF_NS('http://www.w3.org/2002/07/owl#');
     $equivalent_resources = $rdf_model->getTargets(
       new LibRDF_URINode($resource_uri), $OWL->sameAs
     );
     foreach ($equivalent_resources as $equivalent_resource) {
       $same_as_rdf = $this->getRDF(
-        $equivalent_resource->getValue(), $loaded_uris
+        $equivalent_resource->getValue(), ++$loaded_uris
       );
       foreach ($same_as_rdf as $stmt) {
         if ($stmt->getSubject()->isEqual($equivalent_resource)) {

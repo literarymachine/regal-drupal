@@ -31,8 +31,8 @@
   /**
    * Function returns an entities label.
    */
-  function entity_list(entity_type, entity_curies) {
-    return $.get(Drupal.settings.basePath + 'edoweb_entity_list/' + entity_type + '?' + $.param({ids: entity_curies}));
+  function entity_list(entity_type, entity_curies, columns) {
+    return $.get(Drupal.settings.basePath + 'edoweb_entity_list/' + entity_type + '?' + $.param({'ids': entity_curies, 'columns': columns}));
   }
 
   Drupal.behaviors.edoweb_field_reference = {
@@ -97,6 +97,10 @@
 
       $(context).find('.field-type-edoweb-ld-reference').each(function() {
         var source = $(this);
+        var columns = source
+          .find('input[data-target-bundle]')
+          .attr('data-target-bundle')
+          .split(' ')[0];
         // Prevent multiple behaviour attach
         if (source.hasClass('edoweb-field-behaviour-attached')) return false;
         source.addClass('edoweb-field-behaviour-attached');
@@ -115,7 +119,7 @@
         if (curies.length > 0) {
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
           $(source).append(throbber);
-          entity_list('edoweb_basic', curies).onload = function () {
+          entity_list('edoweb_basic', curies, columns).onload = function () {
             if (this.status == 200) {
               var result_table = $(this.responseText);
               result_table.find('tbody > tr').each(function() {
@@ -203,7 +207,7 @@
         };
       })();
       $(context).find('.edoweb_live_search').bind('keypress', function() {
-        var trigger_button = $(this).parent().next('input');
+        var trigger_button = $(this).parent().nextAll('input[type=submit]');
         delay(function() {
           trigger_button.click();
         }, 300);
@@ -212,20 +216,28 @@
 
   };
 
-  function refreshTable(container, source, page, sort, order, term) {
+  function refreshTable(container, source, page, sort, order, term, type) {
     if(!page) page = 0;
     if(!sort) sort = '';
     if(!order) order = '';
     if(!term) term = '';
+    if(!type) type = '';
 
     var bundle_name = source.find('input.edoweb_autocomplete_widget').attr('data-bundle');
     var field_name = source.find('input.edoweb_autocomplete_widget').attr('data-field');
     var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    var params = {
+      page: page,
+      sort: sort,
+      order: order,
+      'query[0][term]': term,
+      'query[0][type]': type,
+    };
 
     jQuery.ajax({
       cache: false,
       url: qurl,
-      data: {page: page, sort: sort, order: order, 'query[0][term]': term},
+      data: params,
       dataType: 'text',
       error: function(request, status, error) {
         console.log(status);
@@ -272,6 +284,13 @@
 
         container.html(html);
 
+        container.find('input[name="op"]').click(function() {
+          var term = container.find('input[type="text"]').val();
+          var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
+          refreshTable(container, source, null, null, null, term, target_type);
+          return false;
+        });
+
         container.find('th a')
           .add(container.find('.pager-item a'))
           .add(container.find('.pager-first a'))
@@ -279,16 +298,11 @@
           .add(container.find('.pager-next a'))
           .add(container.find('.pager-last a'))
             .click(function(el, a, b, c) {
+              var target_type = container.find('input[type=radio]:checked').first().val();
               var url = jQuery.url(el.currentTarget.getAttribute('href'));
-              refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'));
+              refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type);
               return (false);
             });
-
-        container.find('input[name="op"]').click(function() {
-          var term = container.find('input[type="text"]').val();
-          refreshTable(container, source, null, null, null, term);
-          return false;
-        });
 
         container.find('.sticky-enabled > tbody > tr').each(function() {
           var row = jQuery(this);

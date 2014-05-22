@@ -361,7 +361,7 @@ function _edoweb_storage_entity_serialize_rdf(
 ){
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   // First element contains the rdf:type definitions
   $rdf_type_predicate = new LibRDF_URINode(
@@ -481,7 +481,7 @@ function _edoweb_storage_entity_serialize_rdf(
 
 function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser) {
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   try {
@@ -565,16 +565,11 @@ function _get_rdf_subject($entity, $field_name) {
 
 }
 
-function _edoweb_storage_entity_get_bundle($entity) {
-  $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
-  return $entity_ids[2];
-}
-
 function _edoweb_storage_entity_serialize_jsonld(
   $entity, $metadata_types = array()
 ){
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   $jsonld_context = new stdClass();
   $rdf_namespaces = rdf_get_namespaces();

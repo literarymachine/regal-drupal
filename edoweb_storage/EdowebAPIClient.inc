@@ -399,15 +399,23 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $size = array_key_exists('length', $efq->range)
       ? $efq->range['length']
       : $results_per_page;
+    $type = array_key_exists('type', $efq->metaData)
+      ? $efq->metaData['type']
+      : null;
 
     $http_url = sprintf(
       'http://%s/%s?%s=%s&from=%s&size=%s',
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
 
+    if ($type) {
+      $http_url .= '&type=' . urlencode($type);
+    }
+
     $http_response = $this->_http_get(
       $http_url, 'text/plain'
     );
+
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to execute query on @api.',
         array(
