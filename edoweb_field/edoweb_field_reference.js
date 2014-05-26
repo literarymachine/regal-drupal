@@ -200,17 +200,17 @@
 
       // Live search result updates
       var delay = (function(){
-        var timer = 0;
+        var timer;
         return function(callback, ms) {
           clearTimeout (timer);
           timer = setTimeout(callback, ms);
         };
       })();
-      $(context).find('.edoweb_live_search').bind('keypress', function() {
+      $(context).find('.edoweb_live_search').bind('keyup', function() {
         var trigger_button = $(this).parent().nextAll('input[type=submit]');
         delay(function() {
           trigger_button.click();
-        }, 300);
+        }, 1000);
       });
     }
 

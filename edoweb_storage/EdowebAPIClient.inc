@@ -470,6 +470,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       null, $foaf_primary_topic, null
     );
 
+    LinkedDataClient::setTripleStore($rdf_model);
     foreach ($primary_topics as $primary_topic) {
       $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(
