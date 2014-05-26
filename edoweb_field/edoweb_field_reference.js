@@ -66,6 +66,24 @@
         }
       });
 
+      $(context).find('.field-type-edoweb-ld-reference .field-items').each(function() {
+        var container = $(this);
+        var curies = [];
+        $(this).find('input[type=hidden]').each(function() {
+          curies.push(this.value);
+        });
+        var columns = container
+          .find('fieldset[data-target-bundle]')
+          .attr('data-target-bundle')
+          .split(' ')[0];
+        entity_list('edoweb_basic', curies, columns).onload = function () {
+          if (this.status == 200) {
+            var result_table = $(this.responseText);
+            container.replaceWith(result_table);
+          }
+        };
+      });
+
       // Load labels for Linked Data References
       $(context).find('a[data-curie]').each(function() {
         var link = $(this);
@@ -95,7 +113,7 @@
         width: 'auto'
       });
 
-      $(context).find('.field-type-edoweb-ld-reference').each(function() {
+      $(context).find('form .field-type-edoweb-ld-reference').each(function() {
         var source = $(this);
         var columns = source
           .find('input[data-target-bundle]')

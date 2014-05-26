@@ -280,7 +280,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   $elements = array();
   switch ($display['type']) {
     case 'edoweb_ld_format':
-      $elements = _edoweb_field_embed_entities($items, $entity->remote_id);
+      $elements = _edoweb_field_embed_entities($items, $entity->remote_id, 'collapsed', $field, $instance);
       break;
     case 'edoweb_datastream_format':
       $edoweb_api_host = variable_get('edoweb_api_host');
@@ -294,7 +294,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   return $elements;
 }
 
-function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed') {
+function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed', $field = null, $instance = null) {
   drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(array('edoweb_field' => array(
     'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
@@ -317,6 +317,13 @@ function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'co
         '#value' => $remote_id,
       ),
     );
+    if ($field && $instance) {
+      $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
+        ? array_values($instance['settings']['handler_settings']['target_bundles'])
+        : array_values($field['settings']['handler_settings']['target_bundles']);
+      $elements[$delta]['#attributes']['data-target-bundle']
+        = implode(' ', $target_bundles);
+    }
   }
   return $elements;
 }
