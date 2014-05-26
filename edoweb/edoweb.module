@@ -1017,6 +1017,9 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
+  drupal_add_css(
+    drupal_get_path('module', 'edoweb') . '/edoweb.css'
+  );
   drupal_add_library('system', 'ui.dialog');
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';

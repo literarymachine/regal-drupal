@@ -1,0 +1,10 @@
+.field-label {
+  display: block;
+  float: left;
+  width: 12em;
+}
+
+.field-item {
+  display: block;
+  margin-left: 12em;
+}
