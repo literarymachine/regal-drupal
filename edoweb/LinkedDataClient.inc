@@ -43,7 +43,9 @@ class LinkedDataClient {
    */
   public function getRDF($resource_uri, $loaded_uris = 0) {
 
-    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)
+        || 'nwbib:' == substr(_edoweb_compact_uri($resource_uri), 0, 6))
+    {
       $rdf_parser = new LibRDF_Parser('turtle');
     } else {
       $rdf_parser = new LibRDF_Parser('rdfxml');

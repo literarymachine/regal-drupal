@@ -1827,7 +1827,8 @@ function edoweb_rdf_types() {
     'monograph' => array(
       'bibo:Book',
       'dc:BibliographicResource',
-      'bibo:Series'
+      'bibo:Series',
+      'bibo:Collection',
     ),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
@@ -1871,6 +1872,8 @@ function edoweb_rdf_namespaces() {
     'file' => 'http://downlode.org/Code/RDF/File_Properties/schema#',
     'marcrel' => 'http://id.loc.gov/vocabulary/relators/',
     'rpb' => 'http://purl.org/lobid/rpb#',
+    'nwbib' => 'http://purl.org/lobid/nwbib#',
+    'nwbib-spatial' => 'http://purl.org/lobid/nwbib-spatial#',
   );
 }
 
@@ -2520,5 +2523,18 @@ function edoweb_update_7114() {
   );
   _update_edoweb_installed_fields($updated_fields);
   _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+}
+
+/*
+ * Update RDF mappings, set read-only fields
+ */
+function edoweb_update_7115() {
+  $updated_fields = array(
+    'field_edoweb_urn',
+    'field_edoweb_identifier_ht',
+    'field_edoweb_identifier_zdb',
+  );
+  _update_edoweb_installed_fields($updated_fields);
   _update_rdf_mapping();
 }

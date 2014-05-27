@@ -150,6 +150,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('lv:hbzID'),
       ),
     ),
@@ -158,6 +159,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('lv:zdbID'),
       ),
     ),
@@ -1074,7 +1076,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'read_only' => TRUE,
-        'predicates' => array('orca:hasURN'),
+        'predicates' => array('lv:urn'),
       ),
     ),
     'field_edoweb_isbn10' => array(
