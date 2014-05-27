@@ -1,10 +1,20 @@
-.field-label {
+div.field .field-label {
   display: block;
   float: left;
   width: 12em;
 }
 
-.field-item {
+div.field .field-item {
   display: block;
   margin-left: 12em;
+}
+
+input[readonly="readonly"] {
+  background-color: #efefef;
+}
+
+div.item-list>ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }

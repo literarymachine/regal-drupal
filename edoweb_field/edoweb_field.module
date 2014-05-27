@@ -295,6 +295,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed', $field = null, $instance = null) {
+  drupal_add_library('system', 'ui.dialog');
   drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(array('edoweb_field' => array(
     'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
