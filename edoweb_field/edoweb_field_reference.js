@@ -37,6 +37,7 @@
 
   Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
+      //TODO: Config to set one of the following three behaviours
       // Load entity into fieldset
       //$(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').each(function(i, element) {
       //  var link = $(element).closest('fieldset').children('div.fieldset-wrapper').children('input[type=hidden]').get(0);
@@ -66,14 +67,14 @@
       //  }
       //});
 
+      // Load entities into table
       $(context).find('.field-type-edoweb-ld-reference .field-items').each(function() {
         var container = $(this);
         var curies = [];
-        $(this).find('input[type=hidden]').each(function() {
-          curies.push(this.value);
+        container.find('a[data-curie]').each(function() {
+          curies.push(this.getAttribute('data-curie'));
         });
-        var columns = container
-          .find('fieldset[data-target-bundle]')
+        var columns = container.find('a[data-target-bundle]')
           .attr('data-target-bundle')
           .split(' ')[0];
         entity_list('edoweb_basic', curies, columns).onload = function () {
@@ -85,15 +86,15 @@
         };
       });
 
-      // Load labels for Linked Data References
-      $(context).find('a[data-curie]').each(function() {
-        var link = $(this);
-        entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-          if (this.status == 200) {
-            link.text(this.responseText);
-          }
-        };
-      });
+      // Load entity-labels
+      //$(context).find('a[data-curie]').each(function() {
+      //  var link = $(this);
+      //  entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+      //    if (this.status == 200) {
+      //      link.text(this.responseText);
+      //    }
+      //  };
+      //});
 
       // Tooltips
       $(context).find('form#edoweb-basic-form div.description').each(function() {

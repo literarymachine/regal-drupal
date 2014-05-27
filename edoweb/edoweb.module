@@ -329,7 +329,7 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // 'Files' tab for entities that can have files.
+  // 'Children' tab for entities that can have files.
   $items['resource/%edoweb_basic/children'] = array(
     'title' => 'Children',
     'page callback' => 'edoweb_basic_children',
@@ -529,7 +529,9 @@ function edoweb_basic_search_entities(
   EntityFieldQuery $efq, $advanced = FALSE, $operations = array()
 ) {
   static $search_count = 0;
-
+  drupal_add_css(
+    drupal_get_path('module', 'edoweb') . '/edoweb.css'
+  );
   if (array_key_exists('query', $_GET)
       && !empty($_GET['query'])
       && array_key_exists($search_count, $_GET['query'])
@@ -552,13 +554,22 @@ function edoweb_basic_search_entities(
   unset($content['search']['form_id']);
   unset($content['search']['form_token']);
 
+  $parent_entity = null;
+  foreach ($efq->fieldConditions as $field_condition) {
+    if ($field_condition['field']['field_name'] == 'field_edoweb_struct_parent') {
+      $parent_entity = $field_condition['value'];
+    }
+  }
+
   if (isset($efq->entityConditions['bundle'])) {
     $target_bundles = $efq->entityConditions['bundle']['value'];
     $links = '';
     foreach($target_bundles as $target_bundle) {
+      $url = is_null($parent_entity)
+        ? "resource/add/{$target_bundle}"
+        : "resource/$parent_entity/children/add/$target_bundle";
       $links .= l(
-        "[Add {$target_bundle}]",
-        "resource/add/{$target_bundle}",
+        "[Add {$target_bundle}]", $url,
         array('attributes' => array('data-bundle' => $target_bundle))
       );
     }
@@ -786,7 +797,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
         'items' => $list_items,
         'title' => null,
         'type' => 'ul',
-        'attributes' => array('style' => 'list-style-type: none;'),
+        'attributes' => array(),
       ));
     }
 
@@ -824,8 +835,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
   // Prepare query: header for table sort
   // TODO: decide which table header to use if multiple target bundles
   // are set.
-  $target_bundle = isset($efq->entityConditions['bundle'])
-    ? $efq->entityConditions['bundle']['value'][0]
+  $target_bundle = isset($efq->entityConditions['bundle']['value'])
+    ? current($efq->entityConditions['bundle']['value'])
     : null;
   $header = edoweb_basic_table_header($target_bundle);
   $efq->tableSort($header);
@@ -1017,6 +1028,10 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
+  drupal_add_library('system', 'drupal.collapse');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
   drupal_add_css(
     drupal_get_path('module', 'edoweb') . '/edoweb.css'
   );
@@ -1222,18 +1237,11 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
 
   if (isset($wrapper->field_edoweb_struct_parent)) {
-    // Parent
-    $content['parent'] = array(
-      '#type' => 'fieldset',
-      '#title' => 'Parent',
-    );
     // Current parent
-    if ($parent_id = $wrapper->field_edoweb_struct_parent->value()) {
-      $content['parent']['parent_list'] =
-        _edoweb_field_embed_entities(
-          array(array('value' => $parent_id)), $entity->remote_id
+    $content['parent_list'] = field_view_field(
+        EDOWEB_ENTITY_TYPE, $entity, 'field_edoweb_struct_parent'
         );
-    }
+    $content['parent_list']['#weight'] = -100;
 
     // Update parent
     $field_info_instance = field_info_instance(
@@ -1250,7 +1258,11 @@ function edoweb_basic_structure($entity, $bundle_types = array()) {
     );
 
     $operations = array('edoweb_basic_structure_parent_update');
-    $content['parent']['parent_query'] = edoweb_basic_search_entities(
+    $content['manage_parent'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Manage parent'),
+    );
+    $content['manage_parent']['parent_query'] = edoweb_basic_search_entities(
       $parent_query, FALSE, $operations
     );
 
@@ -1306,7 +1318,7 @@ function edoweb_forms($form_id, $args) {
 /**
  * Provides a wrapper on the edit form to add a new file to an entity.
  */
-function edoweb_basic_children($entity, $bundle_types = array()) {
+function edoweb_basic_children($entity, $target_bundles = array()) {
 
   $content = array();
 
@@ -1316,34 +1328,26 @@ function edoweb_basic_children($entity, $bundle_types = array()) {
     '#title' => 'Children',
   );
 
-  // Add children
-  if (user_access('create edoweb_basic entities')) {
-    // Fetch and link to add possible child bundles
-    $field_info_instance = field_info_instance(
-      'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
-    );
-    $child_bundles = $field_info_instance['settings']['handler_settings']['target_bundles'];
-    if ($child_bundles) foreach ($child_bundles as $child_bundle) {
-      $child_bundle_label = edoweb_basic_bundle_name($child_bundle);
-      $content['child']['add'][] = array(
-        '#type' => 'item',
-        '#markup' => l(
-          t("Add $child_bundle_label"),
-          "resource/{$entity->identifier()}/children/add/$child_bundle"
-        ),
-      );
-    }
-  }
-
   // List children
   $child_query = new EntityFieldQuery();
   $child_query->addTag('elasticsearch');
-  $child_query->entityCondition(
-    'entity_type', 'edoweb_basic'
-  );
+  $child_query->entityCondition('entity_type', 'edoweb_basic');
   $child_query->fieldCondition(
     'field_edoweb_struct_parent', 'value', $entity->remote_id
   );
+  // Add children
+  if (user_access('create edoweb_basic entities')) {
+    // Fetch and link to add possible child bundles
+    $instance = field_info_instance(
+      'edoweb_basic', 'field_edoweb_struct_child', $entity->bundle_type
+    );
+    $field = field_info_field('field_edoweb_struct_child');
+    $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
+      ? array_values($instance['settings']['handler_settings']['target_bundles'])
+      : array_values($field['settings']['handler_settings']['target_bundles']);
+    $child_query->entityCondition('bundle', $target_bundles);
+  }
+
   $content['child']['child_list'] = edoweb_basic_search_entities(
     $child_query
   );

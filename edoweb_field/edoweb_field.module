@@ -280,51 +280,22 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   $elements = array();
   switch ($display['type']) {
     case 'edoweb_ld_format':
-      $elements = _edoweb_field_embed_entities($items, $entity->remote_id, 'collapsed', $field, $instance);
-      break;
     case 'edoweb_datastream_format':
-      $edoweb_api_host = variable_get('edoweb_api_host');
-      foreach ($items as $delta => $item) {
-        $elements[$delta] = array(
-          '#markup' => l($item['value'], "resource/{$item['value']}"),
-        );
-      }
-      break;
-  }
-  return $elements;
-}
-
-function _edoweb_field_embed_entities($items, $referrer = null, $collapsed = 'collapsed', $field = null, $instance = null) {
-  drupal_add_library('system', 'ui.dialog');
-  drupal_add_library('system', 'drupal.collapse');
-  drupal_add_js(array('edoweb_field' => array(
-    'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
-  )), 'setting');
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  );
-  $elements = array();
-  foreach ($items as $delta => $item) {
-    $remote_id = _edoweb_compact_uri($item['value']);
-    if (!$remote_id) continue;
-    $elements[$delta] = array(
-      '#type' => 'fieldset',
-      '#attributes' => array(
-        'class' => array('collapsible', $collapsed, 'edoweb_ld_reference'),
-      ),
-      '#title' => $remote_id,
-      'entity' => array(
-        '#type' => 'hidden',
-        '#value' => $remote_id,
-      ),
-    );
-    if ($field && $instance) {
       $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
         ? array_values($instance['settings']['handler_settings']['target_bundles'])
         : array_values($field['settings']['handler_settings']['target_bundles']);
-      $elements[$delta]['#attributes']['data-target-bundle']
-        = implode(' ', $target_bundles);
-    }
+      foreach ($items as $delta => $item) {
+        $curie = _edoweb_compact_uri($item['value']);
+        $elements[$delta] = array(
+          '#markup' => l($item['value'], "resource/{$curie}",
+            array('attributes' => array(
+              'data-target-bundle' => implode(' ', $target_bundles),
+              'data-curie' => $curie,
+            ))
+          ),
+        );
+      }
+      break;
   }
   return $elements;
 }
