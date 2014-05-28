@@ -300,40 +300,6 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   return $elements;
 }
 
-function _edoweb_field_render_embedded_entity(
-  $entity, $collapsed = 'collapsed', $as_form = FALSE
-) {
-  drupal_add_library('system', 'drupal.collapse');
-  if ($as_form) {
-    $form_state = array();
-    $entity_data = array();
-    field_attach_form(
-      EDOWEB_ENTITY_TYPE, $entity, $entity_data, $form_state
-    );
-    $entity_data['remote_id'] = array(
-      '#type' => 'hidden',
-      '#value' => $entity->remote_id,
-    );
-    $entity_data['bundle_type'] = array(
-      '#type' => 'hidden',
-      '#value' => $entity->bundle_type,
-    );
-  } else {
-    $entity_data = entity_view(
-      EDOWEB_ENTITY_TYPE, array($entity), 'teaser'
-    );
-  }
-  return array(
-    '#type' => 'fieldset',
-    '#attributes' => array(
-      'class' => array('collapsible', $collapsed),
-    ),
-    '#title' => entity_label(EDOWEB_ENTITY_TYPE, $entity) . " ({$entity->remote_id})",
-    'entity' => $entity_data,
-  );
-}
-
-
 /**
  * Implements hook_field_widget_form().
  *
