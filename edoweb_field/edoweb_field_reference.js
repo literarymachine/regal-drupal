@@ -80,6 +80,7 @@
         entity_list('edoweb_basic', curies, columns).onload = function () {
           if (this.status == 200) {
             var result_table = $(this.responseText);
+            Drupal.attachBehaviors(result_table);
             hideEmptyTableColumns(result_table);
             container.replaceWith(result_table);
           }
@@ -95,6 +96,12 @@
       //    }
       //  };
       //});
+
+      // Modify hrefs to point to local data
+      $(context).find('a[data-curie]').each(function() {
+        var href = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
+        $(this).attr('href', href);
+      })
 
       // Tooltips
       $(context).find('form#edoweb-basic-form div.description').each(function() {
@@ -157,6 +164,7 @@
                   });
               });
               hideEmptyTableColumns(result_table);
+              Drupal.attachBehaviors(result_table);
               source.append(result_table);
               throbber.remove();
             }

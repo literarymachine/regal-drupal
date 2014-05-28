@@ -759,12 +759,12 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
     }
 
     $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-    $row = array(
-      'data-curie' => $wrapper->remote_id->value()
-    );
+    $curie = $wrapper->remote_id->value();
+    $row = array('data-curie' => $curie);
     $row['data'][] = l(
-      $wrapper->remote_id->value(),
-      "resource/{$wrapper->remote_id->value()}"
+      $curie, _edoweb_expand_curie($curie), array(
+        'attributes' => array('data-curie' => $curie)
+      )
     );
     foreach ($columns as $column) {
       $property = null;
