@@ -80,6 +80,8 @@
         entity_list('edoweb_basic', curies, columns).onload = function () {
           if (this.status == 200) {
             var result_table = $(this.responseText);
+            result_table.removeClass('sticky-enabled');
+            result_table.tablesorter();
             Drupal.attachBehaviors(result_table);
             hideEmptyTableColumns(result_table);
             container.replaceWith(result_table);
@@ -164,6 +166,8 @@
                   });
               });
               hideEmptyTableColumns(result_table);
+              result_table.removeClass('sticky-enabled');
+              result_table.tablesorter();
               Drupal.attachBehaviors(result_table);
               source.append(result_table);
               throbber.remove();
@@ -241,6 +245,7 @@
           trigger_button.click();
         }, 1000);
       });
+
     }
 
   };

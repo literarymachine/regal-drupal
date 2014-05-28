@@ -18,3 +18,21 @@ div.item-list>ul {
   padding: 0;
   margin: 0;
 }
+
+table:not([tableheader-processed]) th {
+  background-repeat: no-repeat;
+  background-position: right;
+}
+
+table:not([tableheader-processed]) th:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+table:not([tableheader-processed]) th.headerSortDown {
+  background-image: url('http://minorthreat/misc/arrow-desc.png');
+}
+
+table:not([tableheader-processed]) th.headerSortUp {
+  background-image: url('http://minorthreat/misc/arrow-asc.png');
+}
