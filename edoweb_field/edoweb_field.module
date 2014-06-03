@@ -281,9 +281,14 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
   switch ($display['type']) {
     case 'edoweb_ld_format':
     case 'edoweb_datastream_format':
-      $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
-        ? array_values($instance['settings']['handler_settings']['target_bundles'])
-        : array_values($field['settings']['handler_settings']['target_bundles']);
+      if (isset($instance['settings']['handler_settings']['target_bundles'])) {
+        $target_bundles = array_values($instance['settings']['handler_settings']['target_bundles']);
+      } else if (isset($field['settings']['handler_settings']['target_bundles'])) {
+        $target_bundles = array_values($field['settings']['handler_settings']['target_bundles']);
+      } else {
+        $target_bundles = array();
+      }
+
       foreach ($items as $delta => $item) {
         $curie = _edoweb_compact_uri($item['value']);
         $elements[$delta] = array(
@@ -317,9 +322,14 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
         'field_group', $field['settings']
       ) ? $field['settings']['field_group']
         : false;
-      $target_bundles = isset($instance['settings']['handler_settings']['target_bundles'])
-        ? array_values($instance['settings']['handler_settings']['target_bundles'])
-        : array_values($field['settings']['handler_settings']['target_bundles']);
+
+      if (isset($instance['settings']['handler_settings']['target_bundles'])) {
+        $target_bundles = array_values($instance['settings']['handler_settings']['target_bundles']);
+      } else if (isset($field['settings']['handler_settings']['target_bundles'])) {
+        $target_bundles = array_values($field['settings']['handler_settings']['target_bundles']);
+      } else {
+        $target_bundles = array();
+      }
 
       drupal_add_library('system', 'drupal.collapse');
       drupal_add_library('system', 'ui.dialog');
@@ -407,8 +417,21 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
           '#markup' => '<em>Es liegen keine Einträge für '.$instance['label'].' vor. Klicken Sie zum Hinzufügen oben auf [+].</em>',
         );
       }
-
       break;
+
+    case 'edoweb_upload_widget':
+      $widget = $element;
+      $widget['#delta'] = $delta;
+      $value = isset($items[$delta]['value']) ? $items[$delta]['value'] : '';
+      if ($value == '') {
+        $widget += array(
+          '#type' => 'file',
+          '#title' => t('Choose a file'),
+        );
+      }
+      $element['value'] = $widget;
+      break;
+
   }
   return $element;
 }
