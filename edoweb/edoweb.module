@@ -377,7 +377,9 @@ function edoweb_info_page() {
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
-  $query->entityCondition('bundle', array('monograph', 'journal'));
+  $query->entityCondition('bundle', array(
+    'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+  ));
   $content['resource_list'] = edoweb_basic_search_entities(
     $query, TRUE
   );
@@ -2551,5 +2553,28 @@ function edoweb_update_7115() {
     'field_edoweb_identifier_zdb',
   );
   _update_edoweb_installed_fields($updated_fields);
+  _update_rdf_mapping();
+}
+
+/*
+ * Add free-text tag field
+ */
+function edoweb_update_7116() {
+  $updated_fields = array(
+    'field_edoweb_tag',
+  );
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_tag',
+    ),
+    'journal' => array(
+      'field_edoweb_tag',
+    ),
+    'article' => array(
+      'field_edoweb_tag',
+    ),
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
 }
