@@ -617,7 +617,7 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           'type' => 'property',
           'specifier' => 'updated',
           // TODO: implement format functions
-          'format' => 'edoweb_format_date',
+          'format' => 'format_date',
         ),
         array(
           'data' => 'HT-Nummer',
@@ -787,6 +787,8 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
           if ($is_ref) {
             $ref_entity = edoweb_basic_load(_edoweb_compact_uri($value));
             $list_items[] = entity_label(EDOWEB_ENTITY_TYPE, $ref_entity);
+          } else if (isset($column['format'])) {
+            $list_items[] = $column['format']($value);
           } else {
             $list_items[] = $value;
           }
