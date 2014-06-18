@@ -89,18 +89,18 @@
         };
       });
 
-      // Load entity-labels
-      //$(context).find('a[data-curie]').each(function() {
-      //  var link = $(this);
-      //  entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-      //    if (this.status == 200) {
-      //      link.text(this.responseText);
-      //    }
-      //  };
-      //});
+      // Load entity-labels in facet list
+      $(context).find('*[data-curie].facet').each(function() {
+        var link = $(this);
+        entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+          if (this.status == 200) {
+            link.text(this.responseText);
+          }
+        };
+      });
 
       // Modify hrefs to point to local data
-      $(context).find('a[data-curie]').each(function() {
+      $(context).find('a[data-curie]').not('.facet').each(function() {
         var href = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
         $(this).attr('href', href);
       })

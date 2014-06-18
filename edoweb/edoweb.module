@@ -871,7 +871,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         // Link to remove facet
         $params = drupal_get_query_parameters();
         unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
-        $item = $is_ref ? '<span data-curie="' . _edoweb_compact_uri($value) . '">' . $value .  '</span>' : $value;
+        $item = $is_ref ? '<span data-curie="' . _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>' : $value;
         $item .= l(t(' Remove'), current_path(), array('query' => $params));
         $content['filters'][$jsonld_property]['#items'][] = $item;
         // Add facet to query
@@ -932,13 +932,18 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
         $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
-        $content['filters']['facets'][$jsonld_property]['#items'][] = l(
+        $apply_facet_link = l(
           "$facet_entity_uri", current_path(),
           array(
             'query' => $params,
-            'attributes' => $is_ref ? array('data-curie' => _edoweb_compact_uri($facet_entity_uri)) : array(),
+            'attributes' => $is_ref
+              ? array(
+                'data-curie' => _edoweb_compact_uri($facet_entity_uri),
+                'class' => array('facet')
+              ) : array(),
           )
         ) . " ($facet_entity_count)";
+        $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
       }
     }
   }
