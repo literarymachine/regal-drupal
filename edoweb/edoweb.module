@@ -437,6 +437,10 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
       : array_values($field_definition['settings']['handler_settings']['target_bundles']);
 
     $query->entityCondition('bundle', $target_bundles);
+  } else if ($bundle_name) {
+    $endpoint = 'resource';
+    $parameter = 'name';
+    $query->entityCondition('bundle', array($bundle_name));
   }
 
   if ($endpoint && $parameter) {

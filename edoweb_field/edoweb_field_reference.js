@@ -124,6 +124,23 @@
         width: 'auto'
       });
 
+      $(context).find('form .field-name-field-edoweb-identifier-ht').each(function() {
+        var source = $(this);
+        // Open lookup overlay
+        var button = $('<a href="#"> [+]</a>').click(function(e) {
+          modal_overlay.html('<div />');
+          importTable(modal_overlay, source);
+          modal_overlay.dialog('open');
+          return false;
+        });
+        var tooltip_icon = $('<img />')
+          .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+          .attr('title', 'Import metadata')
+          .css('height', '1em');
+        source.find('label').append(tooltip_icon);
+        source.find('label').append(button);
+      });
+
       $(context).find('form .field-type-edoweb-ld-reference').each(function() {
         var source = $(this);
         var columns = source
@@ -249,6 +266,74 @@
     }
 
   };
+
+  function importTable(container, source, page, sort, order, term) {
+    if(!page) page = 0;
+    if(!sort) sort = '';
+    if(!order) order = '';
+    if(!term) term = '';
+
+    var path = window.location.pathname;
+    var bundle_name = path.slice(path.lastIndexOf('/') + 1);
+    var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name;
+
+    var params = {
+      page: page,
+      sort: sort,
+      order: order,
+      'query[0][term]': term,
+    };
+
+    jQuery.ajax({
+      cache: false,
+      url: qurl,
+      data: params,
+      dataType: 'text',
+      error: function(request, status, error) {
+        console.log(status);
+      },
+      success: function(data, status, request) {
+        var html = $(data);
+        html.find('a[data-bundle]').remove();
+        container.html(html);
+
+        container.find('input[name="op"]').click(function() {
+          var term = container.find('input[type="text"]').val();
+          importTable(container, source, null, null, null, term);
+          return false;
+        });
+
+        container.find('th a')
+          .add(container.find('.pager-item a'))
+          .add(container.find('.pager-first a'))
+          .add(container.find('.pager-previous a'))
+          .add(container.find('.pager-next a'))
+          .add(container.find('.pager-last a'))
+            .click(function(el, a, b, c) {
+              var url = jQuery.url(el.currentTarget.getAttribute('href'));
+              importTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'));
+              return (false);
+            });
+
+        container.find('.sticky-enabled > tbody > tr').each(function() {
+          var row = jQuery(this);
+          jQuery(this).children('td').last()
+            .append('<button>Importieren</button>')
+            .bind('click', function(event) {
+              container.dialog('close');
+              var resource_uri = row.children('td').first().children('a').first().text();
+              window.onbeforeunload = function(){};
+              window.location.replace(Drupal.settings.basePath + 'resource/add/' + bundle_name + '?source=' + resource_uri);
+              return false;
+            });
+        });
+
+        hideEmptyTableColumns(container.find('.sticky-enabled'));
+        Drupal.attachBehaviors(container);
+
+      }
+    });
+  }
 
   function refreshTable(container, source, page, sort, order, term, type) {
     if(!page) page = 0;
