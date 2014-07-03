@@ -451,7 +451,7 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $query->addTag('elasticsearch');
   }
 
-  $content = edoweb_basic_search_entities($query);
+  $content = edoweb_basic_search_entities($query, FALSE, array(), FALSE);
 
   die(drupal_render($content));
 
@@ -532,7 +532,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 }
 
 function edoweb_basic_search_entities(
-  EntityFieldQuery $efq, $advanced = FALSE, $operations = array()
+  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE
 ) {
   static $search_count = 0;
   drupal_add_css(
@@ -596,6 +596,9 @@ function edoweb_basic_search_entities(
 
   if (@$term = $query['term']) {
     $efq->addMetaData('term', $term);
+  }
+
+  if ($term || $list_noterm) {
     $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets']);
   }
 
