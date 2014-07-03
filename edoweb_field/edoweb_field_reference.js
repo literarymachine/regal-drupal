@@ -249,7 +249,7 @@
       });
 
       // Live search result updates
-      var delay = (function(){
+      var delay = (function() {
         var timer;
         return function(callback, ms) {
           clearTimeout (timer);
@@ -258,6 +258,9 @@
       })();
       $(context).find('.edoweb_live_search').bind('keyup', function() {
         var trigger_button = $(this).parent().nextAll('input[type=submit]');
+        for (var i = 0; i < pending_requests.length; i++) {
+          pending_requests[i].abort();
+        }
         delay(function() {
           trigger_button.click();
         }, 1000);
@@ -335,6 +338,7 @@
     });
   }
 
+  var pending_requests = [];
   function refreshTable(container, source, page, sort, order, term, type) {
     if(!page) page = 0;
     if(!sort) sort = '';
@@ -353,13 +357,13 @@
       'query[0][type]': type,
     };
 
-    jQuery.ajax({
+    var request = jQuery.ajax({
       cache: false,
       url: qurl,
       data: params,
       dataType: 'text',
       error: function(request, status, error) {
-        console.log(status);
+        //console.log(status);
       },
       success: function(data, status, request) {
         var html = $(data);
@@ -441,6 +445,7 @@
 
       }
     });
+    pending_requests.push(request);
   }
 
   function hideEmptyTableColumns(table) {
