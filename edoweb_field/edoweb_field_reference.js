@@ -117,11 +117,11 @@
 
       // Attach lookup overlay to form
       var modal_overlay = $('<div />').dialog({
-        position: 'center',
+        position: [($(window).width() / 2) - (760 / 2), 15],
         autoOpen: false,
         modal: true,
         //resizable: false,
-        width: 'auto'
+        width: 760
       });
 
       $(context).find('form .field-name-field-edoweb-identifier-ht').each(function() {
