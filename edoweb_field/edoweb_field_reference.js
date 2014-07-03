@@ -266,6 +266,7 @@
         }, 1000);
       });
 
+      window.location.hash = 'focus';
     }
 
   };
