@@ -415,7 +415,6 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
 
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'edoweb_basic');
-
   $endpoint = null;
   $parameter = null;
 
@@ -495,14 +494,13 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       = array('edoweb_live_search');
   }
 
-  if (isset($query['endpoint'])) {
+  if (isset($query['target_bundles']) && isset($query['endpoint'])) {
     $options = array();
-    switch ($query['endpoint']) {
-      case 'subject':
-        $options['http://d-nb.info/standards/elementset/gnd#SubjectHeading'] = 'Subject Heading';
-      case 'person':
-        $options['http://d-nb.info/standards/elementset/gnd#Person'] = 'Person';
-        $options['http://d-nb.info/standards/elementset/gnd#CorporateBody'] = 'Corporate Body';
+    $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
+    foreach ($query['target_bundles'] as $target_bundle) {
+      $bundle_info = $bundle_infos[$target_bundle];
+      $rdf_type = _edoweb_expand_curie($bundle_info['rdf_mapping']['rdftype'][0]);
+      $options[$rdf_type] = $bundle_info['label'];
     }
     $form['query'][$search_count]['type'] = array(
       '#type' => 'radios',
@@ -549,6 +547,10 @@ function edoweb_basic_search_entities(
 
   if (isset($efq->metaData['endpoint'])) {
     $query['endpoint'] = $efq->metaData['endpoint'];
+  }
+
+  if (isset($efq->entityConditions['bundle'])) {
+    $query['target_bundles'] = $efq->entityConditions['bundle']['value'];
   }
 
   $content = array();
@@ -819,9 +821,10 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
         if ($values and !is_array($values)) $values = array($values);
         if ($values) foreach ($values as $value) {
           if ('field' == $column['type']) {
-            $list_items[] = drupal_render(field_view_value(
+            $field_value = field_view_value(
               EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
-            ));
+            );
+            $list_items[] = drupal_render($field_value);
           } else if (isset($column['format'])) {
             $list_items[] = $column['format']($value);
           } else {
@@ -1873,7 +1876,7 @@ function edoweb_rdf_mapping() {
 function edoweb_rdf_types() {
   return array(
     'person' => array(
-      'gnd:Person',
+      'gnd:DifferentiatedPerson',
     ),
     'corporate_body' => array(
       'gnd:CorporateBody',
