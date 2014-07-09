@@ -254,13 +254,6 @@ function edoweb_menu() {
   );
 
   // Add new resources
-  $items['resource/add/monograph'] = array(
-    'title' => "Add new Monograph",
-    'page callback' => 'edoweb_basic_add',
-    'page arguments' => array('monograph'),
-    'access arguments' => array('create edoweb_basic entities'),
-  );
-
   $items['resource/add/%'] = array(
     'title callback' => 'edoweb_basic_bundle_name',
     'title arguments' => array(2),
@@ -268,20 +261,6 @@ function edoweb_menu() {
     'page arguments' => array(2),
     'access arguments' => array('create edoweb_basic entities'),
     'type' => MENU_CALLBACK,
-  );
-
-  $items["resource/import/monograph"] = array(
-    'title' => "Import Monograph",
-    'page callback' => 'edoweb_basic_import',
-    'page arguments' => array('monograph'),
-    'access arguments' => array('create edoweb_basic entities'),
-  );
-
-  $items["resource/import/journal"] = array(
-    'title' => "Import Journal",
-    'page callback' => 'edoweb_basic_import',
-    'page arguments' => array('journal'),
-    'access arguments' => array('create edoweb_basic entities'),
   );
 
   // Resource landing page, list entities
@@ -1587,57 +1566,6 @@ function edoweb_basic_admin_add_urn( $form , &$form_state ) {
 }
 
 /**
- * Provides a form to import entities from linked data.
- */
-function edoweb_basic_import($bundle_type) {
-  $entity = entity_get_controller('edoweb_basic')->create(
-    array('bundle_type' => $bundle_type)
-  );
-  return drupal_get_form('edoweb_basic_import_form', $entity);
-}
-
-function edoweb_basic_import_form($form, &$form_state, $entity) {
-  $form['basic_entity'] = array(
-    '#type' => 'value',
-    '#value' => $entity,
-  );
-  $form['resource_id'] = array(
-    '#type' => 'textfield',
-    '#weight' => 50,
-    '#description' => t('Enter the HTTP-URI of the Linked Data resource you want to import.'),
-  );
-  $form['base_url'] = array(
-    '#title' => 'ID Typ',
-    '#type' => 'select',
-    '#weight' => 75,
-    '#options' => array(
-      'http://lobid.org/resource/%s' => 'HT-Nummer oder ZDB-ID',
-      '%s' => 'Linked Data URI',
-    ),
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Import'),
-    '#submit' => array('edoweb_basic_import_submit'),
-    '#weight' => 100,
-  );
-  return $form;
-}
-
-function edoweb_basic_import_submit(&$form, &$form_state) {
-  // Create a basic entity structure to be used and passed to the validation
-  // and submission functions.
-  $entity = $form_state['values']['basic_entity'];
-  $resource_id = $form['resource_id']['#value'];
-  $base_url = $form['base_url']['#value'];
-  $resource_uri = sprintf($base_url, $resource_id);
-  drupal_goto(
-    "resource/add/{$entity->bundle_type}",
-    array('query' => array('source' => urlencode($resource_uri)))
-  );
-}
-
-/**
 * Create and display the bulk import form.
 */
 function edoweb_bulk_import_form($form, &$form_state) {
@@ -2661,4 +2589,11 @@ function edoweb_update_7117() {
 
   _update_edoweb_installed_fields($updated_fields);
   _update_rdf_mapping();
+}
+
+/**
+ * Remove add and import actions from menu
+ */
+function edoweb_update_7118() {
+  variable_set('menu_rebuild_needed', TRUE);
 }
