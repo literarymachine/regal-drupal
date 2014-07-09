@@ -1148,11 +1148,25 @@ function _edoweb_installed_fields() {
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'bundles' => array('person', 'corporate_body', 'subject'),
+          'bundles' => array(
+            'subject',
+            'person',
+            'corporate_body',
+            'event',
+            'family',
+            'work',
+            'place',
+          ),
         ),
         'handler_settings' => array(
           'target_bundles' => array(
-            'subject' => 'subject'
+            'subject' => 'subject',
+            'person' => 'person',
+            'corporate_body' => 'corporate_body',
+            'event' => 'event',
+            'family' => 'family',
+            'work' => 'work',
+            'place' => 'place',
           )
         ),
       ),
@@ -1607,6 +1621,46 @@ function _edoweb_installed_instances() {
     'corporate_body' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in event bundle
+     */
+    'event' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in family bundle
+     */
+    'family' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in work bundle
+     */
+    'work' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in place bundle
+     */
+    'place' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in collection bundle
+     */
+    'collection' => array(
+      'field_edoweb_label' => array(),
+      'field_edoweb_description' => array(),
     ),
 
   );

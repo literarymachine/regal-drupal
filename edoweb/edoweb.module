@@ -80,8 +80,6 @@ function edoweb_entity_info() {
     'bundles' => array(
       'monograph' => array(
         'label' => t('Monograph'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/monograph/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -89,8 +87,6 @@ function edoweb_entity_info() {
       ),
       'journal' => array(
         'label' => t('Journal'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/journal/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -98,8 +94,6 @@ function edoweb_entity_info() {
       ),
       'volume' => array(
         'label' => t('Volume'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/volume/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -107,8 +101,6 @@ function edoweb_entity_info() {
       ),
       'issue' => array(
         'label' => t('Issue'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/issue/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -116,8 +108,6 @@ function edoweb_entity_info() {
       ),
       'article' => array(
         'label' => t('Article'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/article/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -125,8 +115,6 @@ function edoweb_entity_info() {
       ),
       'file' => array(
         'label' => t('File'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/file/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -134,8 +122,6 @@ function edoweb_entity_info() {
       ),
       'person' => array(
         'label' => t('Person'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/person/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -143,8 +129,6 @@ function edoweb_entity_info() {
       ),
       'subject' => array(
         'label' => t('Schlagwort'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/subject/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -152,10 +136,43 @@ function edoweb_entity_info() {
       ),
       'corporate_body' => array(
         'label' => t('Körperschaft'),
-        // 'admin' key is used by the Field UI to provide field and
-        // display UI pages.
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'event' => array(
+        'label' => t('Veranstaltung'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/event/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'family' => array(
+        'label' => t('Familie'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/family/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'work' => array(
+        'label' => t('Werk'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/work/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'place' => array(
+        'label' => t('Ort'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/place/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'collection' => array(
+        'label' => t('Sammlung'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/collection/manage',
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
@@ -616,6 +633,14 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
         array(
+          'data' => 'Label',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_label',
+            'column' => 'value',
+          ),
+        ),
+        array(
           'data' => 'Volume',
           'type' => 'field',
           'specifier' => array(
@@ -676,6 +701,14 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_gnd_name',
+            'column' => 'value',
+          ),
+        ),
+        array(
+          'data' => 'GND-ID',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_gnd_identifier',
             'column' => 'value',
           ),
         ),
@@ -1008,6 +1041,10 @@ function edoweb_basic_raw_title($entity) {
     case 'person':
     case 'corporate_body':
     case 'subject':
+    case 'event':
+    case 'family':
+    case 'work':
+    case 'place':
       $label_fields[] = 'field_gnd_name';
       break;
     default:
@@ -1803,12 +1840,15 @@ function edoweb_rdf_mapping() {
 
 function edoweb_rdf_types() {
   return array(
-    'person' => array(
-      'gnd:DifferentiatedPerson',
-    ),
-    'corporate_body' => array(
-      'gnd:CorporateBody',
-      'gnd:PlaceOrGeographicName',
+    'person' => array('gnd:DifferentiatedPerson'),
+    'corporate_body' => array('gnd:CorporateBody'),
+    'event' => array('gnd:ConferenceOrEvent'),
+    'family' => array('gnd:Family'),
+    'work' => array('gnd:Work'),
+    'place' => array('gnd:PlaceOrGeographicName'),
+    'collection' => array(
+      'bibo:Collection',
+      'radion:Repository',
     ),
     'subject' => array(
       'skos:Concept',
@@ -1818,7 +1858,6 @@ function edoweb_rdf_types() {
       'bibo:Book',
       'dc:BibliographicResource',
       'bibo:Series',
-      'bibo:Collection',
     ),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
@@ -1864,6 +1903,7 @@ function edoweb_rdf_namespaces() {
     'rpb' => 'http://purl.org/lobid/rpb#',
     'nwbib' => 'http://purl.org/lobid/nwbib#',
     'nwbib-spatial' => 'http://purl.org/lobid/nwbib-spatial#',
+    'radion' => 'http://www.w3.org/ns/radion#',
   );
 }
 
@@ -2596,4 +2636,37 @@ function edoweb_update_7117() {
  */
 function edoweb_update_7118() {
   variable_set('menu_rebuild_needed', TRUE);
+}
+
+/**
+ * Add bundles for event, family, event, work, place and collection
+ */
+function edoweb_update_7119() {
+  cache_clear_all('field:edoweb_basic:*', 'cache_field', TRUE);
+  $updated_fields = array('field_edoweb_subject');
+  $updated_instances = array(
+    'event' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+    'family' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+    'work' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+    'place' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+    'collection' => array(
+      'field_edoweb_label',
+      'field_edoweb_description',
+    ),
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
