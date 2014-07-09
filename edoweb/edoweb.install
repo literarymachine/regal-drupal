@@ -226,7 +226,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:creator'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -254,7 +254,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:contributor'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -282,7 +282,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('bibo:editor'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -310,7 +310,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:edt'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -338,7 +338,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('bibo:translator'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -366,7 +366,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ill'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -394,7 +394,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:act'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -422,7 +422,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:drt'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -450,7 +450,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:clb'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -478,7 +478,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:pht'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -506,7 +506,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cnd'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -534,7 +534,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cmp'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -562,7 +562,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aui'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -590,7 +590,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aus'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -618,7 +618,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:col'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -646,7 +646,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ctb'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -674,7 +674,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:prf'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -702,7 +702,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cng'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -730,7 +730,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ant'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -758,7 +758,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:voc'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -786,7 +786,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ivr'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -814,7 +814,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ive'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -842,7 +842,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ctg'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -870,7 +870,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:mus'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -898,7 +898,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aft'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -926,7 +926,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:pro'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -954,7 +954,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:egr'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -982,7 +982,7 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:dte'),
         'parameter' => 'name',
-        'endpoint' => 'person',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),

@@ -2588,7 +2588,7 @@ function edoweb_update_7114() {
   _update_rdf_mapping();
 }
 
-/*
+/**
  * Update RDF mappings, set read-only fields
  */
 function edoweb_update_7115() {
@@ -2601,7 +2601,7 @@ function edoweb_update_7115() {
   _update_rdf_mapping();
 }
 
-/*
+/**
  * Add free-text tag field
  */
 function edoweb_update_7116() {
@@ -2621,5 +2621,44 @@ function edoweb_update_7116() {
   );
   _update_edoweb_installed_fields($updated_fields);
   _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+}
+
+/**
+ * Set subject endpoint for all GND lookups
+ */
+function edoweb_update_7117() {
+  $updated_fields = array(
+    'field_edoweb_creator',
+    'field_edoweb_contributor',
+    'field_edoweb_editor',
+    'field_edoweb_edt',
+    'field_edoweb_translator',
+    'field_edoweb_ill',
+    'field_edoweb_act',
+    'field_edoweb_drt',
+    'field_edoweb_clb',
+    'field_edoweb_pht',
+    'field_edoweb_cnd',
+    'field_edoweb_cmp',
+    'field_edoweb_aui',
+    'field_edoweb_aus',
+    'field_edoweb_col',
+    'field_edoweb_ctb',
+    'field_edoweb_prf',
+    'field_edoweb_cng',
+    'field_edoweb_ant',
+    'field_edoweb_voc',
+    'field_edoweb_ivr',
+    'field_edoweb_ive',
+    'field_edoweb_ctg',
+    'field_edoweb_mus',
+    'field_edoweb_aft',
+    'field_edoweb_pro',
+    'field_edoweb_egr',
+    'field_edoweb_dte',
+  );
+
+  _update_edoweb_installed_fields($updated_fields);
   _update_rdf_mapping();
 }
