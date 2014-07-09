@@ -617,15 +617,7 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
     case 'volume':
     case 'issue':
     case 'article':
-    case 'file':
       $columns = array(
-        array(
-          'data' => 'Updated',
-          'type' => 'property',
-          'specifier' => 'updated',
-          // TODO: implement format functions
-          'format' => 'format_date',
-        ),
         array(
           'data' => 'HT-Nummer',
           'type' => 'field',
@@ -643,6 +635,14 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
         array(
+          'data' => 'Volume',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_volume',
+            'column' => 'value',
+          ),
+        ),
+        array(
           'data' => 'Issued',
           'type' => 'field',
           'specifier' => array(
@@ -652,13 +652,44 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
         ),
       );
       break;
-    case 'person':
+    case 'file':
       $columns = array(
         array(
-          'data' => 'Updated',
-          'type' => 'property',
-          'specifier' => 'updated',
+          'data' => 'Title',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_title',
+            'column' => 'value',
+          ),
         ),
+        array(
+          'data' => 'Download',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_datastream',
+            'column' => 'value',
+          ),
+        ),
+        array(
+          'data' => 'Größe',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_filesize',
+            'column' => 'value',
+          ),
+        ),
+        array(
+          'data' => 'Typ',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_filetype',
+            'column' => 'value',
+          ),
+        ),
+      );
+      break;
+    case 'person':
+      $columns = array(
         array(
           'data' => 'Name',
           'type' => 'field',
@@ -696,11 +727,6 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
     case 'subject':
       $columns = array(
         array(
-          'data' => 'Updated',
-          'type' => 'property',
-          'specifier' => 'updated',
-        ),
-        array(
           'data' => 'Title',
           'type' => 'field',
           'specifier' => array(
@@ -722,11 +748,6 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
     default:
       $columns = array(
         array(
-          'data' => 'Updated',
-          'type' => 'property',
-          'specifier' => 'updated',
-        ),
-        array(
           'data' => 'Label',
           'type' => 'field',
           'specifier' => array(
@@ -735,11 +756,17 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
       );
-      break;
   }
 
   // Add fixed columns, independant of bundle type
   array_unshift($columns, 'ID');
+  array_push($columns, array(
+      'data' => 'Updated',
+      'type' => 'property',
+      'specifier' => 'updated',
+      'format' => 'format_date',
+    )
+  );
   array_push($columns, 'Type');
   array_push($columns, 'Operations');
 
@@ -791,9 +818,10 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
         $values = $wrapper->$property->value();
         if ($values and !is_array($values)) $values = array($values);
         if ($values) foreach ($values as $value) {
-          if ($is_ref) {
-            $ref_entity = edoweb_basic_load(_edoweb_compact_uri($value));
-            $list_items[] = entity_label(EDOWEB_ENTITY_TYPE, $ref_entity);
+          if ('field' == $column['type']) {
+            $list_items[] = drupal_render(field_view_value(
+              EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
+            ));
           } else if (isset($column['format'])) {
             $list_items[] = $column['format']($value);
           } else {

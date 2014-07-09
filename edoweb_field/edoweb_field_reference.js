@@ -80,6 +80,14 @@
         entity_list('edoweb_basic', curies, columns).onload = function () {
           if (this.status == 200) {
             var result_table = $(this.responseText);
+            result_table.find('a[data-curie][data-target-bundle]').each(function() {
+              var link = $(this);
+              entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+                if (this.status == 200) {
+                  link.text(this.responseText);
+                }
+              };
+            });
             result_table.removeClass('sticky-enabled');
             result_table.tablesorter();
             Drupal.attachBehaviors(result_table);
@@ -168,6 +176,14 @@
           entity_list('edoweb_basic', curies, columns).onload = function () {
             if (this.status == 200) {
               var result_table = $(this.responseText);
+              result_table.find('a[data-curie][data-target-bundle]').each(function() {
+                var link = $(this);
+                entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+                  if (this.status == 200) {
+                    link.text(this.responseText);
+                  }
+                };
+              });
               result_table.find('tbody > tr').each(function() {
                 var row = $(this);
                 $(this).children('td').last()
@@ -266,7 +282,9 @@
         }, 1000);
       });
 
-      window.location.hash = 'focus';
+      if (document.URL.split('/').pop() == 'edit') {
+        window.location.hash = 'focus';
+      }
     }
 
   };
@@ -408,6 +426,14 @@
 
         container.html(html);
 
+        container.find('a[data-curie][data-target-bundle]').each(function() {
+          var link = $(this);
+          entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+            if (this.status == 200) {
+              link.text(this.responseText);
+            }
+          };
+        });
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
           var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
