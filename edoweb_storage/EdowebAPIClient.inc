@@ -409,7 +409,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
 
     if ($type) {
-      $http_url .= '&type=' . urlencode($type);
+      $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
+      $bundle_info = $bundle_infos[$type];
+      $rdf_types = array();
+      foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
+        $rdf_types[] = _edoweb_expand_curie($rdf_type);
+      }
+      $http_url .= '&type=' . urlencode(implode(',', $rdf_types));
     }
 
     $http_response = $this->_http_get(

@@ -1332,7 +1332,6 @@ function _edoweb_installed_instances() {
      */
     'monograph' => array(
       'field_edoweb_identifier_ht' => array(),
-      'field_edoweb_parent' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
@@ -1392,6 +1391,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_parent' => array(),
     ),
 
     /*
@@ -1400,7 +1400,6 @@ function _edoweb_installed_instances() {
     'journal' => array(
       'field_edoweb_identifier_ht' => array(),
       'field_edoweb_identifier_zdb' => array(),
-      'field_edoweb_parent' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_title_alternative' => array(),
@@ -1464,6 +1463,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_parent' => array(),
     ),
 
     /*

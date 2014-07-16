@@ -479,7 +479,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 
   $form['query'][$search_count]['term'] = array(
     '#type' => 'textfield',
-    '#default_value' => isset($query['term']) ? $query['term'] : '',
+    '#default_value' => isset($query['term']) ? urldecode($query['term']) : '',
     '#attributes' => array(
       'title' => t('Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.'),
     ),
@@ -495,8 +495,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
     foreach ($query['target_bundles'] as $target_bundle) {
       $bundle_info = $bundle_infos[$target_bundle];
-      $rdf_type = _edoweb_expand_curie($bundle_info['rdf_mapping']['rdftype'][0]);
-      $options[$rdf_type] = $bundle_info['label'];
+      $options[$target_bundle] = $bundle_info['label'];
     }
     $form['query'][$search_count]['type'] = array(
       '#type' => 'radios',
@@ -617,18 +616,18 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
     case 'article':
       $columns = array(
         array(
-          'data' => 'HT-Nummer',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_identifier_ht',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => 'Title',
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_title',
+            'column' => 'value',
+          ),
+        ),
+        array(
+          'data' => 'HT-Nummer',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_edoweb_identifier_ht',
             'column' => 'value',
           ),
         ),
@@ -833,6 +832,11 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
         if ($values and !is_array($values)) $values = array($values);
         if ($values) foreach ($values as $value) {
           if ('field' == $column['type']) {
+            // Fixme: workaround for Drupal bug
+            // https://www.drupal.org/node/1824820
+            if (!isset($entity->local_id)) {
+              $entity->local_id = -1;
+            }
             $field_value = field_view_value(
               EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
             );
@@ -1852,7 +1856,7 @@ function edoweb_rdf_types() {
     ),
     'subject' => array(
       'skos:Concept',
-      'gnd:AuthorityResource'
+      'gnd:SubjectHeading'
     ),
     'monograph' => array(
       'bibo:Book',
@@ -2667,6 +2671,22 @@ function edoweb_update_7119() {
     ),
   );
   _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+}
+
+/**
+ * Move field_edoweb_parent field to last position
+ */
+function edoweb_update_7120() {
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_parent',
+    ),
+    'journal' => array(
+      'field_edoweb_parent',
+    ),
+  );
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
 }
