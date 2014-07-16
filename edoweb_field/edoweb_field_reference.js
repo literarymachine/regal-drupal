@@ -77,24 +77,29 @@
         var columns = container.find('a[data-target-bundle]')
           .attr('data-target-bundle')
           .split(' ')[0];
-        entity_list('edoweb_basic', curies, columns).onload = function () {
-          if (this.status == 200) {
-            var result_table = $(this.responseText);
-            result_table.find('a[data-curie][data-target-bundle]').each(function() {
-              var link = $(this);
-              entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-                if (this.status == 200) {
-                  link.text(this.responseText);
-                }
-              };
-            });
-            result_table.removeClass('sticky-enabled');
-            result_table.tablesorter();
-            Drupal.attachBehaviors(result_table);
-            hideEmptyTableColumns(result_table);
-            container.replaceWith(result_table);
-          }
-        };
+        if (curies.length > 0) {
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+          container.append(throbber);
+          entity_list('edoweb_basic', curies, columns).onload = function () {
+            if (this.status == 200) {
+              var result_table = $(this.responseText);
+              result_table.find('a[data-curie][data-target-bundle]').each(function() {
+                var link = $(this);
+                entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+                  if (this.status == 200) {
+                    link.text(this.responseText);
+                  }
+                };
+              });
+              result_table.removeClass('sticky-enabled');
+              result_table.tablesorter();
+              Drupal.attachBehaviors(result_table);
+              container.replaceWith(result_table);
+              hideEmptyTableColumns(result_table);
+            }
+            throbber.remove();
+          };
+        }
       });
 
       // Load entity-labels in facet list
@@ -149,7 +154,9 @@
         source.find('label').append(button);
       });
 
-      $(context).find('form .field-type-edoweb-ld-reference').each(function() {
+      $(context).find('form .field-type-edoweb-ld-reference')
+//        .filter(function() {return !($(this).find('input[data-field-group]').length)})
+        .each(function() {
         var source = $(this);
         var columns = source
           .find('input[data-target-bundle]')
@@ -170,43 +177,50 @@
           if (curie != '') curies.push(curie);
         });
 
-        if (curies.length > 0) {
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          $(source).append(throbber);
-          entity_list('edoweb_basic', curies, columns).onload = function () {
-            if (this.status == 200) {
-              var result_table = $(this.responseText);
-              result_table.find('a[data-curie][data-target-bundle]').each(function() {
-                var link = $(this);
-                entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-                  if (this.status == 200) {
-                    link.text(this.responseText);
+        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+        $(source).append(throbber);
+        entity_list('edoweb_basic', curies, columns).onload = function () {
+          if (this.status == 200) {
+            var result_table = $(this.responseText);
+            result_table.find('a[data-curie][data-target-bundle]').each(function() {
+              var link = $(this);
+              entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
+                if (this.status == 200) {
+                  link.text(this.responseText);
+                }
+              };
+            });
+            result_table.find('tbody > tr').each(function() {
+              var row = $(this);
+              $(this).children('td').last()
+                .append('<button>Entfernen</button>')
+                .bind('click', function(event) {
+                  source.find('input[data-curie="' + row.attr('data-curie') + '"]').val('');
+                  if (row.next().length == 0 && row.prev().length == 0) {
+                    row.closest('table').remove();
+                  } else {
+                    row.remove();
                   }
-                };
-              });
-              result_table.find('tbody > tr').each(function() {
-                var row = $(this);
-                $(this).children('td').last()
-                  .append('<button>Entfernen</button>')
-                  .bind('click', function(event) {
-                    source.find('input[data-curie="' + row.attr('data-curie') + '"]').val('');
-                    if (row.next().length == 0 && row.prev().length == 0) {
-                      row.closest('table').remove();
-                    } else {
-                      row.remove();
-                    }
-                    return false;
-                  });
-              });
+                  return false;
+                });
+            });
+            result_table.removeClass('sticky-enabled');
+            result_table.tablesorter();
+            Drupal.attachBehaviors(result_table);
+            source.append(result_table);
+            if (curies.length > 0) {
               hideEmptyTableColumns(result_table);
-              result_table.removeClass('sticky-enabled');
-              result_table.tablesorter();
-              Drupal.attachBehaviors(result_table);
-              source.append(result_table);
-              throbber.remove();
+            } else {
+              var cols = result_table.find('th').length;
+
+              result_table.find('tbody')
+                .append($('<tr />').append($('<td colspan="' + cols + '" />').append(
+                $(source).find('.edoweb_autocomplete_widget_note').parent()
+              )));
             }
-          };
-        }
+          }
+          throbber.remove();
+        };
 
         // Open lookup overlay
         var button = $('<a href="#"> [+]</a>').click(function(e) {
@@ -282,13 +296,14 @@
         }, 1000);
       });
 
-      if (document.URL.split('/').pop() == 'edit') {
+      if ($('#edoweb-basic-form').length) {
         window.location.hash = 'focus';
       }
     }
 
   };
 
+  var pending_requests = [];
   function importTable(container, source, page, sort, order, term) {
     if(!page) page = 0;
     if(!sort) sort = '';
@@ -306,15 +321,20 @@
       'query[0][term]': term,
     };
 
-    jQuery.ajax({
+    var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+    container.find('input[type="text"]').after(throbber);
+
+    var request = jQuery.ajax({
       cache: false,
       url: qurl,
       data: params,
       dataType: 'text',
       error: function(request, status, error) {
-        console.log(status);
+        throbber.remove();
+        //console.log(status);
       },
       success: function(data, status, request) {
+        throbber.remove();
         var html = $(data);
         html.find('a[data-bundle]').remove();
         container.html(html);
@@ -355,9 +375,9 @@
 
       }
     });
+    pending_requests.push(request);
   }
 
-  var pending_requests = [];
   function refreshTable(container, source, page, sort, order, term, type) {
     if(!page) page = 0;
     if(!sort) sort = '';
@@ -376,15 +396,20 @@
       'query[0][type]': type,
     };
 
+    var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+    container.find('input[type="text"]').after(throbber);
+
     var request = jQuery.ajax({
       cache: false,
       url: qurl,
       data: params,
       dataType: 'text',
       error: function(request, status, error) {
+        throbber.remove();
         //console.log(status);
       },
       success: function(data, status, request) {
+        throbber.remove();
         var html = $(data);
 
         html.find('a[data-bundle]').each(function() {
@@ -407,7 +432,7 @@
                 var post_data = $(this).serializeArray();
                 // Need to set this manually so that Drupal detects the
                 // proper triggering element!
-                post_data.push({name: 'save', value: 'Save'})
+                post_data.push({name: 'finish', value: 'Finish'})
                 var form_url = $(this).attr('action');
                 $.post(form_url, post_data, function(data, textStatus, jqXHR) {
                   var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
@@ -424,6 +449,10 @@
           });
         });
 
+        html.find('input[type=radio]').bind('change', function() {
+          $(this).closest('form').find('input[name="op"]').click();
+        });
+
         container.html(html);
 
         container.find('a[data-curie][data-target-bundle]').each(function() {
@@ -434,6 +463,7 @@
             }
           };
         });
+
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
           var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
@@ -476,6 +506,7 @@
   }
 
   function hideEmptyTableColumns(table) {
+    // Hide table columns that do not contain any data
     table.find('th').each(function(i) {
       var remove = 0;
       var tds = $(this).parents('table').find('tr td:nth-child(' + (i + 1) + ')')
@@ -485,6 +516,21 @@
           tds.hide();
       }
     });
+    // Hide the first table column which contains the ID,
+    // move the link to the first visible column
+    table.find('th').eq(0).hide();
+    table.find('tr[data-curie]').each(function() {
+      $(this).find('td').eq(0).hide();
+      var link = $(this).find('td').eq(0).find('a').attr('href');
+      var text = $(this).find('td:visible').first().text();
+      $(this).find('td:visible').first().html($('<a target="_blank" href="' + link + '">' + text + '</a>'));
+    });
+    if (!(table.parent().hasClass('field-name-field-edoweb-struct-child'))
+        && !(table.hasClass('sticky-enabled'))
+        && !(table.closest('form').length))
+        {
+      table.find('thead').hide();
+    }
   }
 
 })(jQuery);

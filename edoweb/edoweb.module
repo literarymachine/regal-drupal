@@ -614,6 +614,7 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
     case 'volume':
     case 'issue':
     case 'article':
+    case 'file':
       $columns = array(
         array(
           'data' => 'Title',
@@ -652,18 +653,6 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_issued',
-            'column' => 'value',
-          ),
-        ),
-      );
-      break;
-    case 'file':
-      $columns = array(
-        array(
-          'data' => 'Title',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_title',
             'column' => 'value',
           ),
         ),
@@ -864,13 +853,18 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
     $rows[] = $row;
   }
 
+  $content['pager_above'] = array(
+    '#theme' => 'pager',
+    '#weight' => 8,
+  );
   // Put our entities into a themed table. See theme_table() for details.
   $content['entity_table'] = array(
     '#theme' => 'table',
     '#rows' => $rows,
     '#header' => $header,
+    '#weight' => 9,
   );
-  $content['pager'] = array(
+  $content['pager_below'] = array(
     '#theme' => 'pager',
     // FIXME: do we need support for multiple tables, we now have AJAX!
     //'#element' => $efq->pager_num,
@@ -1161,6 +1155,9 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     }
   }
   if ($has_inverse) {
+    $inverse_query->entityCondition('bundle', array(
+      'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+    ));
     $entity->content['related'] = edoweb_basic_search_entities(
       $inverse_query
     );
@@ -1689,13 +1686,13 @@ function edoweb_basic_form($form, &$form_state, $entity) {
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save'),
+    '#value' => t('Speichern'),
     '#name' => 'save',
     '#weight' => 1000,
   );
   $form['finish'] = array(
     '#type' => 'submit',
-    '#value' => t('Finish'),
+    '#value' => t('Fertigstellen'),
     '#name' => 'finish',
     '#weight' => 1000,
   );
@@ -1771,7 +1768,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
   } else {
     $form_state['redirect'] = "resource/{$entity->remote_id}";
   }
-  $form_state['redirect'] = "resource/{$entity->remote_id}";
+
 }
 
 /**
@@ -1780,7 +1777,7 @@ function edoweb_basic_form_submit($form, &$form_state) {
  */
 function edoweb_basic_edit_cancel($form , &$form_state) {
   $entity = $form['basic_entity']['#value'];
-  if (property_exists($entity, 'remote_id')) {
+  if (property_exists($entity, 'local_id')) {
     $form_state['redirect'] = "resource/{$entity->remote_id}";
   } else {
     $form_state['redirect'] = 'resource';

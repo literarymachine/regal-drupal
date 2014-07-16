@@ -440,7 +440,7 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       if (empty($items)) {
         $element['edoweb_autocomplete_widget']['note'] = array(
           '#type' => 'item',
-          '#markup' => '<em>Es liegen keine Einträge für '.$instance['label'].' vor. Klicken Sie zum Hinzufügen oben auf [+].</em>',
+          '#markup' => '<em class="edoweb_autocomplete_widget_note">Es liegen keine Einträge für '.$instance['label'].' vor. Klicken Sie zum Hinzufügen oben auf [+].</em>',
         );
       }
       break;

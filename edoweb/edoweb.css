@@ -9,6 +9,11 @@ div.field .field-item {
   margin-left: 12em;
 }
 
+div.field>table {
+  display: block;
+  margin-left: 12em;
+}
+
 input[readonly="readonly"] {
   background-color: #efefef;
 }
@@ -35,4 +40,25 @@ table:not([tableheader-processed]) th.headerSortDown {
 
 table:not([tableheader-processed]) th.headerSortUp {
   background-image: url('http://minorthreat/misc/arrow-asc.png');
+}
+
+button {
+  background: #fff url(/themes/bartik/images/buttons.png) 0 0 repeat-x;
+  border: 1px solid #e4e4e4;
+  border-bottom: 1px solid #b4b4b4;
+  border-left-color: #d2d2d2;
+  border-right-color: #d2d2d2;
+  color: #3a3a3a;
+  cursor: pointer;
+  text-align: center;
+  margin-right: 0.6em;
+  padding: 4px 17px;
+  -khtml-border-radius: 15px;
+  -moz-border-radius: 20px;
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+}
+
+button:hover, button:focus {
+  background: #dedede;
 }
