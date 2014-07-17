@@ -37,6 +37,7 @@
 
   Drupal.behaviors.edoweb_field_reference = {
     attach: function (context, settings) {
+
       //TODO: Config to set one of the following three behaviours
       // Load entity into fieldset
       //$(context).find('fieldset.edoweb_ld_reference').find('a.fieldset-title').each(function(i, element) {
@@ -67,6 +68,11 @@
       //  }
       //});
 
+      $(context).find('table').not('.field-multiple-table').each(function() {
+        hideEmptyTableColumns($(this));
+        hideTableHeaders($(this));
+      });
+
       // Load entities into table
       $(context).find('.field-type-edoweb-ld-reference .field-items').each(function() {
         var container = $(this);
@@ -79,7 +85,7 @@
           .split(' ')[0];
         if (curies.length > 0) {
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          container.append(throbber);
+          container.before(throbber);
           entity_list('edoweb_basic', curies, columns).onload = function () {
             if (this.status == 200) {
               var result_table = $(this.responseText).find('table');
@@ -96,6 +102,7 @@
               Drupal.attachBehaviors(result_table);
               container.replaceWith(result_table);
               hideEmptyTableColumns(result_table);
+              hideTableHeaders(result_table);
             }
             throbber.remove();
           };
@@ -178,7 +185,7 @@
         });
 
         var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-        $(source).append(throbber);
+        $(source).before(throbber);
         entity_list('edoweb_basic', curies, columns).onload = function () {
           if (this.status == 200) {
             var result_table = $(this.responseText).find('table');
@@ -196,11 +203,7 @@
                 .append('<button>Entfernen</button>')
                 .bind('click', function(event) {
                   source.find('input[data-curie="' + row.attr('data-curie') + '"]').val('');
-                  if (row.next().length == 0 && row.prev().length == 0) {
-                    row.closest('table').remove();
-                  } else {
-                    row.remove();
-                  }
+                  row.remove();
                   return false;
                 });
             });
@@ -210,6 +213,7 @@
             source.append(result_table);
             if (curies.length > 0) {
               hideEmptyTableColumns(result_table);
+              hideTableHeaders(result_table);
             } else {
               var cols = result_table.find('th').length;
 
@@ -249,7 +253,9 @@
 
       $.each(field_groups, function (field_group, source_widgets) {
         var insert_position = source_widgets[0].prev();
-        var group_fieldset = $('<div><label>' + field_group + ': <select /></label></div>');
+        // FIXME: make label configurable
+        var field_group_label = "Mitwirkende";
+        var group_fieldset = $('<fieldset><legend>' + field_group_label + ' </legend><div class="fieldset-wrapper"><label><select /></label></div></fieldset>');
         var select = group_fieldset.find('select');
         select.change(function() {
           $.each(source_widgets, function(i, source_widget) {
@@ -271,7 +277,7 @@
           meta.append(source_widget.find('label a'));
           source_widget.find('label').remove();
           select.closest('label').append(meta.hide());
-          group_fieldset.append(source_widget.hide());
+          group_fieldset.find('div.fieldset-wrapper').append(source_widget.hide());
         });
         insert_position.after(group_fieldset);
         $(select.nextAll('span').get(select.get(0).selectedIndex)).show();
@@ -371,6 +377,7 @@
         });
 
         hideEmptyTableColumns(container.find('.sticky-enabled'));
+        hideTableHeaders(container.find('.sticky-enabled'));
         Drupal.attachBehaviors(container);
 
       }
@@ -498,6 +505,7 @@
         });
 
         hideEmptyTableColumns(container.find('.sticky-enabled'));
+        hideTableHeaders(container.find('.sticky-enabled'));
         Drupal.attachBehaviors(container);
 
       }
@@ -521,10 +529,18 @@
     table.find('th').eq(0).hide();
     table.find('tr[data-curie]').each(function() {
       $(this).find('td').eq(0).hide();
-      var link = $(this).find('td').eq(0).find('a').attr('href');
       var text = $(this).find('td:visible').first().text();
-      $(this).find('td:visible').first().html($('<a target="_blank" href="' + link + '">' + text + '</a>'));
+      if ($(this).parents('.ui-dialog').length) {
+        var link = $(this).find('td').eq(0).find('a').attr('href');
+        $(this).find('td:visible').first().html($('<a target="_blank" href="' + link + '">' + text + '</a>'));
+      } else {
+        var link = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
+        $(this).find('td:visible').first().html($('<a href="' + link + '">' + text + '</a>'));
+      }
     });
+  }
+
+  function hideTableHeaders(table) {
     if (!(table.parent().hasClass('field-name-field-edoweb-struct-child'))
         && !(table.hasClass('sticky-enabled'))
         && !(table.closest('form').length))
