@@ -307,6 +307,9 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         '/', $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value']
       );
       $extension = next($mime_type);
+      if (!file_exists(__DIR__ . "/$extension.svg")) {
+        $extension = 'unknown';
+      }
       $icon_url = file_create_url(
         drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
       );
