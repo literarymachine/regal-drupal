@@ -370,6 +370,10 @@ function edoweb_menu() {
  */
 function edoweb_info_page() {
   drupal_add_library('system', 'ui.dialog');
+  drupal_add_library('system', 'drupal.collapse');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
@@ -528,9 +532,6 @@ function edoweb_basic_search_entities(
   EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE
 ) {
   static $search_count = 0;
-  drupal_add_css(
-    drupal_get_path('module', 'edoweb') . '/edoweb.css'
-  );
   if (array_key_exists('query', $_GET)
       && !empty($_GET['query'])
       && array_key_exists($search_count, $_GET['query'])
@@ -1096,9 +1097,6 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
-  drupal_add_css(
-    drupal_get_path('module', 'edoweb') . '/edoweb.css'
-  );
   drupal_add_library('system', 'ui.dialog');
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
@@ -1299,7 +1297,10 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity, $bundle_types = array()) {
-
+  drupal_add_library('system', 'ui.dialog');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  );
   $content = array();
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
 
@@ -1638,10 +1639,6 @@ function edoweb_basic_form($form, &$form_state, $entity) {
 
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
-  );
-
-  drupal_add_css(
-    drupal_get_path('module', 'edoweb') . '/edoweb.css'
   );
 
   drupal_add_js(
