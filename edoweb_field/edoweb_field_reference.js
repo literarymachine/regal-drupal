@@ -82,7 +82,7 @@
           container.append(throbber);
           entity_list('edoweb_basic', curies, columns).onload = function () {
             if (this.status == 200) {
-              var result_table = $(this.responseText);
+              var result_table = $(this.responseText).find('table');
               result_table.find('a[data-curie][data-target-bundle]').each(function() {
                 var link = $(this);
                 entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
@@ -181,7 +181,7 @@
         $(source).append(throbber);
         entity_list('edoweb_basic', curies, columns).onload = function () {
           if (this.status == 200) {
-            var result_table = $(this.responseText);
+            var result_table = $(this.responseText).find('table');
             result_table.find('a[data-curie][data-target-bundle]').each(function() {
               var link = $(this);
               entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {

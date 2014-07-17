@@ -517,13 +517,14 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
   );
 
   if ($advanced) {
-    global $user;
-    $form['query'][$search_count]['users'] = array(
-      '#type' => 'checkboxes',
-      '#options' => array($user->uid => 'Only entities submitted by me'),
-      '#default_value' =>
-        isset($query['users']) ? array_keys($query['users']) : array(),
-    );
+    // FIXME: Filtering by user to be done by facets
+    //global $user;
+    //$form['query'][$search_count]['users'] = array(
+    //  '#type' => 'checkboxes',
+    //  '#options' => array($user->uid => 'Only entities submitted by me'),
+    //  '#default_value' =>
+    //    isset($query['users']) ? array_keys($query['users']) : array(),
+    //);
   }
 
   return $form;
@@ -773,9 +774,16 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
 /*
  * Returns a list of entities themed as a table.
  */
-function edoweb_basic_entity_table($header, $entities, $operations = array()) {
+function edoweb_basic_entity_table($header, $entities, $operations = array(), $total = null) {
 
-  $content = array();
+  $content = array(
+    '#type' => 'fieldset',
+    '#title' => t('Your search returned ' . $total . ' results'),
+    '#attributes' => array(
+      'class' => array('edoweb-entity-list')
+    ),
+  );
+
   $rows = array();
   $columns = array_slice($header, 1, sizeof($header) - 3);
 
@@ -860,8 +868,6 @@ function edoweb_basic_entity_table($header, $entities, $operations = array()) {
   );
   $content['pager_below'] = array(
     '#theme' => 'pager',
-    // FIXME: do we need support for multiple tables, we now have AJAX!
-    //'#element' => $efq->pager_num,
     '#weight' => 10,
   );
   return $content;
@@ -893,17 +899,19 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
   $content['filters'] = array(
     '#type' => 'fieldset',
     '#title' => t('Facets'),
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
     '#attributes' => array(
-      'class' => array('collapsible')
+      'class' => array('edoweb-facets')
     ),
-    '#weight' => -100,
   );
-  $applied_facets = array();
   if ($active_facets) {
     foreach (array_keys($active_facets) as $jsonld_property) {
       $content['filters'][$jsonld_property] = array(
-        '#title' => $jsonld_property,
         '#theme' => 'item_list',
+        '#attributes' => array(
+          'class' => array('edoweb-facets-active'),
+        ),
         '#type' => 'ul',
         '#weight' => -200,
       );
@@ -911,13 +919,14 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     foreach ($active_facets as $jsonld_property => $facet) {
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
       foreach ($facet as $key => $value) {
-        $applied_facets[$jsonld_property][$value] = TRUE;
         // Link to remove facet
         $params = drupal_get_query_parameters();
         unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
-        $item = $is_ref ? '<span data-curie="' . _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>' : $value;
-        $item .= l(t(' Remove'), current_path(), array('query' => $params));
-        $content['filters'][$jsonld_property]['#items'][] = $item;
+        $item = $is_ref
+          ? '<span data-curie="' .  _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>'
+          : "<span>$value</span>";
+        $item .= l(t(' [x]'), current_path(), array('query' => $params));
+        $content['filters'][$jsonld_property]['#items'][$value] = $item;
         // Add facet to query
         if ('contentType' == $jsonld_property) {
           $efq->entityCondition('bundle', array($value));
@@ -940,37 +949,22 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     $entities = $result['edoweb_basic'];
   }
 
-  $content['total_hits'] = array(
-    '#type' => 'item',
-    '#markup' => t(
-      'Your search returned ' . $result['hits'] . '
-      results. You may apply the following facets to further limit your
-      search:'
-    ),
-    '#weight' => -300,
-  );
-
   // Available facets
   if (isset($result['facets'])) {
     // Add list of available facets
-    $content['filters']['facets'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Add Facet'),
-      '#attributes' => array(
-        'class' => array('collapsible', 'collapsed')
-      ),
-      '#weight' => -50,
-    );
     foreach ($result['facets'] as $jsonld_property => $facet) {
       $content['filters']['facets'][$jsonld_property] = array(
         '#theme' => 'item_list',
         '#type' => 'ul',
+        '#attributes' => array(
+          'class' => array('edoweb-facets-available'),
+        ),
         '#title' => $jsonld_property,
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
       foreach ($facet->terms as $term) {
         // Don't add facets that are already applied to the list
-        if (isset($applied_facets[$jsonld_property][$term->term]))
+        if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
           continue;
         $params = drupal_get_query_parameters();
         $facet_entity_uri = $term->term;
@@ -986,7 +980,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
                 'class' => array('facet')
               ) : array(),
           )
-        ) . " ($facet_entity_count)";
+        ) . " <span>($facet_entity_count)</span>";
         $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
       }
     }
@@ -994,7 +988,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
 
 
   if (!empty($entities)) {
-    $content += edoweb_basic_entity_table($header, $entities, $operations);
+    $content['entity_list'] = edoweb_basic_entity_table($header, $entities, $operations, $result['hits']);
   } else {
     // There were no entities. Tell the user.
     $content[] = array(
