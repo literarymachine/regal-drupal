@@ -333,15 +333,17 @@ function edoweb_menu() {
     'access callback' => '_edoweb_field_access',
     'access arguments' => array(1, array('field_edoweb_struct_child')),
     'type' => MENU_LOCAL_TASK,
+    'weight' => '100',
   );
 
   // 'Structure' tab for entities.
   $items['resource/%edoweb_basic/structure'] = array(
-    'title' => 'Structure',
+    'title' => 'Parent',
     'page callback' => 'edoweb_basic_structure',
     'page arguments' => array(1),
     'access callback' => '_edoweb_field_access',
     'access arguments' => array(1, array('field_edoweb_struct_parent')),
+    'weight' => '101',
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -462,7 +464,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 
   $form['query'] = array(
     '#tree' => TRUE,
-    '#type' => 'form',
   );
 
   $url_params = explode('&', $_SERVER['QUERY_STRING']);
@@ -634,14 +635,6 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
         array(
-          'data' => 'Label',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_label',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => 'Volume',
           'type' => 'field',
           'specifier' => array(
@@ -666,7 +659,7 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
         array(
-          'data' => 'Größe',
+          'data' => 'Größe (Byte)',
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_filesize',
@@ -1915,10 +1908,8 @@ function edoweb_block_info() {
   $blocks = array();
   $blocks['edoweb_search_block'] = array(
     'info' => t('Edoweb search'),
-    'visibility' => BLOCK_VISIBILITY_NOTLISTED,
-    'pages' => 'resource',
     'status' => 1,
-    'region' => 'sidebar_first',
+    'region' => 'header',
     'weight' => '100',
   );
 
@@ -2680,7 +2671,11 @@ function edoweb_update_7120() {
     'journal' => array(
       'field_edoweb_parent',
     ),
+    'file' => array(
+      'field_edoweb_filesize',
+    ),
   );
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
+  variable_set('menu_rebuild_needed', TRUE);
 }
