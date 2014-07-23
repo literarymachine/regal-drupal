@@ -1318,6 +1318,22 @@ function _edoweb_installed_fields() {
         ),
       ),
     ),
+    'field_gnd_date_of_establishment' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:dateOfEstablishment'),
+      ),
+    ),
+    'field_gnd_date_of_termination' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:dateOfTermination'),
+      ),
+    ),
   );
 }
 
@@ -1613,6 +1629,8 @@ function _edoweb_installed_instances() {
     'subject' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
@@ -1621,6 +1639,8 @@ function _edoweb_installed_instances() {
     'corporate_body' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
@@ -1629,6 +1649,8 @@ function _edoweb_installed_instances() {
     'event' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
@@ -1645,6 +1667,8 @@ function _edoweb_installed_instances() {
     'work' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
@@ -1653,14 +1677,26 @@ function _edoweb_installed_instances() {
     'place' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
      * Field instances in collection bundle
      */
     'collection' => array(
+      'field_edoweb_title' => array(),
       'field_edoweb_label' => array(),
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_description' => array(),
+    ),
+
+    /*
+     * Field instances in generic bundle
+     */
+    'authority_resource' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
     ),
 
   );
@@ -1919,6 +1955,12 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_gnd_profession' => array(
       'label' => 'Beruf',
+    ),
+    'field_gnd_date_of_establishment' => array(
+      'label' => 'Gründungsdatum',
+    ),
+    'field_gnd_date_of_termination' => array(
+      'label' => 'Auflösungsdatum',
     ),
   );
   return $defaults[$field_name];

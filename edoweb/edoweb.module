@@ -176,6 +176,13 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'authority_resource' => array(
+        'label' => t('Authority Resource'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/authority_resource/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
     ),
     // View modes allow entities to be displayed differently based on context.
     'view modes' => array(
@@ -678,6 +685,12 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
       );
       break;
     case 'person':
+    case 'subject':
+    case 'corporate_body':
+    case 'event':
+    case 'work':
+    case 'place':
+    case 'authority_resource':
       $columns = array(
         array(
           'data' => 'Name',
@@ -712,6 +725,22 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
           ),
         ),
         array(
+          'data' => 'Gründungsdatum',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_gnd_date_of_establishment',
+            'column' => 'value',
+          ),
+        ),
+        array(
+          'data' => 'Auflösungsdatum',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_gnd_date_of_termination',
+            'column' => 'value',
+          ),
+        ),
+        array(
           'data' => 'Beruf',
           'type' => 'field',
           'specifier' => array(
@@ -741,7 +770,6 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
         ),
       );
       break;
-    case 'generic':
     default:
       $columns = array(
         array(
@@ -1019,7 +1047,9 @@ function edoweb_basic_raw_title($entity) {
     case 'journal':
     case 'issue':
     case 'article':
+    case 'collection':
       $label_fields[] = 'field_edoweb_title';
+      $label_fields[] = 'field_edoweb_label';
       break;
     case 'volume':
       $label_fields[] = 'field_edoweb_volume';
@@ -1031,9 +1061,11 @@ function edoweb_basic_raw_title($entity) {
     case 'family':
     case 'work':
     case 'place':
+    case 'authority_resource':
       $label_fields[] = 'field_gnd_name';
       break;
     default:
+      $label_fields[] = 'field_edoweb_title';
       $label_fields[] = 'field_edoweb_label';
       break;
   }
@@ -1849,6 +1881,7 @@ function edoweb_rdf_types() {
     'issue' => array('bibo:Issue'),
     'article' => array('bibo:Article'),
     'file' => array('bibo:DocumentPart'),
+    'authority_resource' => array('gnd:AuthorityResource'),
   );
 }
 
@@ -2672,4 +2705,51 @@ function edoweb_update_7120() {
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
   variable_set('menu_rebuild_needed', TRUE);
+}
+
+/**
+ * Add generic bundle for authority resources, add fields for date of
+ * establishment & termination
+ */
+function edoweb_update_7121() {
+  $updated_fields = array(
+    'field_gnd_date_of_establishment',
+    'field_gnd_date_of_termination',
+  );
+  $updated_instances = array(
+    'collection' => array(
+      'field_edoweb_title',
+      'field_edoweb_identifier_ht',
+    ),
+    'authority_resource' => array(
+      'field_gnd_name',
+      'field_gnd_identifier',
+    ),
+    'subject' => array(
+      'field_gnd_date_of_establishment',
+      'field_gnd_date_of_termination',
+    ),
+    'corporate_body' => array(
+      'field_gnd_date_of_establishment',
+      'field_gnd_date_of_termination',
+    ),
+    'event' => array(
+      'field_gnd_date_of_establishment',
+      'field_gnd_date_of_termination',
+    ),
+    'work' => array(
+      'field_gnd_date_of_establishment',
+      'field_gnd_date_of_termination',
+    ),
+    'place' => array(
+      'field_gnd_date_of_establishment',
+      'field_gnd_date_of_termination',
+    ),
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+  cache_clear_all('*', 'cache_field', TRUE);
+  db_truncate('edoweb_basic')->execute();
+  drupal_set_message('Entity caches cleared');
 }
