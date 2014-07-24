@@ -1436,7 +1436,7 @@ function edoweb_basic_children($entity, $target_bundles = array()) {
   }
 
   $content['child']['child_list'] = edoweb_basic_search_entities(
-    $child_query
+    $child_query, FALSE, array(), TRUE, TRUE
   );
 
   _edoweb_build_breadcrumb($entity);
