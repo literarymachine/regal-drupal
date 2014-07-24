@@ -107,7 +107,6 @@ function edoweb_install() {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
-      $field_instance['widget']['weight'] = $i;
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -118,6 +117,10 @@ function edoweb_install() {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['widget'] = array_key_exists('widget', $defaults)
+        ? $defaults['widget']
+        : array();
+      $field_instance['widget']['weight'] = $i;
       field_create_instance($field_instance);
       $i++;
     }
@@ -1720,12 +1723,27 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_title' => array(
       'label' => 'Titel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_other' => array(
       'label' => 'Untertitel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_alternative' => array(
       'label' => 'Alternativer Titel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_short' => array(
       'label' => 'Kurztitel',
@@ -1910,7 +1928,6 @@ function _edoweb_field_instance_defaults($field_name) {
       'description' => 'Freie Verschlagwortung',
     ),
     'field_edoweb_abstract' => array(
-      'field_name'  => 'field_edoweb_abstract',
       'label' => 'Abriss',
       'description' => 'Abstract',
     ),

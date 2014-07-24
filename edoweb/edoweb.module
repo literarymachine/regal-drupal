@@ -2260,14 +2260,6 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
-      $widget_weight = array_search(
-        $field_name, array_keys($installed_instances[$bundle_type])
-      );
-      if (FALSE !== $widget_weight) {
-        $field_instance['widget']['weight'] = $widget_weight;
-        drupal_set_message("Setting widget weight for $field_name in
-        bundle $bundle_type to $widget_weight");
-      }
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -2278,6 +2270,17 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['widget'] = array_key_exists('widget', $defaults)
+        ? $defaults['widget']
+        : array();
+      $widget_weight = array_search(
+        $field_name, array_keys($installed_instances[$bundle_type])
+      );
+      if (FALSE !== $widget_weight) {
+        $field_instance['widget']['weight'] = $widget_weight;
+        drupal_set_message("Setting widget weight for $field_name in
+        bundle $bundle_type to $widget_weight");
+      }
       $installed_instance = field_info_instance(
         EDOWEB_ENTITY_TYPE, $field_name, $bundle_type
       );
@@ -2752,4 +2755,36 @@ function edoweb_update_7121() {
   cache_clear_all('*', 'cache_field', TRUE);
   db_truncate('edoweb_basic')->execute();
   drupal_set_message('Entity caches cleared');
+}
+
+/**
+ * Configure fieldset rows
+ */
+function edoweb_update_7122() {
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_title',
+      'field_edoweb_title_other',
+      'field_edoweb_title_alternative',
+    ),
+    'journal' => array(
+      'field_edoweb_title',
+      'field_edoweb_title_other',
+      'field_edoweb_title_alternative',
+    ),
+    'issue' => array(
+      'field_edoweb_title',
+    ),
+    'article' => array(
+      'field_edoweb_title',
+      'field_edoweb_title_other',
+    ),
+    'file' => array(
+      'field_edoweb_title',
+    ),
+    'collection' => array(
+      'field_edoweb_title',
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
 }
