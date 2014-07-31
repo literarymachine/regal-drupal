@@ -527,14 +527,16 @@
     table.find('th').eq(0).hide();
     table.find('tr[data-curie]').each(function() {
       $(this).find('td').eq(0).hide();
-      var content = $(this).find('td:visible').first().html();
       if ($(this).parents('.ui-dialog').length) {
         var link = $(this).find('td').eq(0).find('a').attr('href');
-        $(this).find('td:visible').first().html($('<a target="_blank" href="' + link + '">' + content + '</a>'));
+        var target = "_blank";
       } else {
         var link = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
-        $(this).find('td:visible').first().html($('<a href="' + link + '">' + content + '</a>'));
+        var target = "_self";
       }
+      var content = $(this).find('td:visible').first().html();
+      var link_text = $(content).text() ? content : link;
+      $(this).find('td:visible').first().html($('<a target="' + target + '" href="' + link + '">' + link_text + '</a>'));
     });
   }
 
