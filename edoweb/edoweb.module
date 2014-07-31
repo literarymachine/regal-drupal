@@ -950,6 +950,9 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         // Link to remove facet
         $params = drupal_get_query_parameters();
         unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
+        if (isset($params['page'])) {
+          unset($params['page']);
+        }
         $item = $is_ref
           ? '<span data-curie="' .  _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>'
           : "<span>$value</span>";

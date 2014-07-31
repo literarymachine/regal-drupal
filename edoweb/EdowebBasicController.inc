@@ -105,6 +105,7 @@ class EdowebBasicController extends EntityAPIController {
     if (empty($entity->local_id)) {
       $entity->created = time();
     }
+
     // If our entity has no remote_id, create one.
     if (empty($entity->remote_id)) {
       if (in_array($entity->bundle_type, array('person', 'subject', 'corporate_body'))) {
@@ -121,18 +122,7 @@ class EdowebBasicController extends EntityAPIController {
     }
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
-    // The 'primary_keys' argument determines whether this will be an insert
-    // or an update. So if the entity already has an ID, we'll specify
-    // local_id as the key.
-    $primary_keys = $entity->internalIdentifier() ? 'local_id' : array();
-    // Write out the entity record.
-    try {
-      drupal_write_record('edoweb_basic', $entity, $primary_keys);
-    } catch (PDOException $e) {
-      drupal_set_message(
-        "Failed to write record for {$entity->remote_id}.", 'error'
-      );
-    }
+
     // We're going to invoke either hook_entity_update() or
     // hook_entity_insert(), depending on whether or not this is a
     // new entity. We'll just store the name of hook_entity_insert()
@@ -149,6 +139,10 @@ class EdowebBasicController extends EntityAPIController {
       field_attach_update('edoweb_basic', $entity);
       $invocation = 'entity_update';
     }
+
+    // Save local record
+    $api = new EdowebAPIClient();
+    $api->importEntity($entity->remote_id);
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     return $entity;
