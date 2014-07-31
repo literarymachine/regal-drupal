@@ -2281,6 +2281,7 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       );
       if (FALSE !== $widget_weight) {
         $field_instance['widget']['weight'] = $widget_weight;
+        $field_instance['display']['default']['weight'] = $widget_weight;
         drupal_set_message("Setting widget weight for $field_name in
         bundle $bundle_type to $widget_weight");
       }
@@ -2790,4 +2791,11 @@ function edoweb_update_7122() {
     ),
   );
   _update_edoweb_installed_instances($updated_instances);
+}
+
+/**
+ * Fix field weights for view mode
+ */
+function edoweb_update_7123() {
+  edoweb_update_7122();
 }
