@@ -166,7 +166,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
         unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
-        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
       } else {
         watchdog('edoweb_storage', 'Unable to upload file to API');
         return FALSE;
