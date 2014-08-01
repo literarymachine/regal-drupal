@@ -616,7 +616,7 @@ function edoweb_basic_search_entities(
 /*
  * Returns table header
  */
-function edoweb_basic_table_header($bundle_type = 'generic') {
+function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false) {
   $columns = array();
   switch ($bundle_type) {
     case 'monograph':
@@ -785,13 +785,14 @@ function edoweb_basic_table_header($bundle_type = 'generic') {
 
   // Add fixed columns, independant of bundle type
   array_unshift($columns, 'ID');
-  array_push($columns, array(
-      'data' => 'Updated',
-      'type' => 'property',
-      'specifier' => 'updated',
-      'format' => 'format_date',
-    )
+  $updated = array(
+    'data' => 'Updated',
+    'type' => 'property',
+    'specifier' => 'updated',
+    'format' => 'format_date',
+    'sort' => $init_sort ? 'desc' : null,
   );
+  array_push($columns, $updated);
   array_push($columns, 'Type');
   array_push($columns, 'Operations');
 
@@ -918,7 +919,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
   $target_bundle = isset($efq->entityConditions['bundle']['value'])
     ? current($efq->entityConditions['bundle']['value'])
     : null;
-  $header = edoweb_basic_table_header($target_bundle);
+  $header = edoweb_basic_table_header($target_bundle, !isset($efq->metaData['term']));
   $efq->tableSort($header);
 
   $content = array();
