@@ -127,14 +127,17 @@ function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $
 
   // Re-attach all necessary JS to display field after failed validation
   // since this is not done automatically when validating.
-  //drupal_add_library('system', 'drupal.collapse');
-  //drupal_add_library('system', 'ui.autocomplete');
-  //drupal_add_js(array('edoweb_field' => array(
-  //  'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
-  //)), 'setting');
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  //);
+  drupal_add_library('system', 'drupal.collapse');
+  drupal_add_library('system', 'ui.autocomplete');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  );
+  drupal_add_js(array('edoweb_field' => array(
+    'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
+  )), 'setting');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  );
   //drupal_add_js(
   //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
   //  array('weight' => '100')
