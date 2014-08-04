@@ -27,6 +27,15 @@ require_once dirname(__FILE__) . '/lib/LibRDF/LibRDF/LibRDF.php';
 require_once dirname(__FILE__) . '/lib/php-json-ld/jsonld.php';
 
 /**
+ * Implements hook_init().
+ */
+function edoweb_init() {
+  drupal_add_library('system', 'ui.dialog');
+  drupal_add_library('system', 'ui.sortable');
+  drupal_add_library('system', 'drupal.collapse');
+}
+
+/**
  * Implements hook_entity_info().
  *
  * This is the fundamental description of the entity.
@@ -378,8 +387,6 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
-  drupal_add_library('system', 'ui.dialog');
-  drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
@@ -908,7 +915,6 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  */
 function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null) {
 
-  drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
@@ -1116,14 +1122,12 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
-  drupal_add_library('system', 'drupal.collapse');
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
-  drupal_add_library('system', 'ui.dialog');
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
   // Start setting up the content.
@@ -1323,7 +1327,6 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity, $bundle_types = array()) {
-  drupal_add_library('system', 'ui.dialog');
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
