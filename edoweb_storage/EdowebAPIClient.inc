@@ -590,7 +590,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType"]
+      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType.@value"]
         = array_values($target_bundles);
     }
 
@@ -603,7 +603,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
             $uids = array($uids);
           }
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
-            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"] = $uids;
+            ["@graph.creator.@value"] = $uids;
           break;
       }
     }
@@ -615,9 +615,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
-        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
       } else if ($bool_op == 'or') {
-        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
       }
     }
 
@@ -643,7 +643,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
       $order = $sort['direction'];
       if ($jsonld_property) {
-        $query['sort'][]["@graph.$jsonld_property"] = array(
+        $query['sort'][]["@graph.$jsonld_property.@value"] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,
         );
@@ -651,13 +651,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     $query['facets']['creator']['terms']['field']
-      = '@graph.creator';
+      = '@graph.creator.@value';
     $query['facets']['contentType']['terms']['field']
-      = '@graph.contentType';
+      = '@graph.contentType.@value';
     $query['facets']['subject']['terms']['field']
-      = '@graph.subject';
+      = '@graph.subject.@value';
     $query['facets']['issued']['terms']['field']
-      = '@graph.issued';
+      = '@graph.issued.@value';
     return json_encode($query);
   }
 
