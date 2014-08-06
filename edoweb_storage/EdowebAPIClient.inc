@@ -631,7 +631,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         case 'property':
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
-            $jsonld_property = 'modified.@value';
+            $jsonld_property = 'modified';
           }
           break;
         case 'field':
