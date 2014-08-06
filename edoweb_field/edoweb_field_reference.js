@@ -434,12 +434,15 @@
               // dialog over modal dialog
               form.find('.field-type-edoweb-ld-reference').remove();
               form.submit(function(e) {
+                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+                form.append(throbber);
                 var post_data = $(this).serializeArray();
                 // Need to set this manually so that Drupal detects the
                 // proper triggering element!
-                post_data.push({name: 'finish', value: 'Finish'})
+                post_data.push({name: 'finish', value: 'Fertigstellen'})
                 var form_url = $(this).attr('action');
                 $.post(form_url, post_data, function(data, textStatus, jqXHR) {
+                  throbber.remove();
                   var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
                   container.dialog('close');
                   source.find('input.edoweb_autocomplete_widget').val(resource_uri);
