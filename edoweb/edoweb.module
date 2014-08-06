@@ -2806,3 +2806,15 @@ function edoweb_update_7122() {
 function edoweb_update_7123() {
   edoweb_update_7122();
 }
+
+/**
+ * Add field_edoweb_struct_child for file in article bundle
+ */
+function edoweb_update_7124() {
+  $updated_instances = array(
+    'article' => array(
+      'field_edoweb_struct_child',
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
+}
