@@ -361,7 +361,7 @@ function _edoweb_storage_entity_serialize_rdf(
 ){
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   // First element contains the rdf:type definitions
   $rdf_type_predicate = new LibRDF_URINode(
@@ -410,61 +410,63 @@ function _edoweb_storage_entity_serialize_rdf(
         && !in_array($metadata_type, $metadata_types)) {
       continue;
     }
-    $rdf_predicate = new LibRDF_URINode(
-      _edoweb_expand_curie($field_mapping['predicates'][0])
-    );
-    $rdf_subject = _get_rdf_subject($entity, $field_name);
-    try {
-      $items = $wrapper->{$field_name}->value();
-    } catch (EntityMetadataWrapperException $e) {
-      // Field is not available for this entity
-      continue;
-    }
-    if (is_null($items) || empty($items)) {
-      // Field is available for this entity,
-      // but does not have value(s).
-      continue;
-    }
-    if (!is_array($items)) {
-      $items = array($items);
-    }
-    foreach ($items as $item) {
-      if (isset($field_mapping['type'])
-          and $field_mapping['type'] == 'rel') {
-        if (is_object($item)) {
-          $rdf_object = new LibRDF_URINode($item->identifier());
-          if ($embedded_storage) {
-            $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-              $item, false, $metadata_types
-            );
-            foreach ($embedded_item_graph as $embedded_item_statement) {
-              $rdf_model->addStatement($embedded_item_statement);
+    foreach ($field_mapping['predicates'] as $predicate_curie) {
+      $rdf_predicate = new LibRDF_URINode(
+        _edoweb_expand_curie($predicate_curie)
+      );
+      $rdf_subject = _get_rdf_subject($entity, $field_name);
+      try {
+        $items = $wrapper->{$field_name}->value();
+      } catch (EntityMetadataWrapperException $e) {
+        // Field is not available for this entity
+        continue;
+      }
+      if (is_null($items) || empty($items)) {
+        // Field is available for this entity,
+        // but does not have value(s).
+        continue;
+      }
+      if (!is_array($items)) {
+        $items = array($items);
+      }
+      foreach ($items as $item) {
+        if (isset($field_mapping['type'])
+            and $field_mapping['type'] == 'rel') {
+          if (is_object($item)) {
+            $rdf_object = new LibRDF_URINode($item->identifier());
+            if ($embedded_storage) {
+              $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
+                $item, false, $metadata_types
+              );
+              foreach ($embedded_item_graph as $embedded_item_statement) {
+                $rdf_model->addStatement($embedded_item_statement);
+              }
+            }
+          } else {
+            $namespace = variable_get('edoweb_api_namespace');
+            if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
+                  || 'local:' == substr($item, 0, 6)) {
+              $rdf_object = new LibRDF_URINode($item);
+            } else {
+              $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+            }
+            if ($embedded_storage) {
+              $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
+                edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
+              );
+              foreach ($embedded_item_graph as $embedded_item_statement) {
+                $rdf_model->addStatement($embedded_item_statement);
+              }
             }
           }
         } else {
-          $namespace = variable_get('edoweb_api_namespace');
-          if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
-                || 'local:' == substr($item, 0, 6)) {
-            $rdf_object = new LibRDF_URINode($item);
-          } else {
-            $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
-          }
-          if ($embedded_storage) {
-            $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-              edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
-            );
-            foreach ($embedded_item_graph as $embedded_item_statement) {
-              $rdf_model->addStatement($embedded_item_statement);
-            }
-          }
+          $rdf_object = new LibRDF_LiteralNode($item);
         }
-      } else {
-        $rdf_object = new LibRDF_LiteralNode($item);
+        $rdf_statement = new LibRDF_Statement(
+          $rdf_subject, $rdf_predicate, $rdf_object
+        );
+        $rdf_model->addStatement($rdf_statement);
       }
-      $rdf_statement = new LibRDF_Statement(
-        $rdf_subject, $rdf_predicate, $rdf_object
-      );
-      $rdf_model->addStatement($rdf_statement);
     }
   }
   if ($rdf_serializer) {
@@ -479,7 +481,7 @@ function _edoweb_storage_entity_serialize_rdf(
 
 function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser) {
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
   try {
@@ -492,37 +494,45 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   $entity->setSource($rdf_model);
 
   // Skip first element, these are the rdf:type definitions
-  unset($rdf_mapping[key($rdf_mapping)]);
+  unset($rdf_mapping['rdftype']);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   foreach ($rdf_mapping as $field_name => $mapping) {
-    $rdf_predicate = new LibRDF_URINode(
-      _edoweb_expand_curie($mapping['predicates'][0])
-    );
-    // Modify subject URI for datastream metadata
-    $rdf_subject = _get_rdf_subject($entity, $field_name);
-    foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-      try {
-        if ($value instanceOf LibRDF_LiteralNode) {
-          // Fix escaped unicode characters such as \u00E4
-          $value = json_decode('"'.$value->getValue().'"');
-          if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-            $wrapper->{$field_name} = (string) $value;
+    $field_info = field_info_field($field_name);
+    foreach($mapping['predicates'] as $predicate_curie) {
+      $rdf_predicate = new LibRDF_URINode(
+        _edoweb_expand_curie($predicate_curie)
+      );
+      // Modify subject URI for datastream metadata
+      $rdf_subject = _get_rdf_subject($entity, $field_name);
+      foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        // External datasources may provide incompatible data, filter that out
+        if (($field_info['type'] == 'edoweb_ld_reference')
+            && (!$value instanceof LibRDF_URINode))
+              continue;
+        try {
+          if ($value instanceOf LibRDF_LiteralNode) {
+            // Fix escaped unicode characters such as \u00E4
+            $value = json_decode('"'.$value->getValue().'"');
+            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+              $wrapper->{$field_name} = (string) $value;
+            } else {
+              $wrapper->{$field_name}[] = (string) $value;
+            }
           } else {
-            $wrapper->{$field_name}[] = (string) $value;
+            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+              $wrapper->{$field_name} = $value->getValue();
+            } else {
+              $wrapper->{$field_name}[] = $value->getValue();
+            }
           }
-        } else {
-          if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-            $wrapper->{$field_name} = $value->getValue();
-          } else {
-            $wrapper->{$field_name}[] = $value->getValue();
-          }
+          //drupal_set_message("Populated $field_name.");
+        } catch (EntityMetadataWrapperException $e) {
+          //drupal_set_message($e->getMessage(), 'error');
         }
-        //drupal_set_message("Populated $field_name.");
-      } catch (EntityMetadataWrapperException $e) {
-        //drupal_set_message($e->getMessage(), 'error');
       }
     }
   }
+
   // Add non-field properties
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
   try {
@@ -555,16 +565,11 @@ function _get_rdf_subject($entity, $field_name) {
 
 }
 
-function _edoweb_storage_entity_get_bundle($entity) {
-  $entity_ids = entity_extract_ids(EDOWEB_ENTITY_TYPE, $entity);
-  return $entity_ids[2];
-}
-
 function _edoweb_storage_entity_serialize_jsonld(
   $entity, $metadata_types = array()
 ){
   $rdf_mapping = rdf_mapping_load(
-    EDOWEB_ENTITY_TYPE, _edoweb_storage_entity_get_bundle($entity)
+    EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
   $jsonld_context = new stdClass();
   $rdf_namespaces = rdf_get_namespaces();
@@ -689,7 +694,7 @@ function _edoweb_expand_curie($curie) {
   }
   $rdf_namespaces = rdf_get_namespaces();
   list($curie_prefix, $curie_local) = explode(':', $curie);
-  if ($curie_prefix == 'ddc') {
+  if ($curie_prefix == 'ddc' && '/' != substr($curie, -1)) {
     $curie_local .= '/';
   }
   return $rdf_namespaces[$curie_prefix] . $curie_local;
@@ -701,15 +706,19 @@ function _edoweb_compact_uri($uri) {
   if (!$split) {
     $split = strrpos($uri, '/');
   }
+  if (!$split) {
+    return $uri;
+  }
   // Trailing slash
   if ($split == strlen($uri) - 1) {
     $split = strrpos($uri, '/', $split - strlen($uri) - 1);
   }
+
   $curie_prefix = array_search(
     substr($uri, 0, $split + 1), $rdf_namespaces
   );
   $curie_local = substr($uri, $split + 1);
-  if (!$curie_prefix) {
+  if (!$curie_prefix || $curie_prefix == '') {
     return $uri;
   } else {
     return "$curie_prefix:$curie_local";
@@ -732,10 +741,13 @@ function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
         new LibRDF_URINode(_edoweb_expand_curie($remote_id)),
         new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
       );
+      $rdf_type_curies = array();
       foreach ($rdf_types as $rdf_type) {
-        $type = _edoweb_compact_uri($rdf_type->getValue());
-        foreach (edoweb_rdf_types() as $bundle => $types) {
-          if (in_array($type, $types)) {
+        $rdf_type_curies[] = _edoweb_compact_uri($rdf_type->getValue());
+      }
+      foreach (edoweb_rdf_types() as $bundle => $types) {
+        foreach ($rdf_type_curies as $rdf_type_curie) {
+          if (in_array($rdf_type_curie, $types)) {
             return $bundle;
           }
         }

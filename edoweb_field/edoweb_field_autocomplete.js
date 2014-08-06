@@ -55,12 +55,24 @@
         var insert_position = source_widgets[0].prev();
         var group_fieldset = $('<fieldset><legend><select /></legend></fieldset>');
         group_fieldset.find('select').change(function() {
+          group_fieldset.children('legend').children('img').hide();
+          $(group_fieldset.children('legend').children('img').get(this.selectedIndex)).show();
           group_fieldset.children('div[class="fieldset-wrapper"]').hide();
           $(group_fieldset.children('div[class="fieldset-wrapper"]').get(this.selectedIndex)).show();
         });
         $.each(source_widgets, function(i, source_widget) {
           var focus_link = source_widget.find('a[name="focus"]').first();
           var content = source_widget.find('.fieldset-wrapper').first().hide();
+          // Convert description div to tooltip
+          var tooltip_content = content.find('div.fieldset-description').first();
+          if (tooltip_content.length > 0) {
+            var tooltip_icon = $('<img />')
+              .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+              .attr('title', tooltip_content.text())
+              .css('height', '1em');
+            group_fieldset.children('legend').append(tooltip_icon.hide());
+            tooltip_content.remove();
+          }
           group_fieldset.find('select').append($('<option>' + source_widget.find('legend').first().text() + '</option>'));
           if (focus_link.length > 0) {
             group_fieldset.prepend(focus_link);
@@ -70,9 +82,31 @@
           source_widget.remove();
         });
         insert_position.after(group_fieldset);
+        $(group_fieldset.children('legend').children('img').get(group_fieldset.find('select').get(0).selectedIndex)).show();
         $(group_fieldset.children('div[class="fieldset-wrapper"]').get(group_fieldset.find('select').get(0).selectedIndex)).show();
       });
       window.location.hash = 'focus';
+    }
+  };
+
+  Drupal.behaviors.edoweb_field_tooltips = {
+    attach: function (context, settings) {
+      $('form#edoweb-basic-form').find('div.description').each(function() {
+        var tooltip_icon = $('<img />')
+          .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+          .attr('title', $(this).text())
+          .css('height', '1em');
+        $(this).prevAll('label').append(tooltip_icon);
+        $(this).remove();
+      });
+      $('form#edoweb-basic-form').find('fieldset.form-wrapper').find('div.fieldset-description').each(function() {
+        var tooltip_icon = $('<img />')
+          .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+          .attr('title', $(this).text())
+          .css('height', '1em');
+        $(this).parent().prevAll('legend').append(tooltip_icon);
+        $(this).remove();
+      });
     }
   };
 

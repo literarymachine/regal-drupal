@@ -41,13 +41,19 @@ class LinkedDataClient {
   /*
    * Load the RDF for a linked data resource
    */
-  public function getRDF($resource_uri, $loaded_uris = array()) {
+  public function getRDF($resource_uri, $loaded_uris = 0) {
 
-    $rdf_parser = new LibRDF_Parser('rdfxml');
+    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)
+        || 'nwbib:' == substr(_edoweb_compact_uri($resource_uri), 0, 6))
+    {
+      $rdf_parser = new LibRDF_Parser('turtle');
+    } else {
+      $rdf_parser = new LibRDF_Parser('rdfxml');
+    }
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
 
     // Prevent recursion
-    if (in_array($resource_uri, $loaded_uris)) {
+    if ($loaded_uris > 1) {
       return $rdf_model;
     }
 
@@ -79,14 +85,30 @@ class LinkedDataClient {
       $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
     }
 
-    $loaded_uris[] = $resource_uri;
+    // Workaround for dct:hasVesion in DDC
+    if ('ddc:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
+      $version_uri = new LibRDF_URINode($resource_uri . '2009/03/about.de');
+      $version_stmts = $rdf_model->findStatements(
+        $version_uri, null, null
+      );
+      foreach ($version_stmts as $version_stmt) {
+        $rdf_model->addStatement(
+          new LibRDF_Statement(
+            new LibRDF_URINode($resource_uri),
+            $version_stmt->getPredicate(),
+            $version_stmt->getObject()
+          )
+        );
+      }
+    }
+
     $OWL = new LibRDF_NS('http://www.w3.org/2002/07/owl#');
     $equivalent_resources = $rdf_model->getTargets(
       new LibRDF_URINode($resource_uri), $OWL->sameAs
     );
     foreach ($equivalent_resources as $equivalent_resource) {
       $same_as_rdf = $this->getRDF(
-        $equivalent_resource->getValue(), $loaded_uris
+        $equivalent_resource->getValue(), ++$loaded_uris
       );
       foreach ($same_as_rdf as $stmt) {
         if ($stmt->getSubject()->isEqual($equivalent_resource)) {

@@ -125,6 +125,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_post_data = _edoweb_storage_entity_serialize_ntriples(
       $entity, array('descriptive')
     );
+    header("Content-Type: text/plain");
+//    die( $http_post_data );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
@@ -164,7 +166,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
         unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
-        cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
       } else {
         watchdog('edoweb_storage', 'Unable to upload file to API');
         return FALSE;
@@ -397,15 +398,29 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $size = array_key_exists('length', $efq->range)
       ? $efq->range['length']
       : $results_per_page;
+    $type = array_key_exists('type', $efq->metaData)
+      ? $efq->metaData['type']
+      : null;
 
     $http_url = sprintf(
       'http://%s/%s?%s=%s&from=%s&size=%s',
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
 
+    if ($type) {
+      $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
+      $bundle_info = $bundle_infos[$type];
+      $rdf_types = array();
+      foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
+        $rdf_types[] = _edoweb_expand_curie($rdf_type);
+      }
+      $http_url .= '&type=' . urlencode(implode(',', $rdf_types));
+    }
+
     $http_response = $this->_http_get(
       $http_url, 'text/plain'
     );
+
     if (200 != $http_response->code || !isset($http_response->data)) {
       watchdog('edoweb_storage', 'Unable to execute query on @api.',
         array(
@@ -416,10 +431,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
     $rdf_parser = new LibRDF_Parser('ntriples');
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdf_model->loadStatementsFromString(
-      $rdf_parser,
-      $http_response->data
-    );
+
+    try {
+      $rdf_model->loadStatementsFromString(
+        $rdf_parser,
+        $http_response->data
+      );
+    } catch (LibRDF_Error $e) {
+      return FALSE;
+    }
 
     $ontology_model = new LibRDF_Model(new LibRDF_Storage());
     $ontology_model->loadStatementsFromUri(
@@ -428,23 +448,40 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
     $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
 
+    // Retrieve hit count
+    $search_total_results = new LibRDF_URINode(
+      'http://sindice.com/vocab/search#totalResults'
+    );
+    try {
+      //FIXME: why does query URL as subject not work?
+      //$hits = $rdf_model->getTarget(
+      //  new LibRDF_URINode($http_url), $search_total_results
+      //)->getValue();
+      $hits = $rdf_model->findStatements(
+        null, $search_total_results, null
+      )->current()->getObject()->getValue();
+    } catch (LibRDF_LookupError $e) {
+      $hits = 0;
+    }
+    $results = array(
+      'hits' => $hits
+    );
+
+    // Retrieve primary topics, i.e. actual result resources
     $foaf_primary_topic = new LibRDF_URINode(
       'http://xmlns.com/foaf/0.1/primaryTopic'
     );
     $primary_topics = $rdf_model->findStatements(
       null, $foaf_primary_topic, null
     );
-    $results = array(
-      'hits' => 0,
-      EDOWEB_ENTITY_TYPE => array(),
-    );
+
+    LinkedDataClient::setTripleStore($rdf_model);
     foreach ($primary_topics as $primary_topic) {
       $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(
         $remote_id, $rdf_model
       );
       $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
-      $results['hits']++;
     }
     return $results;
   }
@@ -492,6 +529,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
 
       try {
+        $context_url = $hit->_source->{'@context'};
+        // Cache context file for performance
+        if (!file_exists('/tmp/' . basename($context_url))) {
+          file_put_contents(
+            '/tmp/' . basename($context_url),
+            file_get_contents($context_url)
+          );
+        }
+        $hit->_source->{'@context'} = 'file:///tmp/' . basename($context_url);
         $rdf_ntriples = _edoweb_escape_utf8(
           jsonld_to_rdf($hit->_source, $options)
         );
@@ -544,7 +590,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType"]
+      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType.@value"]
         = array_values($target_bundles);
     }
 
@@ -557,7 +603,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
             $uids = array($uids);
           }
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
-            ["@graph.http://purl.org/dc/elements/1.1/creator.@value"] = $uids;
+            ["@graph.creator.@value"] = $uids;
           break;
       }
     }
@@ -569,9 +615,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
-        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
       } else if ($bool_op == 'or') {
-        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
       }
     }
 
@@ -585,7 +631,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         case 'property':
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
-            $jsonld_property = 'modified.@value';
+            $jsonld_property = 'modified';
           }
           break;
         case 'field':
@@ -597,7 +643,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
       $order = $sort['direction'];
       if ($jsonld_property) {
-        $query['sort'][]["@graph.$jsonld_property"] = array(
+        $query['sort'][]["@graph.$jsonld_property.@value"] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,
         );
@@ -605,13 +651,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     $query['facets']['creator']['terms']['field']
-      = '@graph.creator';
+      = '@graph.creator.@value';
     $query['facets']['contentType']['terms']['field']
-      = '@graph.contentType';
+      = '@graph.contentType.@value';
     $query['facets']['subject']['terms']['field']
-      = '@graph.subject';
+      = '@graph.subject.@value';
     $query['facets']['issued']['terms']['field']
-      = '@graph.issued';
+      = '@graph.issued.@value';
     return json_encode($query);
   }
 

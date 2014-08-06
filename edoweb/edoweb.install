@@ -107,7 +107,6 @@ function edoweb_install() {
       $field_instance['field_name'] = $field_name;
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
-      $field_instance['widget']['weight'] = $i;
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance['label'] = array_key_exists('label', $defaults)
         ? $defaults['label']
@@ -118,6 +117,11 @@ function edoweb_install() {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['widget'] = array_key_exists('widget', $defaults)
+        ? $defaults['widget']
+        : array();
+      $field_instance['widget']['weight'] = $i;
+      $field_instance['display']['default']['weight'] = $i;
       field_create_instance($field_instance);
       $i++;
     }
@@ -150,6 +154,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('lv:hbzID'),
       ),
     ),
@@ -158,6 +163,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
         'predicates' => array('lv:zdbID'),
       ),
     ),
@@ -167,7 +173,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:isPartOf'),
-        'parameter' => 'q',
+        'parameter' => 'name',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -223,8 +229,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:creator'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -232,7 +238,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -250,8 +257,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:contributor'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -259,7 +266,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -277,8 +285,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('bibo:editor'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -286,7 +294,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -304,8 +313,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:edt'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -313,7 +322,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -331,8 +341,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('bibo:translator'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -340,7 +350,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -358,8 +369,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ill'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -367,7 +378,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -385,8 +397,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:act'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -394,7 +406,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -412,8 +425,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:drt'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -421,7 +434,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -439,8 +453,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:clb'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -448,7 +462,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -466,8 +481,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:pht'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -475,7 +490,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -493,8 +509,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cnd'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -502,7 +518,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -520,8 +537,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cmp'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -529,7 +546,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -547,8 +565,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aui'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -556,7 +574,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -574,8 +593,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aus'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -583,7 +602,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -601,8 +621,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:col'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -610,7 +630,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -628,8 +649,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ctb'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -637,7 +658,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -655,8 +677,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:prf'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -664,7 +686,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -682,8 +705,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:cng'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -691,7 +714,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -709,8 +733,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ant'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -718,7 +742,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -736,8 +761,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:voc'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -745,7 +770,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -763,8 +789,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ivr'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -772,7 +798,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -790,8 +817,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ive'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -799,7 +826,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -817,8 +845,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:ctg'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -826,7 +854,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -844,8 +873,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:mus'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -853,7 +882,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -871,8 +901,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:aft'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -880,7 +910,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -898,8 +929,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:pro'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -907,7 +938,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -925,8 +957,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:egr'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -934,7 +966,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -952,8 +985,8 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('marcrel:dte'),
-        'parameter' => 'q',
-        'endpoint' => 'person',
+        'parameter' => 'name',
+        'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
           'bundles' => array('person', 'corporate_body'),
@@ -961,7 +994,8 @@ function _edoweb_installed_fields() {
         'field_group' => 'agents',
         'handler_settings' => array(
           'target_bundles' => array(
-            'person' => 'person'
+            'person' => 'person',
+            'corporate_body' => 'corporate_body'
           ),
           'embedded_creation' => array(
             'bundle' => 'person',
@@ -1046,7 +1080,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'read_only' => TRUE,
-        'predicates' => array('orca:hasURN'),
+        'predicates' => array('lv:urn'),
       ),
     ),
     'field_edoweb_isbn10' => array(
@@ -1114,17 +1148,39 @@ function _edoweb_installed_fields() {
         'metadata_type' => 'descriptive',
         'read_only' => TRUE,
         'predicates' => array('dc:subject'),
-        'parameter' => 'q',
+        'parameter' => 'name',
         'endpoint' => 'subject',
         'target_type' => 'edoweb_basic',
         'inverse' => array(
-          'bundles' => array('person', 'corporate_body', 'subject'),
+          'bundles' => array(
+            'subject',
+            'person',
+            'corporate_body',
+            'event',
+            'family',
+            'work',
+            'place',
+          ),
         ),
         'handler_settings' => array(
           'target_bundles' => array(
-            'subject' => 'subject'
+            'subject' => 'subject',
+            'person' => 'person',
+            'corporate_body' => 'corporate_body',
+            'event' => 'event',
+            'family' => 'family',
+            'work' => 'work',
+            'place' => 'place',
           )
         ),
+      ),
+    ),
+    'field_edoweb_tag' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('dce:subject'),
       ),
     ),
     'field_edoweb_abstract' => array(
@@ -1141,7 +1197,7 @@ function _edoweb_installed_fields() {
       'settings'    => array(
         'metadata_type' => 'descriptive',
         'predicates' => array('dc:hasFormat'),
-        'parameter' => 'q',
+        'parameter' => 'name',
         'endpoint' => 'resource',
         'target_type' => 'edoweb_basic',
         'handler_settings' => array(
@@ -1223,7 +1279,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('gnd:preferredName'),
+        'predicates' => array('gnd:preferredName', 'skos:prefLabel'),
       ),
     ),
     'field_gnd_identifier' => array(
@@ -1231,7 +1287,7 @@ function _edoweb_installed_fields() {
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('gnd:gndIdentifier'),
+        'predicates' => array('gnd:gndIdentifier', 'skos:notation'),
       ),
     ),
     'field_gnd_date_of_birth' => array(
@@ -1250,20 +1306,36 @@ function _edoweb_installed_fields() {
         'predicates' => array('gnd:dateOfDeath'),
       ),
     ),
-    'field_skos_notation' => array(
-      'cardinality' => 1,
-      'type'        => 'text',
+    'field_gnd_profession' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('skos:notation'),
+        'predicates' => array('gnd:professionOrOccupation'),
+        'parameter' => 'name',
+        'endpoint' => 'subject',
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'subject' => 'subject'
+          )
+        ),
       ),
     ),
-    'field_skos_pref_label' => array(
-      'cardinality' => 1,
+    'field_gnd_date_of_establishment' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('skos:prefLabel'),
+        'predicates' => array('gnd:dateOfEstablishment'),
+      ),
+    ),
+    'field_gnd_date_of_termination' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('gnd:dateOfTermination'),
       ),
     ),
   );
@@ -1280,7 +1352,6 @@ function _edoweb_installed_instances() {
      */
     'monograph' => array(
       'field_edoweb_identifier_ht' => array(),
-      'field_edoweb_parent' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
@@ -1327,6 +1398,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_tag' => array(),
       'field_edoweb_abstract' => array(),
       'field_edoweb_parallel' => array(),
       'field_edoweb_struct_child' => array(
@@ -1339,6 +1411,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_parent' => array(),
     ),
 
     /*
@@ -1347,7 +1420,6 @@ function _edoweb_installed_instances() {
     'journal' => array(
       'field_edoweb_identifier_ht' => array(),
       'field_edoweb_identifier_zdb' => array(),
-      'field_edoweb_parent' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_title_alternative' => array(),
@@ -1395,6 +1467,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_tag' => array(),
       'field_edoweb_parallel' => array(),
       'field_edoweb_homepage' => array(),
       'field_edoweb_struct_child' => array(
@@ -1410,6 +1483,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_parent' => array(),
     ),
 
     /*
@@ -1500,6 +1574,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_tag' => array(),
       'field_edoweb_abstract' => array(),
       'field_edoweb_struct_parent' => array(
         'settings'    => array(
@@ -1549,6 +1624,7 @@ function _edoweb_installed_instances() {
       'field_gnd_identifier' => array(),
       'field_gnd_date_of_birth' => array(),
       'field_gnd_date_of_death' => array(),
+      'field_gnd_profession' => array(),
     ),
 
     /*
@@ -1557,14 +1633,72 @@ function _edoweb_installed_instances() {
     'subject' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
-      'field_skos_notation' => array(),
-      'field_skos_pref_label' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
     ),
 
     /*
      * Field instances in corporate_body bundle
      */
     'corporate_body' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
+    ),
+
+    /*
+     * Field instances in event bundle
+     */
+    'event' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
+    ),
+
+    /*
+     * Field instances in family bundle
+     */
+    'family' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+    ),
+
+    /*
+     * Field instances in work bundle
+     */
+    'work' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
+    ),
+
+    /*
+     * Field instances in place bundle
+     */
+    'place' => array(
+      'field_gnd_name' => array(),
+      'field_gnd_identifier' => array(),
+      'field_gnd_date_of_establishment' => array(),
+      'field_gnd_date_of_termination' => array(),
+    ),
+
+    /*
+     * Field instances in collection bundle
+     */
+    'collection' => array(
+      'field_edoweb_title' => array(),
+      'field_edoweb_label' => array(),
+      'field_edoweb_identifier_ht' => array(),
+      'field_edoweb_description' => array(),
+    ),
+
+    /*
+     * Field instances in generic bundle
+     */
+    'authority_resource' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
     ),
@@ -1590,12 +1724,27 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_title' => array(
       'label' => 'Titel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_other' => array(
       'label' => 'Untertitel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_alternative' => array(
       'label' => 'Alternativer Titel',
+      'widget' => array(
+        'settings' => array(
+          'rows' => '1',
+        ),
+      ),
     ),
     'field_edoweb_title_short' => array(
       'label' => 'Kurztitel',
@@ -1775,8 +1924,11 @@ function _edoweb_field_instance_defaults($field_name) {
       'label' => 'Schlagwort',
       'description' => 'Stichwörter oder Schlagwörter in einem kontrollierten Vokabular (GND, DDC, rheinland-pfälzische Bibliographie)',
     ),
+    'field_edoweb_tag' => array(
+      'label' => 'Tag',
+      'description' => 'Freie Verschlagwortung',
+    ),
     'field_edoweb_abstract' => array(
-      'field_name'  => 'field_edoweb_abstract',
       'label' => 'Abriss',
       'description' => 'Abstract',
     ),
@@ -1793,7 +1945,7 @@ function _edoweb_field_instance_defaults($field_name) {
       'description' => 'A generic label',
     ),
     'field_edoweb_filesize' => array(
-      'label' => 'Dateigröße',
+      'label' => 'Größe (Byte)',
     ),
     'field_edoweb_filetype' => array(
       'label' => 'Dateityp',
@@ -1819,11 +1971,14 @@ function _edoweb_field_instance_defaults($field_name) {
     'field_gnd_date_of_death' => array(
       'label' => 'Todesdatum',
     ),
-    'field_skos_pref_label' => array(
-      'label' => 'Label',
+    'field_gnd_profession' => array(
+      'label' => 'Beruf',
     ),
-    'field_skos_notation' => array(
-      'label' => 'Notation',
+    'field_gnd_date_of_establishment' => array(
+      'label' => 'Gründungsdatum',
+    ),
+    'field_gnd_date_of_termination' => array(
+      'label' => 'Auflösungsdatum',
     ),
   );
   return $defaults[$field_name];
