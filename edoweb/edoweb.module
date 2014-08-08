@@ -32,6 +32,7 @@ require_once dirname(__FILE__) . '/lib/php-json-ld/jsonld.php';
 function edoweb_init() {
   drupal_add_library('system', 'ui.dialog');
   drupal_add_library('system', 'ui.sortable');
+  drupal_add_library('system', 'ui.datepicker');
   drupal_add_library('system', 'drupal.collapse');
 }
 
