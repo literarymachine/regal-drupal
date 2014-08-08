@@ -316,8 +316,7 @@
     if(!order) order = '';
     if(!term) term = '';
 
-    var path = window.location.pathname;
-    var bundle_name = path.slice(path.lastIndexOf('/') + 1);
+    var bundle_name = source.closest('form[data-bundle]').attr('data-bundle');
     var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name;
 
     var params = {
@@ -371,7 +370,7 @@
               container.dialog('close');
               var resource_uri = row.children('td').first().children('a').first().text();
               window.onbeforeunload = function(){};
-              window.location.replace(Drupal.settings.basePath + 'resource/add/' + bundle_name + '?source=' + resource_uri);
+              window.location.replace(window.location.pathname + '?source=' + resource_uri);
               return false;
             });
         });

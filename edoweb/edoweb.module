@@ -1303,19 +1303,6 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   $entity = entity_get_controller('edoweb_basic')->create(
     array('bundle_type' => $bundle_type)
   );
-  if (isset($_GET['source'])) {
-    $api = new LinkedDataClient();
-    $resource_uri = urldecode($_GET['source']);
-    $entity->remote_id = $resource_uri;
-    try {
-      $api->load($entity);
-      $namespace = variable_get('edoweb_api_namespace');
-      $entity->remote_id = "$namespace:" . EdowebBasicController::uuid_v4();
-      drupal_set_message(t("Imported data from ") . $resource_uri, 'status');
-    } catch (LibRDF_Error $e) {
-      drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
-    }
-  }
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
     $wrapper->field_edoweb_struct_parent = $parent->remote_id;
@@ -1675,7 +1662,38 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     drupal_get_path('module', 'edoweb') . '/edoweb.js'
   );
 
+  if (isset($_GET['source'])) {
+    $api = new LinkedDataClient();
+    $namespace = variable_get('edoweb_api_namespace');
+    $remote_id = isset($entity->remote_id)
+      ? $entity->remote_id
+      : "$namespace:" . EdowebBasicController::uuid_v4();
+    $local_id = isset($entity->local_id)
+      ? $entity->local_id
+      : null;
+    $bundle_type = $entity->bundle_type;
+    $resource_uri = urldecode($_GET['source']);
+    $entity = entity_get_controller('edoweb_basic')->create(
+      array(
+        'bundle_type' => $bundle_type,
+        'remote_id' => $resource_uri,
+        'local_id' => $local_id,
+      )
+    );
+    try {
+      $api->load($entity);
+      $entity->remote_id = $remote_id;
+      $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
+      drupal_set_title($title);
+      drupal_set_message(t("Imported data from ") . $resource_uri, 'status');
+    } catch (LibRDF_Error $e) {
+      drupal_set_message(t("Failed importing data from ") . $resource_uri, 'error');
+    }
+  }
+
   $form['#action'] = base_path() . current_path();
+
+  $form['#attributes'] = array('data-bundle' => $entity->bundle_type);
 
   $form['basic_entity'] = array(
     '#type' => 'value',
