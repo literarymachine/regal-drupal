@@ -1827,9 +1827,12 @@ function edoweb_basic_form_submit($form, &$form_state) {
  *
  */
 function edoweb_basic_edit_cancel($form , &$form_state) {
+  $path = explode('/', current_path());
   $entity = $form['basic_entity']['#value'];
   if (property_exists($entity, 'local_id')) {
     $form_state['redirect'] = "resource/{$entity->remote_id}";
+  } else if (array_key_exists(2, $path) && 'children' == $path[2]) {
+    $form_state['redirect'] = "resource/{$path[1]}/children";
   } else {
     $form_state['redirect'] = 'resource';
   }
