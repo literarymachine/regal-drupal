@@ -117,6 +117,9 @@ function edoweb_install() {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['required'] = array_key_exists('required', $defaults)
+        ? $defaults['required']
+        : FALSE;
       $field_instance['widget'] = array_key_exists('widget', $defaults)
         ? $defaults['widget']
         : array();
@@ -1490,6 +1493,7 @@ function _edoweb_installed_instances() {
      * Field instances in volume bundle
      */
     'volume' => array(
+      'field_edoweb_title' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_issued' => array(),
       'field_edoweb_is_like' => array(),
@@ -1734,6 +1738,7 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_title' => array(
       'label' => 'Titel',
+      'required' => TRUE,
       'widget' => array(
         'settings' => array(
           'rows' => '1',

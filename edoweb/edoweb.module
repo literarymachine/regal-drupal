@@ -2305,6 +2305,9 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['required'] = array_key_exists('required', $defaults)
+        ? $defaults['required']
+        : FALSE;
       $field_instance['widget'] = array_key_exists('widget', $defaults)
         ? $defaults['widget']
         : array();
@@ -2842,4 +2845,36 @@ function edoweb_update_7124() {
     ),
   );
   _update_edoweb_installed_instances($updated_instances);
+}
+
+/**
+ * Add field_edoweb_title to volume bundle, make title mandatory for all
+ * bundles
+ */
+function edoweb_update_7125() {
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_title',
+    ),
+    'journal' => array(
+      'field_edoweb_title',
+    ),
+    'volume' => array(
+      'field_edoweb_title',
+    ),
+    'issue' => array(
+      'field_edoweb_title',
+    ),
+    'article' => array(
+      'field_edoweb_title',
+    ),
+    'file' => array(
+      'field_edoweb_title',
+    ),
+    'collection' => array(
+      'field_edoweb_title',
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
