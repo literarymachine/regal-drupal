@@ -463,11 +463,13 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $query->addTag('lobid');
     $query->addMetaData('endpoint', $endpoint);
     $query->addMetaData('parameter', $parameter);
+    $sortable = FALSE;
   } else {
     $query->addTag('elasticsearch');
+    $sortable = TRUE;
   }
 
-  $content = edoweb_basic_search_entities($query, FALSE, array(), FALSE, TRUE);
+  $content = edoweb_basic_search_entities($query, FALSE, array(), FALSE, TRUE, $sortable);
 
   die(drupal_render($content));
 
@@ -546,7 +548,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 }
 
 function edoweb_basic_search_entities(
-  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE
+  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE
 ) {
   static $search_count = 0;
   if (array_key_exists('query', $_GET)
@@ -614,7 +616,7 @@ function edoweb_basic_search_entities(
   }
 
   if ($term || $list_noterm) {
-    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets']);
+    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets'], $sortable);
   }
 
   $search_count++;
@@ -914,7 +916,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null) {
+function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE) {
 
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
@@ -927,20 +929,27 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     ? current($efq->entityConditions['bundle']['value'])
     : null;
   $header = edoweb_basic_table_header($target_bundle, !isset($efq->metaData['term']));
-  $efq->tableSort($header);
+  if ($sortable) {
+    $efq->tableSort($header);
+  }
+  // Execute query
+  $result = $efq->execute();
 
   $content = array();
 
   // Prepare query: apply active facets
-  $content['filters'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Facets'),
-    '#collapsed' => FALSE,
-    '#collapsible' => TRUE,
-    '#attributes' => array(
-      'class' => array('edoweb-facets')
-    ),
-  );
+  if ($active_facets || isset($result['facets'])) {
+    $content['filters'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Facets'),
+      '#collapsed' => FALSE,
+      '#collapsible' => TRUE,
+      '#attributes' => array(
+        'class' => array('edoweb-facets')
+      ),
+    );
+  }
+
   if ($active_facets) {
     foreach (array_keys($active_facets) as $jsonld_property) {
       $content['filters'][$jsonld_property] = array(
@@ -978,9 +987,6 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
       }
     }
   }
-
-  // Execute query
-  $result = $efq->execute();
 
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
