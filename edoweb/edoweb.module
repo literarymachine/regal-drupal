@@ -932,23 +932,19 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
   if ($sortable) {
     $efq->tableSort($header);
   }
-  // Execute query
-  $result = $efq->execute();
 
   $content = array();
 
   // Prepare query: apply active facets
-  if ($active_facets || isset($result['facets'])) {
-    $content['filters'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Facets'),
-      '#collapsed' => FALSE,
-      '#collapsible' => TRUE,
-      '#attributes' => array(
-        'class' => array('edoweb-facets')
-      ),
-    );
-  }
+  $content['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Facets'),
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#attributes' => array(
+      'class' => array('edoweb-facets')
+    ),
+  );
 
   if ($active_facets) {
     foreach (array_keys($active_facets) as $jsonld_property) {
@@ -987,6 +983,9 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
       }
     }
   }
+
+  // Execute query
+  $result = $efq->execute();
 
   if (!$result or !array_key_exists('edoweb_basic', $result)) {
     $entities = array();
@@ -1032,6 +1031,10 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
       }
     }
+  }
+
+  if (!$active_facets && !isset($result['facets'])) {
+    unset($content['filters']);
   }
 
 
