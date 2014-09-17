@@ -50,6 +50,53 @@ class EdowebBasicEntity extends Entity {
       : null;
   }
 
+  public function label() {
+    $label_fields = array();
+
+    switch ($this->bundle_type) {
+      case 'monograph':
+      case 'journal':
+      case 'issue':
+      case 'article':
+      case 'collection':
+        $label_fields[] = 'field_edoweb_title';
+        $label_fields[] = 'field_edoweb_label';
+        break;
+      case 'volume':
+        $label_fields[] = 'field_edoweb_volume';
+        break;
+      case 'person':
+      case 'corporate_body':
+      case 'subject':
+      case 'event':
+      case 'family':
+      case 'work':
+      case 'place':
+      case 'authority_resource':
+        $label_fields[] = 'field_gnd_name';
+        break;
+      default:
+        $label_fields[] = 'field_edoweb_title';
+        $label_fields[] = 'field_edoweb_label';
+        break;
+    }
+
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $this);
+    $title_values = array();
+    foreach ($label_fields as $label_field) {
+      try {
+        $title_value = $wrapper->$label_field->value();
+        if ($title_value) $title_values[] = $title_value;
+      } catch (EntityMetadataWrapperException $e) {
+        // Field not available, ignore
+      }
+    }
+
+    return (empty($title_values) && isset($this->remote_id))
+      ? _edoweb_expand_curie($this->remote_id)
+      : implode(' | ', $title_values);
+  }
+
   public function getSource() {
     return $this->__source;
   }

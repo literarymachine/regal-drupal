@@ -86,7 +86,7 @@ function edoweb_entity_label($entity_type, $entity_id) {
     if (isset($entity->type) && !user_access($entity_type . ' entity js read ' . $entity->type)) {
       return drupal_access_denied();
     }
-    print edoweb_basic_raw_title($entity);
+    print entity_label($entity);
   }
   exit();
 }

@@ -50,7 +50,7 @@ function edoweb_entity_info() {
     'label' => t('Edoweb Basic Entity'),
 
     // Callback to label entities
-    'label callback' => 'edoweb_basic_title',
+    'label callback' => 'entity_class_label',
 
     // The class for our Entity
     'entity class' => 'EdowebBasicEntity',
@@ -889,7 +889,11 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
       ));
     }
 
-    $row['data'][] = edoweb_basic_bundle_name($entity->bundle_type);
+    $row['data'][] = sprintf(
+      '<span class="entity-label-%s">%s</span>',
+      $entity->bundle_type,
+      edoweb_basic_bundle_name($entity->bundle_type)
+    );
     $row['data'][] = $operation_elements;
     $rows[] = $row;
   }
@@ -1048,66 +1052,6 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     );
   }
   return $content;
-}
-
-/**
- * Callback for a title for this entity.
- */
-function edoweb_basic_title($entity) {
-
-  $bundle_name = edoweb_basic_bundle_name($entity->bundle_type);
-  $title = edoweb_basic_raw_title($entity);
-  return "$bundle_name: $title";
-
-}
-
-function edoweb_basic_raw_title($entity) {
-
-  $label_fields = array();
-
-  switch ($entity->bundle_type) {
-    case 'monograph':
-    case 'journal':
-    case 'issue':
-    case 'article':
-    case 'collection':
-      $label_fields[] = 'field_edoweb_title';
-      $label_fields[] = 'field_edoweb_label';
-      break;
-    case 'volume':
-      $label_fields[] = 'field_edoweb_volume';
-      break;
-    case 'person':
-    case 'corporate_body':
-    case 'subject':
-    case 'event':
-    case 'family':
-    case 'work':
-    case 'place':
-    case 'authority_resource':
-      $label_fields[] = 'field_gnd_name';
-      break;
-    default:
-      $label_fields[] = 'field_edoweb_title';
-      $label_fields[] = 'field_edoweb_label';
-      break;
-  }
-
-  $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-  $title_values = array();
-  foreach ($label_fields as $label_field) {
-    try {
-      $title_value = $wrapper->$label_field->value();
-      if ($title_value) $title_values[] = $title_value;
-    } catch (EntityMetadataWrapperException $e) {
-      // Field not available, ignore
-    }
-  }
-
-  return (empty($title_values) && isset($entity->remote_id))
-    ? _edoweb_expand_curie($entity->remote_id)
-    : implode(' | ', $title_values);
-
 }
 
 /**
@@ -1272,7 +1216,10 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
   }
   $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
   $entity_url = entity_class_uri($entity);
-  $trail[] = l($title, $entity_url['path']);
+  $attributes = array('attributes' => array(
+    'class' => array("entity-label-{$entity->bundle_type}"),
+  ));
+  $trail[] = l($title, $entity_url['path'], $attributes);
   return $trail;
 }
 
@@ -2128,7 +2075,7 @@ function _edoweb_autocomplete($bundle_name, $field_name) {
   foreach ($entities as $entity) {
     $matches[] = array(
       'value' => $entity->identifier(),
-      'label' => edoweb_basic_raw_title($entity),
+      'label' => entity_label($entity),
     );
   }
   drupal_json_output($matches);
