@@ -21,10 +21,13 @@
 
   Drupal.behaviors.edoweb = {
     attach: function (context, settings) {
-      window.onbeforeunload = function() {
+      window.onbeforeunload = function(e) {
         return "Sie bearbeiten zur Zeit einen Eintrag.";
       };
-      $('.form-submit').click(function(e) {
+      $('a').click(function(e) {
+        window.onbeforeunload = function(){};
+      });
+      $('form').submit(function(e) {
         window.onbeforeunload = function(){};
       });
     }
