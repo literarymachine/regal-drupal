@@ -126,7 +126,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity, array('descriptive')
     );
     header("Content-Type: text/plain");
-//    die( $http_post_data );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
@@ -142,6 +141,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
+      print_r($http_response);die;
       return FALSE;
     }
     return TRUE;
@@ -203,6 +203,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
+    print_r($http_response);
     return TRUE;
   }
 
