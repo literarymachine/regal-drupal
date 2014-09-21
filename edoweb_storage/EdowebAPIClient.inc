@@ -74,7 +74,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    return json_decode($http_response->data)->transformer;
+
+    $json = json_decode($http_response->data);
+    if (isset($json->transformer)) {
+      return array_map(function($transformer) {
+        return $transformer->id;
+      }, $json->transformer);
+    }
+    return array();
   }
 
   public function addURN($entity) {
