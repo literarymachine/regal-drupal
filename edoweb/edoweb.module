@@ -463,11 +463,13 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $query->addTag('lobid');
     $query->addMetaData('endpoint', $endpoint);
     $query->addMetaData('parameter', $parameter);
+    $sortable = FALSE;
   } else {
     $query->addTag('elasticsearch');
+    $sortable = TRUE;
   }
 
-  $content = edoweb_basic_search_entities($query, FALSE, array(), FALSE, TRUE);
+  $content = edoweb_basic_search_entities($query, FALSE, array(), FALSE, TRUE, $sortable);
 
   die(drupal_render($content));
 
@@ -546,7 +548,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 }
 
 function edoweb_basic_search_entities(
-  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE
+  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE
 ) {
   static $search_count = 0;
   if (array_key_exists('query', $_GET)
@@ -614,7 +616,7 @@ function edoweb_basic_search_entities(
   }
 
   if ($term || $list_noterm) {
-    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets']);
+    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets'], $sortable);
   }
 
   $search_count++;
@@ -914,7 +916,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null) {
+function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE) {
 
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
@@ -927,7 +929,9 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     ? current($efq->entityConditions['bundle']['value'])
     : null;
   $header = edoweb_basic_table_header($target_bundle, !isset($efq->metaData['term']));
-  $efq->tableSort($header);
+  if ($sortable) {
+    $efq->tableSort($header);
+  }
 
   $content = array();
 
@@ -941,6 +945,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
       'class' => array('edoweb-facets')
     ),
   );
+
   if ($active_facets) {
     foreach (array_keys($active_facets) as $jsonld_property) {
       $content['filters'][$jsonld_property] = array(
@@ -1026,6 +1031,10 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
       }
     }
+  }
+
+  if (!$active_facets && !isset($result['facets'])) {
+    unset($content['filters']);
   }
 
 
@@ -1821,9 +1830,12 @@ function edoweb_basic_form_submit($form, &$form_state) {
  *
  */
 function edoweb_basic_edit_cancel($form , &$form_state) {
+  $path = explode('/', current_path());
   $entity = $form['basic_entity']['#value'];
   if (property_exists($entity, 'local_id')) {
     $form_state['redirect'] = "resource/{$entity->remote_id}";
+  } else if (array_key_exists(2, $path) && 'children' == $path[2]) {
+    $form_state['redirect'] = "resource/{$path[1]}/children";
   } else {
     $form_state['redirect'] = 'resource';
   }
@@ -2299,6 +2311,9 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['default_value'] = array_key_exists('default_value', $defaults)
         ? $defaults['default_value']
         : null;
+      $field_instance['required'] = array_key_exists('required', $defaults)
+        ? $defaults['required']
+        : FALSE;
       $field_instance['widget'] = array_key_exists('widget', $defaults)
         ? $defaults['widget']
         : array();
@@ -2836,4 +2851,36 @@ function edoweb_update_7124() {
     ),
   );
   _update_edoweb_installed_instances($updated_instances);
+}
+
+/**
+ * Add field_edoweb_title to volume bundle, make title mandatory for all
+ * bundles
+ */
+function edoweb_update_7125() {
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_title',
+    ),
+    'journal' => array(
+      'field_edoweb_title',
+    ),
+    'volume' => array(
+      'field_edoweb_title',
+    ),
+    'issue' => array(
+      'field_edoweb_title',
+    ),
+    'article' => array(
+      'field_edoweb_title',
+    ),
+    'file' => array(
+      'field_edoweb_title',
+    ),
+    'collection' => array(
+      'field_edoweb_title',
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
