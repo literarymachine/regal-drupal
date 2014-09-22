@@ -316,8 +316,7 @@
     if(!order) order = '';
     if(!term) term = '';
 
-    var path = window.location.pathname;
-    var bundle_name = path.slice(path.lastIndexOf('/') + 1);
+    var bundle_name = source.closest('form[data-bundle]').attr('data-bundle');
     var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name;
 
     var params = {
@@ -371,7 +370,7 @@
               container.dialog('close');
               var resource_uri = row.children('td').first().children('a').first().text();
               window.onbeforeunload = function(){};
-              window.location.replace(Drupal.settings.basePath + 'resource/add/' + bundle_name + '?source=' + resource_uri);
+              window.location.replace(window.location.pathname + '?source=' + resource_uri);
               return false;
             });
         });
@@ -434,12 +433,15 @@
               // dialog over modal dialog
               form.find('.field-type-edoweb-ld-reference').remove();
               form.submit(function(e) {
+                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+                form.append(throbber);
                 var post_data = $(this).serializeArray();
                 // Need to set this manually so that Drupal detects the
                 // proper triggering element!
-                post_data.push({name: 'finish', value: 'Finish'})
+                post_data.push({name: 'finish', value: 'Fertigstellen'})
                 var form_url = $(this).attr('action');
                 $.post(form_url, post_data, function(data, textStatus, jqXHR) {
+                  throbber.remove();
                   var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
                   container.dialog('close');
                   source.find('input.edoweb_autocomplete_widget').val(resource_uri);

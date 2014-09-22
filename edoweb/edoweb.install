@@ -1576,6 +1576,16 @@ function _edoweb_installed_instances() {
       'field_edoweb_subject' => array(),
       'field_edoweb_tag' => array(),
       'field_edoweb_abstract' => array(),
+      'field_edoweb_struct_child' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'file' => 'file',
+            ),
+          ),
+        ),
+      ),
       'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',

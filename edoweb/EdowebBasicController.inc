@@ -143,6 +143,10 @@ class EdowebBasicController extends EntityAPIController {
     // Save local record
     $api = new EdowebAPIClient();
     $api->importEntity($entity->remote_id);
+    if (isset($entity->local_id)) {
+      cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
+    }
+
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     return $entity;
