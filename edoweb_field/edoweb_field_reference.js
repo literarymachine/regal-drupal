@@ -104,7 +104,8 @@
               });
               result_table.removeClass('sticky-enabled');
               result_table.tablesorter({sortList: [[1,1]]});
-              Drupal.attachBehaviors(result_table);
+              //TODO: check interference with tree navigation block
+              //Drupal.attachBehaviors(result_table);
               container.replaceWith(result_table);
               hideEmptyTableColumns(result_table);
               hideTableHeaders(result_table);
@@ -204,7 +205,8 @@
             });
             result_table.removeClass('sticky-enabled');
             result_table.tablesorter({sortList: [[1,1]]});
-            Drupal.attachBehaviors(result_table);
+            //TODO: check interference with tree navigation block
+            //Drupal.attachBehaviors(result_table);
             source.append(result_table);
             if (curies.length > 0) {
               hideEmptyTableColumns(result_table);
