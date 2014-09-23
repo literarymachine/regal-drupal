@@ -22,10 +22,20 @@
   /**
    * Function returns an entities label.
    */
-  function entity_label(entity_type, entity_id) {
-    return (function ($) {
-      return $.get(Drupal.settings.basePath + 'edoweb_entity_label/' + entity_type + '/' + entity_id);
-    })(jQuery);
+  function entity_label(element) {
+    var entity_type = 'edoweb_basic';
+    var entity_id = element.attr('data-curie');
+    if (cached_label = localStorage.getItem(entity_id)) {
+      element.text(cached_label);
+    } else {
+      $.get(Drupal.settings.basePath + 'edoweb_entity_label/' + entity_type + '/' + entity_id).onload = function() {
+        var label = this.status == 200 ? this.responseText : entity_id;
+        if (this.status == 200) {
+          localStorage.setItem(entity_id, label);
+        }
+        element.text(label);
+      };
+    }
   }
 
   /**
@@ -90,12 +100,7 @@
             if (this.status == 200) {
               var result_table = $(this.responseText).find('table');
               result_table.find('a[data-curie][data-target-bundle]').each(function() {
-                var link = $(this);
-                entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-                  if (this.status == 200) {
-                    link.text(this.responseText);
-                  }
-                };
+                entity_label($(this));
               });
               result_table.removeClass('sticky-enabled');
               result_table.tablesorter({sortList: [[1,1]]});
@@ -111,12 +116,7 @@
 
       // Load entity-labels in facet list
       $(context).find('*[data-curie].facet').each(function() {
-        var link = $(this);
-        entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-          if (this.status == 200) {
-            link.text(this.responseText);
-          }
-        };
+        entity_label($(this));
       });
 
       // Modify hrefs to point to local data
@@ -190,12 +190,7 @@
           if (this.status == 200) {
             var result_table = $(this.responseText).find('table');
             result_table.find('a[data-curie][data-target-bundle]').each(function() {
-              var link = $(this);
-              entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-                if (this.status == 200) {
-                  link.text(this.responseText);
-                }
-              };
+              entity_label($(this));
             });
             result_table.find('tbody > tr').each(function() {
               var row = $(this);
@@ -463,12 +458,7 @@
         container.html(html);
 
         container.find('a[data-curie][data-target-bundle]').each(function() {
-          var link = $(this);
-          entity_label('edoweb_basic', link.attr('data-curie')).onload = function() {
-            if (this.status == 200) {
-              link.text(this.responseText);
-            }
-          };
+          entity_label($(this));
         });
 
         container.find('input[name="op"]').click(function() {
