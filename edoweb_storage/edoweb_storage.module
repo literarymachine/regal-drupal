@@ -713,7 +713,6 @@ function _edoweb_compact_uri($uri) {
   if ($split == strlen($uri) - 1) {
     $split = strrpos($uri, '/', $split - strlen($uri) - 1);
   }
-
   $curie_prefix = array_search(
     substr($uri, 0, $split + 1), $rdf_namespaces
   );

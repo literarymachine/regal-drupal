@@ -61,6 +61,13 @@ class LinkedDataClient {
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
+
+    // Add credentials if loading from API
+    // Todo: check if auth is needed
+    $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
+      variable_get('edoweb_api_user') . ':' .  variable_get('edoweb_api_password')
+    );
+
     $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
       $rdf_data = $http_response->data;

@@ -1082,6 +1082,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   // before viewing.
   field_attach_prepare_view($entity_type, array($entity->local_id => $entity),
     $view_mode);
+
   // We call entity_prepare_view() so it can invoke hook_entity_prepare_view()
   // for us.
   entity_prepare_view($entity_type, array($entity->local_id => $entity));
