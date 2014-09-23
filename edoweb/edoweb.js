@@ -30,6 +30,9 @@
       $('form').submit(function(e) {
         window.onbeforeunload = function(){};
       });
+      $('input#edit-delete').bind('click', function() {
+        return confirm('Möchten Sie den Eintrag unwiederuflich löschen?');
+      });
     }
   };
 

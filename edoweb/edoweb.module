@@ -1353,6 +1353,11 @@ function edoweb_basic_structure($entity) {
  */
 function edoweb_basic_admin($form, &$form_state, $entity) {
 
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb.js'
+  );
+
+
   $form['basic_entity'] = array(
     '#type' => 'value',
     '#value' => $entity,
