@@ -148,7 +148,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           '@api' => variable_get('edoweb_api_host'),
         )
       );
-      print_r($http_response);die;
       return FALSE;
     }
     return TRUE;
@@ -210,7 +209,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    print_r($http_response);
     return TRUE;
   }
 
@@ -668,19 +666,25 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
+
+    $ch = curl_init($request_url);
     $data = array(
-      'data' => "@$file_path",
+      'filedata' => "@$file_path",
+      'filename' => $file_name,
       'type' => $content_type,
       'label' => $file_name,
       'checksum' => md5_file($file_path),
     );
-    $ch = curl_init($request_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
+    $headers = array('Content-type: multipart/file-data');
+    $options = array(
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_CUSTOMREQUEST => 'PUT',
+      CURLOPT_POSTFIELDS => $data,
+      CURLOPT_HTTPHEADER => $headers,
+    );
     $response = curl_exec($ch);
     $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
     if (417 == $response_code) {
       $admin_mail = variable_get('site_mail', ini_get('sendmail_from'));
       drupal_set_message(t("
