@@ -40,6 +40,7 @@
       $('.edoweb-tree li').each(function() {
         var link = $(this).children('a:eq(0)');
         if (link.text().length > 50) {
+          link.attr('title', link.text());
           link.text(link.text().substr(0, 50) + '...');
         }
       });
