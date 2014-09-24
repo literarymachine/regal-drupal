@@ -37,9 +37,10 @@
       $('.edoweb-tree ul').each(function() {
         $(this).children('li').sort(sort_desc).appendTo($(this));
       });
-      $('.edoweb-tree li>a:eq(0)').each(function() {
-        if (this.text.length > 50) {
-          this.text = this.text.substr(0, 50) + '...';
+      $('.edoweb-tree li').each(function() {
+        var link = $(this).children('a:eq(0)');
+        if (link.text().length > 50) {
+          link.text(link.text().substr(0, 50) + '...');
         }
       });
 
