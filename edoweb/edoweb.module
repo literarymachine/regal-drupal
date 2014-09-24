@@ -1245,18 +1245,19 @@ function _edoweb_build_tree($entity) {
     foreach ($children as $child) {
       $child_entity = edoweb_basic_load($child['value']);
       // Append download links for file children
-      //if ('file' == $child_entity->bundle_type) {
-      //  $datastreams = field_get_items(
-      //    'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-      //  );
-      //  if (FALSE !== $datastreams) {
-      //    $download_link = field_view_value(
-      //      EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastreams[0]
-      //    );
-      //    $tree_item['data'] .= ' ' . drupal_render($download_link);
-      //  }
-      //  continue;
-      //}
+      if ('file' == $child_entity->bundle_type) {
+        $datastreams = field_get_items(
+          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
+        );
+        if (FALSE !== $datastreams) {
+          foreach ($datastreams as $datastream) {
+            $download_link = field_view_value(
+              EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
+            );
+          $tree_item['data'] .= ' ' . drupal_render($download_link);
+          }
+        }
+      }
       $tree_item['children'][] = _edoweb_build_tree($child_entity);
     }
   }
