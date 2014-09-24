@@ -317,17 +317,10 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
       );
       $curie = _edoweb_compact_uri($items[0]['value']);
+      $link = base_path() . 'resource/' . $items[0]['value'];
+      $title = t('Download @extension', array('@extension' => strtoupper($extension)));
       $elements[] = array(
-        '#markup' => l(
-          "<img src=\"$icon_url\" style=\"height: 2em;\" />",
-          $curie,
-          array(
-            'html' => TRUE,
-            'attributes' => array(
-              'data-curie' => $curie,
-            )
-          )
-        ),
+        '#markup' => "<a data-curie=\"$curie\" title=\"$title\" href=\"$link\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
       );
       break;
 
