@@ -19,30 +19,29 @@
 
 (function($) {
 
-  var import_entities = function(offset) {
-    $.get(Drupal.settings.basePath + 'edoweb/config/resources?from=' + offset, function(data) {
-      $.each(data, function(i, id) {
-        entity_load_json('edoweb_basic', id).onload = function() {
-          var message = $('<div />');
-          if (this.status == 200) {
-            var url = Drupal.settings.basePath + 'resource/' + id;
-            message.append('<a href="' + url + '">Imported ' + id + '</a>');
-            message.css('color', 'green');
-          } else {
-            message.text('Failed to import ' + id);
-            message.css('color', 'red');
-          }
-          $("form#edoweb-bulk-import-form").after(message);
-        };
-        if (i == 9) import_entities(offset + 10);
-      });
-    });
-  }
-
   Drupal.behaviors.bulk_import = {
     attach: function (context, settings) {
+      $('div.form-item-from').hide();
+      $('div.form-item-to').hide();
+      var from = 800;
+      var to = 810;
       $('form#edoweb-bulk-import-form').submit(function(event) {
-        import_entities(0);
+        var message = $('<div />').addClass('messages warning');
+        $("form#edoweb-bulk-import-form").after(message);
+        $('input#edit-from').val(from);
+        $('input#edit-to').val(to);
+        message.html('<p>Fetching entities ' + from + ' until ' + to + '</p>');
+        $.post($(this).attr('action'), $(this).serialize(), function(json) {
+          message.removeClass('warning').addClass('status');
+          if (json.length > 0) {
+            message.html('<p>Imported ' + json.join(', ') + '</p>');
+            from += 10;
+            to += 10;
+            $('form#edoweb-bulk-import-form').submit();
+          } else {
+            message.html('<p>Done!</p>');
+          }
+        }, 'json');
         return false;
       });
     }

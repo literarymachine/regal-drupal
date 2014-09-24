@@ -491,8 +491,6 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     // drupal_set_message($e->getMessage(), 'error');
   }
 
-  $entity->setSource($rdf_model);
-
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping['rdftype']);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);

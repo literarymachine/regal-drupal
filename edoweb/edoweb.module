@@ -273,13 +273,6 @@ function edoweb_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  // Tunnel to API resource listing
-  $items['edoweb/config/resources'] = array(
-    'page callback' => '_edoweb_resource_list',
-    'access arguments' => array('view any edoweb_basic entity'),
-    'type' => MENU_CALLBACK
-  );
-
   // Paged search result listing for AJAX retrieval
   $items['edoweb/search'] = array(
     'page callback' => '_edoweb_search',
@@ -1548,12 +1541,34 @@ function edoweb_bulk_import_form($form, &$form_state) {
     '#title' => 'Import all entities from API',
   );
 
+  // From Param
+  $form['bulk_import']['from'] = array(
+    '#type' => 'textfield',
+    '#title' => 'From',
+    '#required' => TRUE,
+  );
+
+  // To Param
+  $form['bulk_import']['to'] = array(
+    '#type' => 'textfield',
+    '#title' => 'To',
+    '#required' => TRUE,
+  );
+
   // Submit button
   $form['bulk_import']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
   return $form;
+}
+
+function edoweb_bulk_import_form_submit($form, &$form_state) {
+  $from = $form_state['values']['from'];
+  $to = $form_state['values']['to'];
+  $api = new EdowebAPIClient();
+  $ids = $api->import($from, $to);
+  die(drupal_json_output($ids));
 }
 
 /**
@@ -2006,45 +2021,6 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   return $http_response;
-}
-
-function _edoweb_resource_list() {
-  $edoweb_api_host = variable_get('edoweb_api_host');
-  $edoweb_api_user = variable_get('edoweb_api_user');
-  $edoweb_api_pass = variable_get('edoweb_api_password');
-  $namespace = variable_get('edoweb_api_namespace');
-  $from = isset($_GET['from']) ? $_GET['from'] : 0;
-  $source = 'es';
-  $until = $from + 10;
-  // Build resource list url
-  $http_url = sprintf(
-    'http://%s:%s@%s/resource?getListingFrom=%s&from=%s&until=%s&namespace=%s',
-    $edoweb_api_user,
-    $edoweb_api_pass,
-    $edoweb_api_host,
-    $source,
-    $from,
-    $until,
-    $namespace
-  );
-
-  // Fetch resource list
-  $http_options = array(
-    'method' => 'GET',
-    'headers' => array('Accept' => 'application/json'),
-  );
-  $http_response = _edoweb_http_request($http_url, $http_options);
-  if ((200 != $http_response->code) || !isset($http_response->data)) {
-    watchdog('edoweb_storage', 'Unable to fetch resource listing from @api.',
-      array(
-        '@api' => variable_get('edoweb_api_host'),
-      )
-    );
-    drupal_json_output(array());
-    return;
-  }
-
-  drupal_json_output(json_decode($http_response->data)->list);
 }
 
 function _edoweb_autocomplete($bundle_name, $field_name) {
@@ -2823,5 +2799,12 @@ function edoweb_update_7126() {
  * Rebuild menu
  */
 function edoweb_update_7127() {
+  menu_rebuild();
+}
+
+/**
+ * Rebuild menu
+ */
+function edoweb_update_7128() {
   menu_rebuild();
 }

@@ -134,8 +134,7 @@ class EdowebBasicController extends EntityAPIController {
     // need to invoke.
     if (empty($primary_keys)) {
       field_attach_insert('edoweb_basic', $entity);
-    }
-    else {
+    } else {
       field_attach_update('edoweb_basic', $entity);
       $invocation = 'entity_update';
     }

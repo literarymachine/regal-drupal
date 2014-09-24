@@ -296,23 +296,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   /*
-   * Import entities of a given bundle type.
+   * Import entities in a given range
    */
-  public function import(
-    $bundle_type,
-    $import_mode = 'overwrite',
-    $source = 'repo',
-    $from = 0,
-    $until = 10
-  ){
+  public function import($from = 0, $until = 10) {
+
     // Build resource list url
     $http_url = sprintf(
-      'http://%s:%s@%s/resource?type=%s&getListingFrom=%s&from=%s&until=%s',
+      'http://%s:%s@%s/resource?namespace=%s&from=%s&until=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
-      $bundle_type,
-      $source,
+      variable_get('edoweb_api_namespace'),
       $from,
       $until
     );
@@ -328,26 +322,30 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return;
     }
 
-    // Wipe existing records if requested
-    if (('clear' == $import_mode) && (0 == $from)) {
-      // Delete entity records
-      $num_deleted = db_delete('edoweb_basic')
-        ->condition('bundle_type', $bundle_type)
-        ->execute();
-      drupal_set_message("Deleted $num_deleted resources of type $bundle_type.");
+    // Resource list contains full representations of resources in JSON-LD
+    $jsonld = json_decode($http_response->data);
+    $options = array('format' => 'application/ntriples');
+    $rdf_ntriples = jsonld_to_rdf($jsonld, $options);
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_ntriples);
+
+    // entity_load needs to be triggered below so that field data is
+    // cached. In order to prevent re-loading the data, we set the
+    // triplestore here.
+    LinkedDataClient::setTripleStore($rdf_model);
+
+    // Import each resource
+    $imported_entity_ids = array();
+    foreach ($jsonld as $graph) {
+      if ($this->importEntity($graph->primaryTopic)) {
+        edoweb_basic_load($graph->primaryTopic);
+        $imported_entity_ids[] = $graph->primaryTopic;
+      }
     }
 
-    // Process resource list
-    $data = json_decode($http_response->data);
-    $resource_list = property_exists($data, 'list') ? $data->list : array();
-    foreach ($resource_list as $remote_id) {
-      $this->importEntity($remote_id, $import_mode);
-    }
-    if ((count($resource_list) == 10)) {
-      $this->import(
-        $bundle_type, $import_mode, $source, $from + 10, $until + 10
-      );
-    }
+    return $imported_entity_ids;
+
   }
 
   public function index($entity) {
@@ -533,7 +531,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       // Parse results
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $options = array(
-        'format' => 'application/nquads',
+        'format' => 'application/ntriples',
       );
 
       try {
