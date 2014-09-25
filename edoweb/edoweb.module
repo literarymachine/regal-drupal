@@ -1217,7 +1217,9 @@ function _edoweb_build_tree($entity) {
   // Add current entity to tree
   $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
   $entity_url = entity_class_uri($entity);
-  $tree_item = array('data' => l($title, $entity_url['path']));
+  $entity_bundle = $entity->bundle();
+  $options = array('attributes' => array('data-bundle' => $entity_bundle));
+  $tree_item = array('data' => l($title, $entity_url['path'], $options));
   if ($entity == $loaded_entity) {
     $tree_item['class'] = array('active');
   }
@@ -1234,7 +1236,7 @@ function _edoweb_build_tree($entity) {
     $url = "{$entity_url['path']}/children/add/$target_bundle";
     $links .= l(
       "[Add {$target_bundle}]", $url,
-      array('attributes' => array('data-bundle' => $target_bundle))
+      array('attributes' => array('data-target-bundle' => $target_bundle))
     );
   }
   $tree_item['data'] .= " $links";
