@@ -169,7 +169,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
       $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
       $file_path = drupal_realpath($file_url);
-      if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
+      if ($this->_http_multipart_post("$http_url", $file_path, $file_mime, $file_name)) {
         unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
       } else {
@@ -665,25 +665,26 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return json_encode($query);
   }
 
-  protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
+  protected function _http_multipart_post($request_url, $file_path, $content_type = null, $file_name = null) {
 
-    $ch = curl_init($request_url);
-    $data = array(
-      'filedata' => "@$file_path",
-      'filename' => $file_name,
-      'type' => $content_type,
-      'label' => $file_name,
-      'checksum' => md5_file($file_path),
+    $request = curl_init($request_url);
+
+    $params = array('md5' => md5_file($file_path));
+    $files = array(
+      'data' => array(
+        'filepath' => $file_path,
+        'filename' => $file_name,
+        'filetype' => $content_type,
+      )
     );
-    $headers = array('Content-type: multipart/file-data');
-    $options = array(
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_CUSTOMREQUEST => 'PUT',
-      CURLOPT_POSTFIELDS => $data,
-      CURLOPT_HTTPHEADER => $headers,
-    );
-    $response = curl_exec($ch);
-    $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $postfields = $this->_curl_custom_postfields($params, $files);
+
+    curl_setopt_array($request, $postfields);
+
+    $response = curl_exec($request);
+    $info = curl_getinfo($request);
+    $curl_error = curl_errno($request);
+    $response_code = $info['http_code'];
 
     if (417 == $response_code) {
       $admin_mail = variable_get('site_mail', ini_get('sendmail_from'));
@@ -693,7 +694,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         bestehen, wenden Sie sich an <a href=\"mailto:$admin_mail\">
         $admin_mail</a>."), 'error'
       );
-    } else if (curl_errno($ch) || 200 != $response_code) {
+      return FALSE;
+    } else if ($curl_error || 200 != $response_code) {
       watchdog('edoweb_storage', 'Error uploading file @file to @api.',
         array(
           '@file' => $file_path,
@@ -704,7 +706,82 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     } else {
       return TRUE;
     }
+
   }
+
+  /**
+  * For safe multipart POST request for PHP5.3 ~ PHP 5.4.
+  * based on http://php.net/manual/en/class.curlfile.php#115161
+  *
+  * @param array $assoc "name => value"
+  * @param array $files "name => path"
+  * @return bool
+  */
+  protected function _curl_custom_postfields(array $assoc = array(), array $files = array()) {
+
+    // invalid characters for "name" and "filename"
+    static $disallow = array("\0", "\"", "\r", "\n");
+
+    // build normal parameters
+    foreach ($assoc as $k => $v) {
+      $k = str_replace($disallow, "_", $k);
+      $body[] = implode("\r\n", array(
+        "Content-Disposition: form-data; name=\"{$k}\"",
+        "",
+        filter_var($v),
+      ));
+    }
+
+    // build file parameters
+    foreach ($files as $k => $file) {
+      $path = $file['filepath'];
+      $name = $file['filename'];
+      $type = $file['filetype'];
+      switch (true) {
+        case false === $path = realpath(filter_var($path)):
+        case !is_file($path):
+        case !is_readable($path):
+          continue; // or return false, throw new InvalidArgumentException
+      }
+      $data = file_get_contents($path);
+      $path = call_user_func("end", explode(DIRECTORY_SEPARATOR, $path));
+      $k = str_replace($disallow, "_", $k);
+      $path = str_replace($disallow, "_", $path);
+      $body[] = implode("\r\n", array(
+        "Content-Disposition: form-data; name=\"{$k}\"; filename=\"{$name}\"",
+        "Content-Type: $type",
+        "",
+        $data,
+      ));
+    }
+
+    // generate safe boundary
+    do {
+      $boundary = "---------------------" . md5(mt_rand() . microtime());
+    } while (preg_grep("/{$boundary}/", $body));
+
+    // add boundary for each parameters
+    array_walk($body, function (&$part) use ($boundary) {
+      $part = "--{$boundary}\r\n{$part}";
+    });
+
+    // add final boundary
+    $body[] = "--{$boundary}--";
+    $body[] = "";
+
+    // set options
+    return array(
+      CURLOPT_POST => TRUE,
+      CURLOPT_POSTFIELDS => implode("\r\n", $body),
+      CURLOPT_RETURNTRANSFER => TRUE,
+      CURLOPT_HTTPHEADER => array(
+        "Expect: 100-continue",
+        "Content-Type: multipart/form-data; boundary={$boundary}", // change Content-Type
+      ),
+    );
+
+  }
+
 
   protected function _http_put($request_url, $request_body = '', $content_type='text/plain') {
     $http_options = array(
