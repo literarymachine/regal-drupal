@@ -20,23 +20,54 @@
 (function($) {
 
   Drupal.behaviors.edoweb_tree = {
+    attached: false,
     attach: function (context, settings) {
 
       // Init tree
-      $('.edoweb-tree ul').hide();
-      $('.edoweb-tree li').toggleClass('collapsed');
-      $('.edoweb-tree li.active>a').css('font-weight', 'bold');
-      $('.edoweb-tree li.active').children('div').children('ul').show();
-      $('.edoweb-tree li.active').parents('ul').show();
-      $('.edoweb-tree li.active').toggleClass('collapsed expanded');
-      $('.edoweb-tree li.active').parents('li').toggleClass('collapsed expanded');
+      $('.edoweb-tree ul', context).hide();
+      $('.edoweb-tree li', context).toggleClass('collapsed');
 
       // Sort tree
-      $('.edoweb-tree ul').each(function() {
+      $('.edoweb-tree ul', context).each(function() {
         $(this).children('li').sort(sort_desc).appendTo($(this));
       });
 
-      $('.edoweb-tree li').each(function() {
+      // AJAX navigation
+      var navigateTo;
+      if (window.history && history.pushState) {
+        navigateTo = function(href) {
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+          $('#content', context).html(throbber);
+          $.get(href, function(data, textStatus, jqXHR) {
+            throbber.remove();
+            var html = $(data);
+            Drupal.attachBehaviors(html);
+            var breadcrumb = html.find('#breadcrumb');
+            $('#content', context).replaceWith(html.find('#content'));
+            $('#breadcrumb', context).replaceWith(html.find('#breadcrumb'));
+            document.title = html.filter('title').text();
+          });
+        };
+        if (!this.attached) {
+          window.addEventListener("popstate", function(e) {
+            if (e.state && e.state.tree) {
+              navigateTo(location.pathname);
+              $('.edoweb-tree li.active', context).removeClass('active');
+              $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
+              refreshInsert();
+            } else {
+              document.location = location;
+            }
+          });
+          this.attached = true;
+        }
+      } else {
+        navigateTo = function(href) {
+          window.location = href;
+        };
+      }
+
+      $('.edoweb-tree li', context).each(function() {
 
           // Expand / collapse tree
         $(this).click(function(e) {
@@ -53,10 +84,20 @@
 
         // Shorten the link captions
         var link = $(this).children('a:eq(0)');
-        if (link.text().length > 50) {
+        if (link.text().length > 40) {
           link.attr('title', link.text());
-          link.text(link.text().substr(0, 50) + '...');
+          link.text(link.text().substr(0, 40) + '...');
         }
+
+        // Navigate via AJAX
+        link.click(function() {
+          history.pushState({tree: true}, null, link.attr('href'));
+          navigateTo(link.attr('href'));
+          $('.edoweb-tree li.active', context).removeClass('active');
+          link.closest('li').addClass('active');
+          refreshInsert();
+          return false;
+        });
 
         // Cut button
         var cut_button = $('<a href="#" title="[Ausschneiden]"><span class="octicon octicon-diff-removed" /></a>');
@@ -67,7 +108,7 @@
           var entity_bundle = link.attr('data-bundle');
           localStorage.setItem('cut_entity_id', entity_id);
           localStorage.setItem('cut_entity_bundle', entity_bundle);
-          refreshInsert();
+          refreshInsert(context);
           return false;
         });
 
@@ -79,7 +120,7 @@
           .css('padding-left', '0.3em')
           .hover(
             function() {
-              $(this).children().show();
+              $(this).children().css('display', 'inline');
             },
             function() {
               $(this).children().hide();
@@ -90,13 +131,19 @@
       });
 
       // Init insert positions
-      refreshInsert();
+      refreshInsert(context);
 
     }
   };
 
   var UIButtons = [];
-  var refreshInsert = function () {
+  var refreshInsert = function (context) {
+    $('.edoweb-tree li.active', context).parents('ul').show();
+    $('.edoweb-tree li.active', context).addClass('expanded');
+    $('.edoweb-tree li.active', context).removeClass('collapsed');
+    $('.edoweb-tree li.active', context).parents('li').addClass('expanded');
+    $('.edoweb-tree li.active', context).parents('li').removeClass('collapsed');
+    $('.edoweb-tree li.active', context).children('div').children('ul').show();
     $.each(UIButtons, function(i, button) {
       button.remove();
     });
@@ -104,7 +151,7 @@
     var entity_id = localStorage.getItem('cut_entity_id');
     var entity_bundle = localStorage.getItem('cut_entity_bundle');
     if (entity_id && entity_bundle) {
-      $('.edoweb-tree li').each(function() {
+      $('.edoweb-tree li', context).each(function() {
         var insert_position = $(this).children('div.item-list').children('ul');
         if (insert_position.length == 0) {
           insert_position = $('<ul />');
@@ -140,12 +187,8 @@
                   return false;
                 }
               });
-              $('.edoweb-tree li.active').parents('ul').show();
-              $('.edoweb-tree li.active').addClass('expanded');
-              $('.edoweb-tree li.active').removeClass('collapsed');
-              $('.edoweb-tree li.active').parents('li').addClass('expanded');
-              $('.edoweb-tree li.active').parents('li').removeClass('collapsed');
-              refreshInsert();
+
+              refreshInsert(context);
             });
             return false;
           });
