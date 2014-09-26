@@ -27,6 +27,10 @@
       $('.edoweb-tree ul', context).hide();
       $('.edoweb-tree li', context).toggleClass('collapsed');
 
+      // Attach clipboard
+      var clipboard = $('<div id="edoweb-tree-clipboard" />');
+      $('.edoweb-tree').before(clipboard);
+
       // Sort tree
       $('.edoweb-tree ul', context).each(function() {
         $(this).children('li').sort(sort_desc).appendTo($(this));
@@ -48,6 +52,7 @@
           });
         };
         if (!this.attached) {
+          //history.replaceState({tree: true}, null, document.location);
           window.addEventListener("popstate", function(e) {
             if (e.state && e.state.tree) {
               navigateTo(location.pathname);
@@ -105,8 +110,10 @@
             link.attr('href').split('/').pop()
           );
           var entity_bundle = link.attr('data-bundle');
+          var entity_label = link.text();
           localStorage.setItem('cut_entity_id', entity_id);
           localStorage.setItem('cut_entity_bundle', entity_bundle);
+          localStorage.setItem('cut_entity_label', entity_label);
           refreshInsert(context);
           return false;
         });
@@ -136,20 +143,38 @@
   };
 
   var UIButtons = [];
+  var expandTree = function(tree) {
+    tree.parents('ul').show();
+    tree.addClass('expanded');
+    tree.removeClass('collapsed');
+    tree.parents('li').addClass('expanded');
+    tree.parents('li').removeClass('collapsed');
+    tree.children('div').children('ul').show();
+  }
+
   var refreshInsert = function (context) {
-    $('.edoweb-tree li.active', context).parents('ul').show();
-    $('.edoweb-tree li.active', context).addClass('expanded');
-    $('.edoweb-tree li.active', context).removeClass('collapsed');
-    $('.edoweb-tree li.active', context).parents('li').addClass('expanded');
-    $('.edoweb-tree li.active', context).parents('li').removeClass('collapsed');
-    $('.edoweb-tree li.active', context).children('div').children('ul').show();
+    $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
+    expandTree($('.edoweb-tree li.active', context));
     $.each(UIButtons, function(i, button) {
       button.remove();
     });
     UIButtons = [];
     var entity_id = localStorage.getItem('cut_entity_id');
     var entity_bundle = localStorage.getItem('cut_entity_bundle');
-    if (entity_id && entity_bundle) {
+    var entity_label = localStorage.getItem('cut_entity_label');
+    if (entity_id && entity_bundle && entity_label) {
+      var clipboard_item = $('<div class="edoweb-tree-clipboard-item"><p>' + entity_label + '</p></div>');
+      var clipboard_cancel = $('<span class="octicon octicon-diff-modified"></span>').click(function() {
+        localStorage.removeItem('cut_entity_id');
+        localStorage.removeItem('cut_entity_bundle');
+        localStorage.removeItem('cut_entity_label');
+        $('#edoweb-tree-clipboard').empty();
+        refreshInsert(context);
+      });
+      $('#edoweb-tree-clipboard').html(clipboard_item.find('p').append(clipboard_cancel));
+      $('.edoweb-tree a[href="/resource/' + encodeURIComponent(entity_id) + '"]')
+        .addClass('edoweb-tree-cut-item')
+        .closest('li').find('a[data-bundle]').addClass('edoweb-tree-cut-item');
       $('.edoweb-tree li', context).each(function() {
         var insert_position = $(this).children('div.item-list').children('ul');
         if (insert_position.length == 0) {
@@ -168,12 +193,13 @@
               $(this).closest('li').find('a:eq(0)').attr('href').split('/').pop()
             );
             var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-            $(this).replaceWith(throbber);
+            $('#edoweb-tree-clipboard p>span').replaceWith(throbber);
             var post_data = [{name: 'parent_id', value: target_parent_id}];
             $.post(target_struct_url, post_data, function(data, textStatus, jqXHR) {
               throbber.remove();
               localStorage.removeItem('cut_entity_id');
               localStorage.removeItem('cut_entity_bundle');
+              localStorage.removeItem('cut_entity_label');
               // Find element that was moved
               $('.edoweb-tree li').each(function() {
                 var element_id = decodeURIComponent(
@@ -181,12 +207,14 @@
                 );
                 if (element_id == entity_id) {
                   insert_position.append($(this));
+                  expandTree($(this));
                   // Sort elements
                   $(this).siblings('li').add($(this)).sort(sort_desc).appendTo($(this).closest('ul'));
                   return false;
                 }
               });
 
+              $('#edoweb-tree-clipboard').empty();
               refreshInsert(context);
             });
             return false;
