@@ -1897,6 +1897,15 @@ function edoweb_block_info() {
   return $blocks;
 }
 
+function edoweb_block_list_alter(&$blocks) {
+  // Exclude all blocks when handling AJAX request
+  if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+      && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
+  {
+    $blocks = array();
+  }
+}
+
 /**
  * Implements hook_block_view().
  *

@@ -42,7 +42,6 @@
             throbber.remove();
             var html = $(data);
             Drupal.attachBehaviors(html);
-            var breadcrumb = html.find('#breadcrumb');
             $('#content', context).replaceWith(html.find('#content'));
             $('#breadcrumb', context).replaceWith(html.find('#breadcrumb'));
             document.title = html.filter('title').text();
