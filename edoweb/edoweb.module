@@ -299,7 +299,7 @@ function edoweb_menu() {
 
   // Resource landing page, list entities
   $items['resource'] = array(
-    'title' => t('Edoweb'),
+    'title' => 'Edoweb',
     'page callback' => 'edoweb_info_page',
     'page arguments' => array('0'),
     'access arguments' => array('view any edoweb_basic entity'),
@@ -579,7 +579,7 @@ function edoweb_basic_search_entities(
         ? "resource/add/{$target_bundle}"
         : "resource/$parent_entity/children/add/$target_bundle";
       $links .= l(
-        "[Add {$target_bundle}]", $url,
+        _edoweb_map_string("Add {$target_bundle}"), $url,
         array('attributes' => array('data-bundle' => $target_bundle))
       );
     }
@@ -624,7 +624,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'file':
       $columns = array(
         array(
-          'data' => 'Title',
+          'data' => t('Title'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_title',
@@ -632,7 +632,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'HT-Nummer',
+          'data' => t('HT-Nummer'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_identifier_ht',
@@ -640,7 +640,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Volume',
+          'data' => t('Volume'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_volume',
@@ -648,7 +648,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Issued',
+          'data' => t('Issued'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_issued',
@@ -656,7 +656,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Download',
+          'data' => t('Download'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_datastream',
@@ -664,7 +664,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Größe (Byte)',
+          'data' => t('Byte'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_filesize',
@@ -672,7 +672,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Typ',
+          'data' => t('File type'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_filetype',
@@ -783,15 +783,15 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   // Add fixed columns, independant of bundle type
   array_unshift($columns, 'ID');
   $updated = array(
-    'data' => 'Updated',
+    'data' => t('Updated'),
     'type' => 'property',
     'specifier' => 'updated',
     'format' => 'format_date',
     'sort' => $init_sort ? 'desc' : null,
   );
   array_push($columns, $updated);
-  array_push($columns, 'Type');
-  array_push($columns, 'Operations');
+  array_push($columns, t('Type'));
+  array_push($columns, t('Operations'));
 
   return $columns;
 
@@ -804,7 +804,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
 
   $content = array(
     '#type' => 'fieldset',
-    '#title' => t('Your search returned ' . $total . ' results'),
+    '#title' => t('Your search returned @total results', array('@total' => $total)),
     '#attributes' => array(
       'class' => array('edoweb-entity-list')
     ),
@@ -994,7 +994,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#attributes' => array(
           'class' => array('edoweb-facets-available'),
         ),
-        '#title' => $jsonld_property,
+        '#title' => _edoweb_map_string($jsonld_property),
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
       foreach ($facet->terms as $term) {
@@ -1009,7 +1009,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $facet_entity_count = $term->count;
         $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
         $apply_facet_link = l(
-          "$facet_entity_uri", current_path(),
+          _edoweb_map_string("$facet_entity_uri"), current_path(),
           array(
             'query' => $params,
             'attributes' => $is_ref
@@ -1039,6 +1039,49 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     );
   }
   return $content;
+}
+
+/**
+ * Due to the way Drupals t() function works, variable strings must be
+ * mapped to literals.
+ */
+function _edoweb_map_string($string) {
+  switch ($string) {
+    case 'creator':
+      return t('creator');
+    case 'subject':
+      return t('subject');
+    case 'issued':
+      return t('issued');
+    case 'contentType':
+      return t('contentType');
+    case 'file':
+      return t('file');
+    case 'monograph':
+      return t('monograph');
+    case 'journal':
+      return t('journal');
+    case 'volume':
+      return t('volume');
+    case 'issue':
+      return t('issue');
+    case 'article':
+      return t('article');
+    case 'Add monograph':
+      return t('Add monograph');
+    case 'Add journal':
+      return t('Add journal');
+    case 'Add volume':
+      return t('Add volume');
+    case 'Add issue':
+      return t('Add issue');
+    case 'Add article':
+      return t('Add article');
+    case 'Add file':
+      return t('Add file');
+    default:
+      return $string;
+  }
 }
 
 /**
@@ -1235,7 +1278,7 @@ function _edoweb_build_tree($entity) {
   foreach($target_bundles as $target_bundle) {
     $url = "{$entity_url['path']}/children/add/$target_bundle";
     $links .= l(
-      "[Add {$target_bundle}]", $url,
+      _edoweb_map_string("Add {$target_bundle}"), $url,
       array('attributes' => array('data-target-bundle' => $target_bundle))
     );
   }
@@ -1424,7 +1467,6 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
         'pdfa' => t('Prepare for Long Term Preservation'),
       ),
       '#default_value' => $transformers,
-      '#title' => t('Please choose the transformers to apply.'),
     );
 
     foreach ($transformers as $transformer) {

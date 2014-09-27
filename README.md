@@ -29,3 +29,14 @@ Activate "Edoweb Entities" module at (e.g. at
 <http://localhost/drupal/?q=admin/modules>) and confirm activation of
 dependency modules. Finally, set the host, user and password for the API
 at <http://localhost/drupal/?q=admin/config/edoweb/storage>.
+
+# Localization
+
+To localize your Drupal installation, first activate the "Localize"
+module. Then download your preffered language from
+<https://localize.drupal.org/translate/languages/>. Navigate to
+<http://localhost/drupal?q=admin/config/regional/translate/import>,
+choose your language file and the language to import it into. To
+localize regal-drupal (German file available [here](german.po), proceed
+as describe above. Clear the cache to make sure all field instance
+labels are updated.
