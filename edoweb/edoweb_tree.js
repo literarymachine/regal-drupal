@@ -154,6 +154,7 @@
 
   var refreshInsert = function (context) {
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
+    $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
     expandTree($('.edoweb-tree li.active', context));
     $.each(UIButtons, function(i, button) {
       button.remove();
@@ -222,6 +223,7 @@
           UIButtons.push(insert_button);
           insert_button.hide();
           $(this).children('.edoweb-tree-toolbox').append(insert_button);
+          $(this).children('.edoweb-tree-toolbox').addClass('edoweb-tree-insert');
         }
       });
     }
