@@ -11,8 +11,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Edoweb\n"
-"POT-Creation-Date: 2014-09-27 13:13+0200\n"
-"PO-Revision-Date: 2014-09-27 14:52+0100\n"
+"POT-Creation-Date: 2014-09-29 17:47+0200\n"
+"PO-Revision-Date: 2014-09-29 17:49+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -26,7 +26,7 @@ msgstr "Edoweb Objekt"
 
 #: edoweb/edoweb.module:92
 msgid "Monograph"
-msgstr "Monographie"
+msgstr "Monografie"
 
 #: edoweb/edoweb.module:99
 msgid "Journal"
@@ -115,7 +115,7 @@ msgid ""
 "those."
 msgstr ""
 
-#: edoweb/edoweb.module:520;1958
+#: edoweb/edoweb.module:520;1968
 msgid "Search"
 msgstr "Suche"
 
@@ -143,6 +143,10 @@ msgstr ""
 msgid "File type"
 msgstr "Dateityp"
 
+#: edoweb/edoweb.module:786
+msgid "Updated"
+msgstr "Letzte Bearb."
+
 #: edoweb/edoweb.module:793
 msgid "Type"
 msgstr "Objektart"
@@ -165,7 +169,7 @@ msgstr ""
 
 #: edoweb/edoweb.module:1038
 msgid "No results."
-msgstr ""
+msgstr "Keine Treffer"
 
 #: edoweb/edoweb.module:1051
 msgid "creator"
@@ -189,7 +193,7 @@ msgstr "Datei"
 
 #: edoweb/edoweb.module:1061
 msgid "monograph"
-msgstr "Monographie"
+msgstr "Monografie"
 
 #: edoweb/edoweb.module:1063
 msgid "journal"
@@ -209,7 +213,7 @@ msgstr "Artikel"
 
 #: edoweb/edoweb.module:1071
 msgid "Add monograph"
-msgstr "Neue Monographie"
+msgstr "Neue Monografie"
 
 #: edoweb/edoweb.module:1073
 msgid "Add journal"
@@ -239,139 +243,135 @@ msgstr ""
 msgid "JSON-LD view"
 msgstr ""
 
-#: edoweb/edoweb.module:1345
+#: edoweb/edoweb.module:1347
 msgid "Creation date"
 msgstr ""
 
-#: edoweb/edoweb.module:1346
+#: edoweb/edoweb.module:1348
 msgid "Creation date (an extra display field)"
 msgstr ""
 
-#: edoweb/edoweb.module:1412
+#: edoweb/edoweb.module:1414
 msgid "Actions"
 msgstr "Aktionen"
 
-#: edoweb/edoweb.module:1418
+#: edoweb/edoweb.module:1420
 msgid "Reload"
 msgstr "Neu laden"
 
-#: edoweb/edoweb.module:1435
+#: edoweb/edoweb.module:1437
 msgid "Add URN"
 msgstr "URN erzeugen"
 
-#: edoweb/edoweb.module:1442
+#: edoweb/edoweb.module:1444
 msgid "Index"
 msgstr "Metadaten neu Indexieren"
 
-#: edoweb/edoweb.module:1448
+#: edoweb/edoweb.module:1450
 msgid "Delete"
 msgstr "Löschen"
 
-#: edoweb/edoweb.module:1454
+#: edoweb/edoweb.module:1456
 msgid "Transformers"
 msgstr "Optionen"
 
-#: edoweb/edoweb.module:1461
+#: edoweb/edoweb.module:1463
 msgid "Register Urn"
 msgstr "URN an DNB melden"
 
-#: edoweb/edoweb.module:1462
+#: edoweb/edoweb.module:1464
 msgid "Copy to Catalog"
 msgstr "Upload in den HBZ-Verbundkatalog bzw. Bereitstellen für LOBID"
 
-#: edoweb/edoweb.module:1463
+#: edoweb/edoweb.module:1465
 msgid "Support OAI-PMH"
 msgstr "Veröffentlichen über OAI"
 
-#: edoweb/edoweb.module:1464
+#: edoweb/edoweb.module:1466
 msgid "Allow Fulltext Search"
 msgstr "Volltextindexierung"
 
-#: edoweb/edoweb.module:1465
+#: edoweb/edoweb.module:1467
 msgid "Prepare for Long Term Preservation"
 msgstr "Vorbereiten für Langzeitarchivierung"
 
-#: edoweb/edoweb.module:1468
-msgid "Please choose the transformers to apply."
-msgstr ""
-
-#: edoweb/edoweb.module:1484
+#: edoweb/edoweb.module:1485
 msgid "Apply"
 msgstr "Übernehmen"
 
-#: edoweb/edoweb.module:1502
+#: edoweb/edoweb.module:1503
 msgid "The entity %id has been indexed."
 msgstr "Das Objekt %id wurde indexiert."
 
-#: edoweb/edoweb.module:1506
+#: edoweb/edoweb.module:1507
 msgid "Failed to index entity %id."
 msgstr "Fehler beim Indexieren von Objekt %id."
 
-#: edoweb/edoweb.module:1522
+#: edoweb/edoweb.module:1523
 msgid "The entity %id has been reloaded."
 msgstr "Das Objekt %id wurde neu geladen."
 
-#: edoweb/edoweb.module:1536
+#: edoweb/edoweb.module:1537
 msgid "The entity %id has been deleted"
 msgstr "Das Objekt %id wurde gelöscht."
 
-#: edoweb/edoweb.module:1558
+#: edoweb/edoweb.module:1559
 msgid "Transformers applied"
 msgstr "Die Optionen wurden angewandt."
 
-#: edoweb/edoweb.module:1560
+#: edoweb/edoweb.module:1561
 msgid "Failed to apply transformers"
 msgstr "Fehler beim Anwenden der Optionen."
 
-#: edoweb/edoweb.module:1573
+#: edoweb/edoweb.module:1574
 msgid "URN added"
 msgstr "URN wurde erzeugt"
 
-#: edoweb/edoweb.module:1575
+#: edoweb/edoweb.module:1576
 msgid "Failed to add URN"
 msgstr "Fehler beim Erzeugen der URN."
 
-#: edoweb/edoweb.module:1596
+#: edoweb/edoweb.module:1597
 msgid "Import"
 msgstr "Importieren"
 
-#: edoweb/edoweb.module:1643
+#: edoweb/edoweb.module:1644
 msgid "Imported data from "
 msgstr "Daten wurden importiert von"
 
-#: edoweb/edoweb.module:1645
+#: edoweb/edoweb.module:1646
 msgid "Failed importing data from "
 msgstr "Fehler beim Importieren von Daten von"
 
-#: edoweb/edoweb.module:1689
+#: edoweb/edoweb.module:1690
 msgid "Speichern"
 msgstr ""
 
-#: edoweb/edoweb.module:1695
+#: edoweb/edoweb.module:1696
 msgid "Fertigstellen"
 msgstr ""
 
-#: edoweb/edoweb.module:1701
+#: edoweb/edoweb.module:1702
 msgid "Cancel"
 msgstr "Abbruch"
 
-#: edoweb/edoweb.module:1741
+#: edoweb/edoweb.module:1742
 msgid "File is required."
 msgstr "Datei wird benötigt"
 
-#: edoweb/edoweb.module:1925
+#: edoweb/edoweb.module:1926
 msgid "Edoweb search"
 msgstr "Suche"
 
-#: edoweb/edoweb.module:1932
+#: edoweb/edoweb.module:1933
 msgid "Edoweb Tree Navigation"
 msgstr "Edoweb Baumnavigator"
 
-#: edoweb/edoweb.module:2080
+#: edoweb/edoweb.module:2090
 msgid "edoweb_storage"
 msgstr "Edoweb Speicher"
 
-#: edoweb/edoweb.module:2080
+#: edoweb/edoweb.module:2090
 msgid "Unable to fetch resource listing from @api."
 msgstr "Fehler beim Beziehen der Ressourcenliste von @api."
 
@@ -826,7 +826,7 @@ msgstr ""
 
 #: edoweb_field/edoweb_field.module:254
 msgid "File Upload"
-msgstr ""
+msgstr "Datei Upload"
 
 #: edoweb_field/edoweb_field.module:267
 msgid "Linked data URI"
@@ -846,7 +846,7 @@ msgstr ""
 
 #: edoweb_field/edoweb_field.module:454
 msgid "Choose a file"
-msgstr ""
+msgstr "Bitte wählen Sie eine Datei"
 
 #: edoweb_storage/edoweb_storage.module:56
 msgid "API host"

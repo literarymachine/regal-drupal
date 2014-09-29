@@ -786,7 +786,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     'data' => t('Updated'),
     'type' => 'property',
     'specifier' => 'updated',
-    'format' => 'format_date',
+    'format' => '_edoweb_format_date',
     'sort' => $init_sort ? 'desc' : null,
   );
   array_push($columns, $updated);
@@ -959,7 +959,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         }
         $item = $is_ref
           ? '<span data-curie="' .  _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>'
-          : "<span>$value</span>";
+          : "<span>" . _edoweb_map_string($value) . "</span>";
         $item .= l(t(' [x]'), current_path(), array('query' => $params));
         $content['filters'][$jsonld_property]['#items'][$value] = $item;
         // Add facet to query
@@ -1182,7 +1182,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
 
   $entity->content['_updated'] = array(
     '#type' => 'item',
-    '#markup' => '<small>Letzte Änderung: ' .  format_date($entity->updated, 'custom', 'd.m.Y - H:i:s') . '</small>',
+    '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . '</small>',
     '#weight' => 1000,
   );
 
@@ -2014,6 +2014,10 @@ function edoweb_file_load($files) {
  */
 function edoweb_file_insert($files) {
   //drupal_set_message(print_r($files, TRUE));
+}
+
+function _edoweb_format_date($timestamp) {
+  return format_date($timestamp, 'custom', 'D, d.m.Y - H:i:s');
 }
 
 function _edoweb_http_request($request_url, $http_options) {
