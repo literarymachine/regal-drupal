@@ -21,9 +21,9 @@
 
   Drupal.behaviors.edoweb = {
     attach: function (context, settings) {
-      window.onbeforeunload = function(e) {
-        return "Sie bearbeiten zur Zeit einen Eintrag.";
-      };
+      //window.onbeforeunload = function(e) {
+      //  return "Sie bearbeiten zur Zeit einen Eintrag.";
+      //};
       $('a').click(function(e) {
         window.onbeforeunload = function(){};
       });
@@ -31,7 +31,7 @@
         window.onbeforeunload = function(){};
       });
       $('input#edit-delete').bind('click', function() {
-        return confirm('Möchten Sie den Eintrag unwiederuflich löschen?');
+        return confirm('Möchten Sie den Eintrag unwideruflich löschen?');
       });
     }
   };
