@@ -1851,18 +1851,12 @@ function edoweb_rdf_types() {
     'family' => array('gnd:Family'),
     'work' => array('gnd:Work'),
     'place' => array('gnd:PlaceOrGeographicName'),
-    'collection' => array(
-      'bibo:Collection',
-      'radion:Repository',
-    ),
     'subject' => array(
       'skos:Concept',
       'gnd:SubjectHeading'
     ),
     'monograph' => array(
       'bibo:Book',
-      'dc:BibliographicResource',
-      'bibo:Series',
     ),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
@@ -1870,6 +1864,11 @@ function edoweb_rdf_types() {
     'article' => array('bibo:Article'),
     'file' => array('bibo:DocumentPart'),
     'authority_resource' => array('gnd:AuthorityResource'),
+    'collection' => array(
+      'bibo:Collection',
+      'radion:Repository',
+      'bibo:Series',
+    ),
   );
 }
 
@@ -2880,4 +2879,27 @@ function edoweb_update_7126() {
  */
 function edoweb_update_7127() {
   menu_rebuild();
+}
+
+/**
+ * Update RDF mapping for monographs
+ */
+function edoweb_update_7128() {
+  $updated_fields = array(
+    'field_edoweb_parent',
+    'field_edoweb_parallel',
+  );
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_parent',
+      'field_edoweb_parallel'
+    ),
+    'journal' => array(
+      'field_edoweb_parent',
+      'field_edoweb_parallel'
+    ),
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
