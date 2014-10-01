@@ -378,6 +378,9 @@ function edoweb_info_page() {
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb.js'
+  );
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
@@ -479,11 +482,11 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
         || "query[$search_count][type]" == urldecode($key)
         || "query[$search_count][user]" == urldecode($key)
         ) continue;
-    //$form['query']['url_params'][] = array(
-    //  '#type' => 'hidden',
-    //  '#value' => urldecode($value),
-    //  '#name' => urldecode($key),
-    //);
+    $form['query']['url_params'][] = array(
+      '#type' => 'hidden',
+      '#value' => urldecode($value),
+      '#name' => urldecode($key),
+    );
   }
 
   $form['query'][$search_count]['term'] = array(
@@ -1112,6 +1115,10 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb.js'
+  );
+
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
   // Start setting up the content.
@@ -1332,6 +1339,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
 
 function _edoweb_build_breadcrumb($entity) {
   $trail = _edoweb_build_parent_trail($entity);
+  array_unshift($trail, l(t('Edoweb'), 'resource'));
   drupal_set_breadcrumb($trail);
 }
 

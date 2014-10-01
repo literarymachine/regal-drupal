@@ -24,12 +24,19 @@
       //window.onbeforeunload = function(e) {
       //  return "Sie bearbeiten zur Zeit einen Eintrag.";
       //};
-      $('a').click(function(e) {
-        window.onbeforeunload = function(){};
-      });
-      $('form').submit(function(e) {
-        window.onbeforeunload = function(){};
-      });
+      //$('a').click(function(e) {
+      //  window.onbeforeunload = function(){};
+      //});
+      //$('form').submit(function(e) {
+      //  window.onbeforeunload = function(){};
+      //});
+      var home_href = Drupal.settings.basePath + 'resource';
+      if (document.location.pathname == home_href && '' != document.location.search) {
+        localStorage.setItem('edoweb_search', document.location.search);
+      }
+      if (search = localStorage.getItem('edoweb_search')) {
+        $('a[href="' + home_href + '"]').attr('href', home_href + search);
+      }
       $('input#edit-delete').bind('click', function() {
         return confirm('Möchten Sie den Eintrag unwideruflich löschen?');
       });
