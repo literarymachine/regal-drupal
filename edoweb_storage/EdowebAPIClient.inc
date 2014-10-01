@@ -39,9 +39,23 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function __construct() {
     // Fetch credentials from drupal settings
+    global $user;
+    if (in_array('edoweb_backend_admin', $user->roles)) {
+      $api_user = variable_get('edoweb_admin_user');
+      $api_pass = variable_get('edoweb_admin_password');
+    } else if (in_array('edoweb_backend_user', $user->roles)) {
+      $api_user = variable_get('edoweb_editor_user');
+      $api_pass = variable_get('edoweb_editor_password');
+    } else if (in_array('edoweb_backend_reader', $user->roles)) {
+      $api_user = variable_get('edoweb_reader_user');
+      $api_pass = variable_get('edoweb_reader_password');
+    } else {
+      $api_user = 'edoweb-anonymous';
+      $api_pass = 'anonymous';
+    }
     $this->__edoweb_api_host = variable_get('edoweb_api_host');
-    $this->__edoweb_api_user = variable_get('edoweb_admin_user');
-    $this->__edoweb_api_pass = variable_get('edoweb_admin_password');
+    $this->__edoweb_api_user = $api_user;
+    $this->__edoweb_api_pass = $api_pass;
   }
 
   /*
