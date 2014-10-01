@@ -40,8 +40,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function __construct() {
     // Fetch credentials from drupal settings
     $this->__edoweb_api_host = variable_get('edoweb_api_host');
-    $this->__edoweb_api_user = variable_get('edoweb_api_user');
-    $this->__edoweb_api_pass = variable_get('edoweb_api_password');
+    $this->__edoweb_api_user = variable_get('edoweb_admin_user');
+    $this->__edoweb_api_pass = variable_get('edoweb_admin_password');
   }
 
   /*

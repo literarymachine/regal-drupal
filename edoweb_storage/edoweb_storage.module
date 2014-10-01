@@ -60,29 +60,91 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  // Text field for api user.
-  $form['edoweb_api_user'] = array(
+  // Fieldset for api accounts
+  $form['edoweb_api_accounts'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API account settings'),
+  );
+
+  // Text field for api admin user.
+  $form['edoweb_api_accounts']['edoweb_admin_user'] = array(
     '#type' => 'textfield',
     '#default_value' => variable_get(
-      'edoweb_api_user',
-      'admin'
+      'edoweb_admin_user',
+      'edoweb-admin'
     ),
-    '#title' => t('API user'),
-    '#description' => t('The username to authorize with.'),
+    '#title' => t('API admin user'),
+    '#description' => t('The username to authorize with for the admin role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
   );
 
-  // Password field for api password.
-  $form['edoweb_api_password'] = array(
+  // Password field for api admin password.
+  $form['edoweb_api_accounts']['edoweb_admin_password'] = array(
     '#type' => 'password',
     '#default_value' => variable_get(
-      'edoweb_api_password',
+      'edoweb_admin_password',
       'admin'
     ),
-    '#title' => t('API password'),
-    '#description' => t('The password to authorize with.'),
+    '#title' => t('API admin password'),
+    '#description' => t('The password to authorize with for the admin role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api editor user.
+  $form['edoweb_api_accounts']['edoweb_editor_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_editor_user',
+      'edoweb-editor'
+    ),
+    '#title' => t('API editor user'),
+    '#description' => t('The username to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api editor password.
+  $form['edoweb_api_accounts']['edoweb_editor_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_editor_password',
+      'editor'
+    ),
+    '#title' => t('API editor password'),
+    '#description' => t('The password to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api reader user.
+  $form['edoweb_api_accounts']['edoweb_reader_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_reader_user',
+      'edoweb-reader'
+    ),
+    '#title' => t('API reader user'),
+    '#description' => t('The username to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api reader password.
+  $form['edoweb_api_accounts']['edoweb_reader_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_reader_password',
+      'reader'
+    ),
+    '#title' => t('API reader password'),
+    '#description' => t('The password to authorize with for the reader role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
