@@ -307,11 +307,12 @@
   };
 
   var pending_requests = [];
-  function importTable(container, source, page, sort, order, term) {
+  function importTable(container, source, page, sort, order, term, type) {
     if(!page) page = 0;
     if(!sort) sort = '';
     if(!order) order = '';
     if(!term) term = '';
+    if(!type) type = '';
 
     var bundle_name = source.closest('form[data-bundle]').attr('data-bundle');
     var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name;
@@ -321,6 +322,7 @@
       sort: sort,
       order: order,
       'query[0][term]': term,
+      'query[0][type]': type,
     };
 
     var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
@@ -339,11 +341,21 @@
         throbber.remove();
         var html = $(data);
         html.find('a[data-bundle]').remove();
+
+        var type_selector = html.find('input[type=radio]');
+        if (type_selector.length == 1) {
+          type_selector.parent().hide();
+        }
+        type_selector.bind('change', function() {
+          $(this).closest('form').find('input[name="op"]').click();
+        });
+
         container.html(html);
 
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
-          importTable(container, source, null, null, null, term);
+          var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
+          importTable(container, source, null, null, null, term, target_type);
           return false;
         });
 
@@ -355,7 +367,8 @@
           .add(container.find('.pager-last a'))
             .click(function(el, a, b, c) {
               var url = jQuery.url(el.currentTarget.getAttribute('href'));
-              importTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'));
+              var target_type = container.find('input[type=radio]:checked').first().val();
+              importTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type);
               return (false);
             });
 
@@ -453,7 +466,11 @@
           });
         });
 
-        html.find('input[type=radio]').bind('change', function() {
+        var type_selector = html.find('input[type=radio]');
+        if (type_selector.length == 1) {
+          type_selector.parent().hide();
+        }
+        type_selector.bind('change', function() {
           $(this).closest('form').find('input[name="op"]').click();
         });
 
