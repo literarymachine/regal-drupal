@@ -2931,3 +2931,16 @@ function edoweb_update_7129() {
 function edoweb_update_7130() {
   menu_rebuild();
 }
+
+/**
+ * Add columns for access rights
+ */
+function edoweb_update_7131() {
+  $new_fields = array('access_md', 'access_data');
+  module_load_install('edoweb');
+  $schema = edoweb_schema();
+  foreach ($new_fields as $new_field) {
+    $column = $schema[EDOWEB_ENTITY_TYPE]['fields'][$new_field];
+    db_add_field(EDOWEB_ENTITY_TYPE, $new_field, $column);
+  }
+}

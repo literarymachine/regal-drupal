@@ -77,6 +77,18 @@ function edoweb_schema() {
           'type' => 'text',
           'not null' => FALSE,
         ),
+        // The access rights for the metadata of this entity
+        'access_md' => array(
+          'description' => 'The access rights for the metadata',
+          'type' => 'text',
+          'size' => 'medium',
+        ),
+        // The access rights for the data of this entity
+        'access_data' => array(
+          'description' => 'The access rights for the data',
+          'type' => 'text',
+          'size' => 'medium',
+        ),
       ),
     'primary key' => array('local_id'),
   );
