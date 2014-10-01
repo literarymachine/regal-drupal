@@ -339,8 +339,9 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/access'] = array(
     'title' => 'Access',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('edoweb_basic_access', 1),
-    'access arguments' => array('edit any edoweb_basic entity'),
+    'page arguments' => array('edoweb_basic_access_form', 1),
+    'access callback' => '_edoweb_is_editable_entity',
+    'access arguments' => array(1, 'edit any edoweb_basic entity'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -1583,8 +1584,14 @@ function edoweb_basic_admin_add_urn( $form , &$form_state ) {
 /**
  * Provides a form to configure access for entities.
  */
-function edoweb_basic_access($form, &$form_state, $entity) {
-  $form['metadata'] = array(
+function edoweb_basic_access_form($form, &$form_state, $entity) {
+
+  $form['basic_entity'] = array(
+    '#type' => 'value',
+    '#value' => $entity,
+  );
+
+  $form['access_md'] = array(
     '#type' => 'radios',
     '#title' => t('Metadata'),
     '#default_value' => isset($entity->access_md) ? $entity->access_md : 'private',
@@ -1593,7 +1600,8 @@ function edoweb_basic_access($form, &$form_state, $entity) {
       'private' => t('Private'),
     ),
   );
-  $form['data'] = array(
+
+  $form['access_data'] = array(
     '#type' => 'radios',
     '#title' => t('Data'),
     '#default_value' => isset($entity->access_data) ? $entity->access_data : 'private',
@@ -1604,8 +1612,50 @@ function edoweb_basic_access($form, &$form_state, $entity) {
     ),
   );
 
+  // Submit button
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Apply'),
+  );
+
   _edoweb_build_breadcrumb($entity);
   return $form;
+}
+
+function edoweb_basic_access_form_submit($form, &$form_state) {
+  $entity = $form_state['values']['basic_entity'];
+  $access_md = $form_state['values']['access_md'];
+  $access_data = $form_state['values']['access_data'];
+  $entity->access_md = $access_md;
+  $entity->access_data = $access_data;
+
+  // Directly write out the entity record bypassing the controller to
+  // prevent needlessly writing descriptive metadata back to the API
+  $primary_keys = $entity->local_id ? 'local_id' : array();
+  try {
+    drupal_write_record('edoweb_basic', $entity, $primary_keys);
+    watchdog('edoweb_storage', 'Stored access rights for @id locally.',
+      array(
+        '@id' => $entity->remote_id,
+      )
+    );
+  } catch (PDOException $e) {
+    watchdog('edoweb_storage', 'Failed to set access rights for @id locally.',
+      array(
+        '@id' => $entity->remote_id,
+      )
+    );
+  }
+  $api = new EdowebAPIClient();
+  if ($api->saveResource($entity)) {
+    drupal_set_message(
+      t('Access rights for @id updated.', array('@id' => $entity->remote_id))
+    );
+  } else {
+    drupal_set_message(
+      t('Failed to update access rights for @id.', array('@id' => $entity->remote_id))
+    );
+  }
 }
 
 /**
@@ -2943,4 +2993,5 @@ function edoweb_update_7131() {
     $column = $schema[EDOWEB_ENTITY_TYPE]['fields'][$new_field];
     db_add_field(EDOWEB_ENTITY_TYPE, $new_field, $column);
   }
+  menu_rebuild();
 }
