@@ -306,7 +306,8 @@ function edoweb_menu() {
     'title arguments' => array(EDOWEB_ENTITY_TYPE, 1),
     'page callback' => 'edoweb_basic_view',
     'page arguments' => array(1),
-    'access arguments' => array('view any edoweb_basic entity'),
+    'access callback' => '_edoweb_has_md_access',
+    'access arguments' => array(1, 'view any edoweb_basic entity'),
   );
 
   // 'View' tab for an individual entity page.
@@ -2293,6 +2294,15 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
   } else {
     return $entity_is_editable;
   }
+}
+
+function _edoweb_has_md_access($entity, $permissions = null) {
+  global $user;
+  $user_access = isset($permissions) ? user_access($permissions) : true;
+  return (($entity->access_md == 'public') && $user_access)
+          || ((in_array('edoweb_backend_admin', $user->roles)
+            || in_array('edoweb_backend_user', $user->roles))
+            && $user_access);
 }
 
 function _edoweb_available_languages() {
