@@ -869,7 +869,7 @@ function _field_name_to_jsonld_key($field_name) {
 
 function _jsonld_key_to_field_name($jsonld_key) {
   $context_url = sprintf(
-    'http://%s/%s-resources.json',
+    'http://%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
