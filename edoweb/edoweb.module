@@ -345,6 +345,15 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  // 'Data' callback for entities' datastreams
+  $items['resource/%edoweb_basic/data'] = array(
+    'page callback' => 'edoweb_basic_data',
+    'page arguments' => array(1),
+    'access callback' => '_edoweb_field_access',
+    'access arguments' => array(1, array('field_edoweb_datastream')),
+    'type' => MENU_CALLBACK,
+  );
+
   // 'Structure' callback for entities.
   $items['resource/%edoweb_basic/structure'] = array(
     'page callback' => 'edoweb_basic_structure',
@@ -1656,6 +1665,15 @@ function edoweb_basic_access_form_submit($form, &$form_state) {
       t('Failed to update access rights for @id.', array('@id' => $entity->remote_id))
     );
   }
+}
+
+function edoweb_basic_data($entity) {
+  $api = new EdowebAPIClient();
+  $file = file_get_contents($api->getFileUrl($entity));
+  foreach ($http_response_header as $header) {
+    header($header);
+  }
+  die($file);
 }
 
 /**

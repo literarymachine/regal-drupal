@@ -194,6 +194,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return TRUE;
   }
 
+  public function getFileUrl($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s/data',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    return $http_url;
+  }
+
   public function saveResource($entity, $transformers = null) {
     // Create resource
     $http_url = sprintf(
