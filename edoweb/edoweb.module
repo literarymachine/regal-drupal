@@ -1644,10 +1644,15 @@ function edoweb_basic_access_form($form, &$form_state, $entity) {
 
 function edoweb_basic_access_form_submit($form, &$form_state) {
   $entity = $form_state['values']['basic_entity'];
-  $access_md = $form_state['values']['access_md'];
-  $access_data = $form_state['values']['access_data'];
-  $entity->access_md = $access_md;
-  $entity->access_data = $access_data;
+
+  $access_md = isset($form_state['values']['access_md'])
+    ? $form_state['values']['access_md'] : FALSE;
+
+  $access_data = isset($form_state['values']['access_data'])
+    ? $form_state['values']['access_data'] : FALSE;
+
+  if ($access_md) $entity->access_md = $access_md;
+  if ($access_data) $entity->access_data = $access_data;
 
   // Directly write out the entity record bypassing the controller to
   // prevent needlessly writing descriptive metadata back to the API
