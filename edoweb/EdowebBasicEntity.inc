@@ -59,11 +59,9 @@ class EdowebBasicEntity extends Entity {
       case 'issue':
       case 'article':
       case 'collection':
-        $label_fields[] = 'field_edoweb_title';
-        $label_fields[] = 'field_edoweb_label';
-        break;
       case 'volume':
-        $label_fields[] = 'field_edoweb_volume';
+      case 'file':
+        $label_fields[] = 'field_edoweb_title';
         break;
       case 'person':
       case 'corporate_body':
