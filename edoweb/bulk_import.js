@@ -23,8 +23,8 @@
     attach: function (context, settings) {
       $('div.form-item-from').hide();
       $('div.form-item-to').hide();
-      var from = 800;
-      var to = 810;
+      var from = 0;
+      var to = 10;
       $('form#edoweb-bulk-import-form').submit(function(event) {
         var message = $('<div />').addClass('messages warning');
         $("form#edoweb-bulk-import-form").after(message);

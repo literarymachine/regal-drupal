@@ -329,7 +329,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     // Build resource list url
     $http_url = sprintf(
-      'http://%s:%s@%s/resource?namespace=%s&from=%s&until=%s',
+      'http://%s:%s@%s/resourceIndex?namespace=%s&from=%s&until=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
