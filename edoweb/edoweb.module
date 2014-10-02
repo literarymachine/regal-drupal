@@ -392,6 +392,7 @@ function edoweb_menu() {
  * Basic information for the page.
  */
 function edoweb_info_page() {
+  drupal_set_title('');
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
