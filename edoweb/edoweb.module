@@ -1669,7 +1669,10 @@ function edoweb_basic_access_form_submit($form, &$form_state) {
 
 function edoweb_basic_data($entity) {
   $api = new EdowebAPIClient();
-  $file = file_get_contents($api->getFileUrl($entity));
+  $file = @file_get_contents($api->getFileUrl($entity));
+  if ($file === FALSE) {
+    return drupal_access_denied();
+  }
   foreach ($http_response_header as $header) {
     header($header);
   }
