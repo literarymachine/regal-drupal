@@ -34,6 +34,10 @@ function edoweb_init() {
   drupal_add_library('system', 'ui.sortable');
   drupal_add_library('system', 'ui.datepicker');
   drupal_add_library('system', 'drupal.collapse');
+  global $user;
+  $action_access = ((in_array('edoweb_backend_admin', $user->roles)
+                    || in_array('edoweb_backend_user', $user->roles)));
+  drupal_add_js(array('actionAccess' => $action_access), 'setting');
 }
 
 /**
@@ -1298,10 +1302,12 @@ function _edoweb_build_tree($entity) {
   $links = '';
   foreach($target_bundles as $target_bundle) {
     $url = "{$entity_url['path']}/children/add/$target_bundle";
-    $links .= l(
-      _edoweb_map_string("Add {$target_bundle}"), $url,
-      array('attributes' => array('data-target-bundle' => $target_bundle))
-    );
+    if (drupal_valid_path($url)) {
+      $links .= l(
+        _edoweb_map_string("Add {$target_bundle}"), $url,
+        array('attributes' => array('data-target-bundle' => $target_bundle))
+      );
+    }
   }
   $tree_item['data'] .= " $links";
 
@@ -1317,10 +1323,12 @@ function _edoweb_build_tree($entity) {
         );
         if (FALSE !== $datastreams) {
           foreach ($datastreams as $datastream) {
-            $download_link = field_view_value(
-              EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-            );
-          $tree_item['data'] .= ' ' . drupal_render($download_link);
+            if (drupal_valid_path('resource/' .  $datastream['value'])) {
+              $download_link = field_view_value(
+                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
+              );
+              $tree_item['data'] .= ' ' . drupal_render($download_link);
+            }
           }
         }
       }
@@ -2290,7 +2298,7 @@ function _edoweb_field_access($entity, $fields = array(), $permissions = null) {
       break;
     }
   }
-  if (isset($permission)) {
+  if (isset($permissions)) {
     return $entity_has_field && user_access($permissions);
   } else {
     return $entity_has_field;

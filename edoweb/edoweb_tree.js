@@ -22,7 +22,6 @@
   Drupal.behaviors.edoweb_tree = {
     attached: false,
     attach: function (context, settings) {
-
       // Init tree
       $('.edoweb-tree ul', context).hide();
       $('.edoweb-tree li', context).toggleClass('collapsed');
@@ -103,37 +102,43 @@
           return false;
         });
 
-        // Cut button
-        var cut_button = $('<a href="#" title="[Ausschneiden]"><span class="octicon octicon-diff-removed" /></a>');
-        cut_button.bind('click', function() {
-          var entity_id = decodeURIComponent(
-            link.attr('href').split('/').pop()
-          );
-          var entity_bundle = link.attr('data-bundle');
-          var entity_label = link.text();
-          localStorage.setItem('cut_entity_id', entity_id);
-          localStorage.setItem('cut_entity_bundle', entity_bundle);
-          localStorage.setItem('cut_entity_label', entity_label);
-          refreshInsert(context);
-          return false;
-        });
+        // Find possible actions
+        var actions = $(this).children('a[data-target-bundle]');
+        if (Drupal.settings.actionAccess) {
+          // Cut button
+          var cut_button = $('<a href="#" title="[Ausschneiden]"><span class="octicon octicon-diff-removed" /></a>');
+          cut_button.bind('click', function() {
+            var entity_id = decodeURIComponent(
+              link.attr('href').split('/').pop()
+            );
+            var entity_bundle = link.attr('data-bundle');
+            var entity_label = link.text();
+            localStorage.setItem('cut_entity_id', entity_id);
+            localStorage.setItem('cut_entity_bundle', entity_bundle);
+            localStorage.setItem('cut_entity_label', entity_label);
+            refreshInsert(context);
+            return false;
+          });
+          actions = actions.add(cut_button);
+        }
 
-        // Group actions in toolbox
-        var actions = $(this).children('a[data-target-bundle]').add(cut_button);
-        actions.hide();
-        var toolbox = $('<div class="edoweb-tree-toolbox octicon octicon-gear"></div>')
-          .css('cursor', 'pointer')
-          .css('padding-left', '0.3em')
-          .hover(
-            function() {
-              $(this).children().css('display', 'inline');
-            },
-            function() {
-              $(this).children().hide();
-            }
-          );
-        toolbox.append(actions);
-        $(this).children('a').last().after(toolbox);
+        if (actions.length > 0) {
+          // Group actions in toolbox
+          actions.hide();
+          var toolbox = $('<div class="edoweb-tree-toolbox octicon octicon-gear"></div>')
+            .css('cursor', 'pointer')
+            .css('padding-left', '0.3em')
+            .hover(
+              function() {
+                $(this).children().css('display', 'inline');
+              },
+              function() {
+                $(this).children().hide();
+              }
+            );
+          toolbox.append(actions);
+          $(this).children('a').last().after(toolbox);
+        }
       });
 
       // Init insert positions
