@@ -138,10 +138,6 @@ function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $
   drupal_add_js(
     drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
   );
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_autocomplete.js',
-  //  array('weight' => '100')
-  //);
 
   switch ($field['type']) {
     case 'edoweb_date':

@@ -39,9 +39,23 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function __construct() {
     // Fetch credentials from drupal settings
+    global $user;
+    if (in_array('edoweb_backend_admin', $user->roles)) {
+      $api_user = variable_get('edoweb_admin_user');
+      $api_pass = variable_get('edoweb_admin_password');
+    } else if (in_array('edoweb_backend_user', $user->roles)) {
+      $api_user = variable_get('edoweb_editor_user');
+      $api_pass = variable_get('edoweb_editor_password');
+    } else if (in_array('edoweb_backend_reader', $user->roles)) {
+      $api_user = variable_get('edoweb_reader_user');
+      $api_pass = variable_get('edoweb_reader_password');
+    } else {
+      $api_user = 'edoweb-anonymous';
+      $api_pass = 'anonymous';
+    }
     $this->__edoweb_api_host = variable_get('edoweb_api_host');
-    $this->__edoweb_api_user = variable_get('edoweb_api_user');
-    $this->__edoweb_api_pass = variable_get('edoweb_api_password');
+    $this->__edoweb_api_user = $api_user;
+    $this->__edoweb_api_pass = $api_pass;
   }
 
   /*
@@ -74,7 +88,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
-    return json_decode($http_response->data)->transformer;
+
+    $json = json_decode($http_response->data);
+    if (isset($json->transformer)) {
+      return array_map(function($transformer) {
+        return $transformer->id;
+      }, $json->transformer);
+    }
+    return array();
   }
 
   public function addURN($entity) {
@@ -126,7 +147,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity, array('descriptive')
     );
     header("Content-Type: text/plain");
-//    die( $http_post_data );
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/metadata',
       $this->__edoweb_api_user,
@@ -163,7 +183,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $file_name = $entity->field_edoweb_label[LANGUAGE_NONE][0]['value'];
       $file_mime = $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value'];
       $file_path = drupal_realpath($file_url);
-      if ($this->_http_multipart_put("$http_url", $file_path, $file_mime, $file_name)) {
+      if ($this->_http_multipart_post("$http_url", $file_path, $file_mime, $file_name)) {
         unset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]);
         unlink($file_path);
       } else {
@@ -172,6 +192,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
     }
     return TRUE;
+  }
+
+  public function getFileUrl($entity) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s/data',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    return $http_url;
   }
 
   public function saveResource($entity, $transformers = null) {
@@ -187,6 +218,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $data = array();
     $data['type'] = $entity->bundle_type;
     if ($transformers) $data['transformer'] = $transformers;
+    $data['accessScheme'] = isset($entity->access_data)
+      ? $entity->access_data : 'private';
+    $data['publishScheme'] = isset($entity->access_md)
+      ? $entity->access_md : 'private';
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {
@@ -288,23 +323,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   /*
-   * Import entities of a given bundle type.
+   * Import entities in a given range
    */
-  public function import(
-    $bundle_type,
-    $import_mode = 'overwrite',
-    $source = 'repo',
-    $from = 0,
-    $until = 10
-  ){
+  public function import($from = 0, $until = 10) {
+
     // Build resource list url
     $http_url = sprintf(
-      'http://%s:%s@%s/resource?type=%s&getListingFrom=%s&from=%s&until=%s',
+      'http://%s:%s@%s/resourceIndex?namespace=%s&from=%s&until=%s',
       $this->__edoweb_api_user,
       $this->__edoweb_api_pass,
       $this->__edoweb_api_host,
-      $bundle_type,
-      $source,
+      variable_get('edoweb_api_namespace'),
       $from,
       $until
     );
@@ -320,26 +349,30 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return;
     }
 
-    // Wipe existing records if requested
-    if (('clear' == $import_mode) && (0 == $from)) {
-      // Delete entity records
-      $num_deleted = db_delete('edoweb_basic')
-        ->condition('bundle_type', $bundle_type)
-        ->execute();
-      drupal_set_message("Deleted $num_deleted resources of type $bundle_type.");
+    // Resource list contains full representations of resources in JSON-LD
+    $jsonld = json_decode($http_response->data);
+    $options = array('format' => 'application/ntriples');
+    $rdf_ntriples = jsonld_to_rdf($jsonld, $options);
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_ntriples);
+
+    // entity_load needs to be triggered below so that field data is
+    // cached. In order to prevent re-loading the data, we set the
+    // triplestore here.
+    LinkedDataClient::setTripleStore($rdf_model);
+
+    // Import each resource
+    $imported_entity_ids = array();
+    foreach ($jsonld as $graph) {
+      if ($this->importEntity($graph->primaryTopic)) {
+        edoweb_basic_load($graph->primaryTopic);
+        $imported_entity_ids[] = $graph->primaryTopic;
+      }
     }
 
-    // Process resource list
-    $data = json_decode($http_response->data);
-    $resource_list = property_exists($data, 'list') ? $data->list : array();
-    foreach ($resource_list as $remote_id) {
-      $this->importEntity($remote_id, $import_mode);
-    }
-    if ((count($resource_list) == 10)) {
-      $this->import(
-        $bundle_type, $import_mode, $source, $from + 10, $until + 10
-      );
-    }
+    return $imported_entity_ids;
+
   }
 
   public function index($entity) {
@@ -525,7 +558,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       // Parse results
       $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $options = array(
-        'format' => 'application/nquads',
+        'format' => 'application/ntriples',
       );
 
       try {
@@ -661,20 +694,27 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return json_encode($query);
   }
 
-  protected function _http_multipart_put($request_url, $file_path, $content_type = null, $file_name = null) {
-    $data = array(
-      'data' => "@$file_path",
-      'type' => $content_type,
-      'label' => $file_name,
-      'checksum' => md5_file($file_path),
+  protected function _http_multipart_post($request_url, $file_path, $content_type = null, $file_name = null) {
+
+    $request = curl_init($request_url);
+
+    $params = array('md5' => md5_file($file_path));
+    $files = array(
+      'data' => array(
+        'filepath' => $file_path,
+        'filename' => $file_name,
+        'filetype' => $content_type,
+      )
     );
-    $ch = curl_init($request_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: multipart/mixed'));
-    $response = curl_exec($ch);
-    $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $postfields = $this->_curl_custom_postfields($params, $files);
+
+    curl_setopt_array($request, $postfields);
+
+    $response = curl_exec($request);
+    $info = curl_getinfo($request);
+    $curl_error = curl_errno($request);
+    $response_code = $info['http_code'];
+
     if (417 == $response_code) {
       $admin_mail = variable_get('site_mail', ini_get('sendmail_from'));
       drupal_set_message(t("
@@ -683,7 +723,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         bestehen, wenden Sie sich an <a href=\"mailto:$admin_mail\">
         $admin_mail</a>."), 'error'
       );
-    } else if (curl_errno($ch) || 200 != $response_code) {
+      return FALSE;
+    } else if ($curl_error || 200 != $response_code) {
       watchdog('edoweb_storage', 'Error uploading file @file to @api.',
         array(
           '@file' => $file_path,
@@ -694,7 +735,82 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     } else {
       return TRUE;
     }
+
   }
+
+  /**
+  * For safe multipart POST request for PHP5.3 ~ PHP 5.4.
+  * based on http://php.net/manual/en/class.curlfile.php#115161
+  *
+  * @param array $assoc "name => value"
+  * @param array $files "name => path"
+  * @return bool
+  */
+  protected function _curl_custom_postfields(array $assoc = array(), array $files = array()) {
+
+    // invalid characters for "name" and "filename"
+    static $disallow = array("\0", "\"", "\r", "\n");
+
+    // build normal parameters
+    foreach ($assoc as $k => $v) {
+      $k = str_replace($disallow, "_", $k);
+      $body[] = implode("\r\n", array(
+        "Content-Disposition: form-data; name=\"{$k}\"",
+        "",
+        filter_var($v),
+      ));
+    }
+
+    // build file parameters
+    foreach ($files as $k => $file) {
+      $path = $file['filepath'];
+      $name = $file['filename'];
+      $type = $file['filetype'];
+      switch (true) {
+        case false === $path = realpath(filter_var($path)):
+        case !is_file($path):
+        case !is_readable($path):
+          continue; // or return false, throw new InvalidArgumentException
+      }
+      $data = file_get_contents($path);
+      $path = call_user_func("end", explode(DIRECTORY_SEPARATOR, $path));
+      $k = str_replace($disallow, "_", $k);
+      $path = str_replace($disallow, "_", $path);
+      $body[] = implode("\r\n", array(
+        "Content-Disposition: form-data; name=\"{$k}\"; filename=\"{$name}\"",
+        "Content-Type: $type",
+        "",
+        $data,
+      ));
+    }
+
+    // generate safe boundary
+    do {
+      $boundary = "---------------------" . md5(mt_rand() . microtime());
+    } while (preg_grep("/{$boundary}/", $body));
+
+    // add boundary for each parameters
+    array_walk($body, function (&$part) use ($boundary) {
+      $part = "--{$boundary}\r\n{$part}";
+    });
+
+    // add final boundary
+    $body[] = "--{$boundary}--";
+    $body[] = "";
+
+    // set options
+    return array(
+      CURLOPT_POST => TRUE,
+      CURLOPT_POSTFIELDS => implode("\r\n", $body),
+      CURLOPT_RETURNTRANSFER => TRUE,
+      CURLOPT_HTTPHEADER => array(
+        "Expect: 100-continue",
+        "Content-Type: multipart/form-data; boundary={$boundary}", // change Content-Type
+      ),
+    );
+
+  }
+
 
   protected function _http_put($request_url, $request_body = '', $content_type='text/plain') {
     $http_options = array(

@@ -77,6 +77,18 @@ function edoweb_schema() {
           'type' => 'text',
           'not null' => FALSE,
         ),
+        // The access rights for the metadata of this entity
+        'access_md' => array(
+          'description' => 'The access rights for the metadata',
+          'type' => 'text',
+          'size' => 'medium',
+        ),
+        // The access rights for the data of this entity
+        'access_data' => array(
+          'description' => 'The access rights for the data',
+          'type' => 'text',
+          'size' => 'medium',
+        ),
       ),
     'primary key' => array('local_id'),
   );
@@ -2029,6 +2041,10 @@ function _edoweb_field_instance_defaults($field_name) {
  */
 function _edoweb_installed_permissions() {
   return array(
+    'edoweb_backend_reader' => array(
+      'view any edoweb_basic entity',
+      EDOWEB_ENTITY_TYPE . ' entity js read',
+    ),
     'edoweb_backend_user' => array(
       'view any edoweb_basic entity',
       'edit any edoweb_basic entity',
@@ -2051,6 +2067,9 @@ function _edoweb_installed_permissions() {
  */
 function _edoweb_installed_roles() {
   return array(
+    array(
+      'name' => 'edoweb_backend_reader',
+    ),
     array(
       'name' => 'edoweb_backend_user',
     ),

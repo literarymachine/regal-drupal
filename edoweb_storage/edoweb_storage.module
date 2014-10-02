@@ -60,29 +60,91 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  // Text field for api user.
-  $form['edoweb_api_user'] = array(
+  // Fieldset for api accounts
+  $form['edoweb_api_accounts'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API account settings'),
+  );
+
+  // Text field for api admin user.
+  $form['edoweb_api_accounts']['edoweb_admin_user'] = array(
     '#type' => 'textfield',
     '#default_value' => variable_get(
-      'edoweb_api_user',
-      'admin'
+      'edoweb_admin_user',
+      'edoweb-admin'
     ),
-    '#title' => t('API user'),
-    '#description' => t('The username to authorize with.'),
+    '#title' => t('API admin user'),
+    '#description' => t('The username to authorize with for the admin role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
   );
 
-  // Password field for api password.
-  $form['edoweb_api_password'] = array(
+  // Password field for api admin password.
+  $form['edoweb_api_accounts']['edoweb_admin_password'] = array(
     '#type' => 'password',
     '#default_value' => variable_get(
-      'edoweb_api_password',
+      'edoweb_admin_password',
       'admin'
     ),
-    '#title' => t('API password'),
-    '#description' => t('The password to authorize with.'),
+    '#title' => t('API admin password'),
+    '#description' => t('The password to authorize with for the admin role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api editor user.
+  $form['edoweb_api_accounts']['edoweb_editor_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_editor_user',
+      'edoweb-editor'
+    ),
+    '#title' => t('API editor user'),
+    '#description' => t('The username to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api editor password.
+  $form['edoweb_api_accounts']['edoweb_editor_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_editor_password',
+      'editor'
+    ),
+    '#title' => t('API editor password'),
+    '#description' => t('The password to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api reader user.
+  $form['edoweb_api_accounts']['edoweb_reader_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_reader_user',
+      'edoweb-reader'
+    ),
+    '#title' => t('API reader user'),
+    '#description' => t('The username to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api reader password.
+  $form['edoweb_api_accounts']['edoweb_reader_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_reader_password',
+      'reader'
+    ),
+    '#title' => t('API reader password'),
+    '#description' => t('The password to authorize with for the reader role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -491,8 +553,6 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     // drupal_set_message($e->getMessage(), 'error');
   }
 
-  $entity->setSource($rdf_model);
-
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping['rdftype']);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
@@ -534,6 +594,22 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   }
 
   // Add non-field properties
+  $rdf_subject = new LibRDF_URINode($entity->identifier());
+  try {
+    $entity->access_data = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:accessScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No accessScheme available
+  }
+  try {
+    $entity->access_md = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:publishScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No publishScheme available
+  }
+
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
   try {
     $entity->updated = strtotime($rdf_model->getTarget(
@@ -542,6 +618,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     )->getValue());
   } catch (LibRDF_LookupError $e) {
     // No update time available, ignore
+  }
+  try {
+    $entity->created = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('dc:created'))
+    )->getValue());
+  } catch (LibRDF_LookupError $e) {
+    // No created time available, ignore
   }
 
 }
@@ -715,7 +799,6 @@ function _edoweb_compact_uri($uri) {
   if ($split == strlen($uri) - 1) {
     $split = strrpos($uri, '/', $split - strlen($uri) - 1);
   }
-
   $curie_prefix = array_search(
     substr($uri, 0, $split + 1), $rdf_namespaces
   );
@@ -768,7 +851,7 @@ function _field_name_to_jsonld_key($field_name) {
   $rdf_namespaces = rdf_get_namespaces();
   $field_property_uri = $rdf_namespaces[$prefix] . $local;
   $context_url = sprintf(
-    'http://%s/%s-resources.json',
+    'http://%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
