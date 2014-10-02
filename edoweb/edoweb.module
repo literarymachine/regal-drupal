@@ -295,7 +295,7 @@ function edoweb_menu() {
     'title' => 'Edoweb',
     'page callback' => 'edoweb_info_page',
     'page arguments' => array('0'),
-    'access arguments' => array('view any edoweb_basic entity'),
+    'access arguments' => array('create edoweb_basic entities'),
   );
 
   // The page to view our entities - needs to follow what
