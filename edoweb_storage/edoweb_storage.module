@@ -594,6 +594,22 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   }
 
   // Add non-field properties
+  $rdf_subject = new LibRDF_URINode($entity->identifier());
+  try {
+    $entity->access_data = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:accessScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No accessScheme available
+  }
+  try {
+    $entity->access_md = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:publishScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No publishScheme available
+  }
+
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
   try {
     $entity->updated = strtotime($rdf_model->getTarget(
@@ -602,6 +618,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
     )->getValue());
   } catch (LibRDF_LookupError $e) {
     // No update time available, ignore
+  }
+  try {
+    $entity->created = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('dc:created'))
+    )->getValue());
+  } catch (LibRDF_LookupError $e) {
+    // No created time available, ignore
   }
 
 }
