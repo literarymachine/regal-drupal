@@ -3013,3 +3013,15 @@ function edoweb_update_7131() {
   }
   menu_rebuild();
 }
+
+/**
+ * Add edoweb_backend_reader role and permissions
+ */
+function edoweb_update_7132() {
+  module_load_install('edoweb');
+  $permissions = _edoweb_installed_permissions();
+  $role = new stdClass();
+  $role->name = 'edoweb_backend_reader';
+  user_role_save($role);
+  user_role_grant_permissions($role->rid, $permissions[$role->name]);
+}
