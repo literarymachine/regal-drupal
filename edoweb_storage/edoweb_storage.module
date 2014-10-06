@@ -150,6 +150,34 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Text field for api anonymous user.
+  $form['edoweb_api_accounts']['edoweb_anonymous_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_anonymous_user',
+      'edoweb-anonymous'
+    ),
+    '#title' => t('API anonymous user'),
+    '#description' => t('The username to authorize with for the anonymous role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api anonymous password.
+  $form['edoweb_api_accounts']['edoweb_anonymous_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_anonymous_password',
+      'anonymous'
+    ),
+    '#title' => t('API anonymous password'),
+    '#description' => t('The password to authorize with for the anonymous role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
   // Text field for api namespace.
   $form['edoweb_api_namespace'] = array(
     '#type' => 'textfield',

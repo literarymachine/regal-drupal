@@ -50,8 +50,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $api_user = variable_get('edoweb_reader_user');
       $api_pass = variable_get('edoweb_reader_password');
     } else {
-      $api_user = 'edoweb-anonymous';
-      $api_pass = 'anonymous';
+      $api_user = variable_get('edoweb_anonymous_user');
+      $api_pass = variable_get('edoweb_anonymous_password');
     }
     $this->__edoweb_api_host = variable_get('edoweb_api_host');
     $this->__edoweb_api_user = $api_user;
