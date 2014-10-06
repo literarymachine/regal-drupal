@@ -43,9 +43,9 @@ class LinkedDataClient {
    */
   public function getRDF($resource_uri, $loaded_uris = 0) {
 
-    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)
-        || 'nwbib:' == substr(_edoweb_compact_uri($resource_uri), 0, 6))
-    {
+    $curie = _edoweb_compact_uri($resource_uri);
+
+    if ('rpb:' == substr($curie, 0, 4) || 'nwbib:' == substr($curie, 0, 6)) {
       $rdf_parser = new LibRDF_Parser('turtle');
     } else {
       $rdf_parser = new LibRDF_Parser('rdfxml');
@@ -63,10 +63,13 @@ class LinkedDataClient {
     );
 
     // Add credentials if loading from API
-    // Todo: check if auth is needed
-    $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
-      variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
-    );
+    $namespace = variable_get('edoweb_api_namespace');
+    if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
+          || 'local:' === substr($curie, 0, 6)) {
+      $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
+        variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
+      );
+    }
 
     $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
