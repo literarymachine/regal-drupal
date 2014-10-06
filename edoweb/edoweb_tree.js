@@ -51,15 +51,13 @@
           });
         };
         if (!this.attached) {
-          //history.replaceState({tree: true}, null, document.location);
+          history.replaceState({tree: true}, null, document.location);
           window.addEventListener("popstate", function(e) {
             if (e.state && e.state.tree) {
               navigateTo(location.pathname);
               $('.edoweb-tree li.active', context).removeClass('active');
               $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
               refreshInsert();
-            } else {
-              document.location = location;
             }
           });
           this.attached = true;
