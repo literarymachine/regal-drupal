@@ -23,22 +23,6 @@ class EdowebBasicController extends EntityAPIController {
   private $__entity_loaded = array();
 
   /**
-   * 
-   * Generate v4 UUID
-   * 
-   * Version 4 UUIDs are pseudo-random.
-   */
-  public static function uuid_v4() {
-    return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-      mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0x0fff) | 0x4000,
-      mt_rand(0, 0x3fff) | 0x8000,
-      mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-      );
-  }
-
-  /**
    * Load an edoweb_basic entity.
    */
   public function load($remote_ids = array(), $conditions = array()) {
@@ -106,15 +90,6 @@ class EdowebBasicController extends EntityAPIController {
       $entity->created = time();
     }
 
-    // If our entity has no remote_id, create one.
-    if (empty($entity->remote_id)) {
-      if (in_array($entity->bundle_type, array('person', 'subject', 'corporate_body'))) {
-        $entity->remote_id = "local:" . self::uuid_v4();
-      } else {
-        $namespace = variable_get('edoweb_api_namespace');
-        $entity->remote_id = "$namespace:" . self::uuid_v4();
-      }
-    }
     // If our entity has no owner, set current user.
     if (empty($entity->uid)) {
       global $user;

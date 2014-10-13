@@ -1772,7 +1772,7 @@ function edoweb_basic_form($form, &$form_state, $entity) {
     $namespace = variable_get('edoweb_api_namespace');
     $remote_id = isset($entity->remote_id)
       ? $entity->remote_id
-      : "$namespace:" . EdowebBasicController::uuid_v4();
+      : null;
     $local_id = isset($entity->local_id)
       ? $entity->local_id
       : null;

@@ -132,8 +132,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    *
    */
   public function save($entity) {
-
-    // Local entities are stored in the file system
     $this->saveResource($entity);
     // Store attached files first, as entity metadata has to be
     // updated with corresponding new file URIs
@@ -206,14 +204,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   public function saveResource($entity, $transformers = null) {
-    // Create resource
-    $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
 
     $data = array();
     $data['type'] = $entity->bundle_type;
@@ -228,7 +218,29 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $data['parentPid'] = $parents[0]['value'];
     }
 
-    $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+    if (isset($entity->remote_id)) {
+      // Update resource
+      $http_url = sprintf(
+        'http://%s:%s@%s/resource/%s',
+        $this->__edoweb_api_user,
+        $this->__edoweb_api_pass,
+        $this->__edoweb_api_host,
+        $entity->remote_id
+      );
+      $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+    } else {
+      // Create resource
+      $http_url = sprintf(
+        'http://%s:%s@%s/resource/%s',
+        $this->__edoweb_api_user,
+        $this->__edoweb_api_pass,
+        $this->__edoweb_api_host,
+        variable_get('edoweb_api_namespace')
+      );
+      $http_response = $this->_http_post($http_url, json_encode($data), 'application/json');
+      $entity->remote_id = _edoweb_compact_uri($http_response->headers['location']);
+    }
+
     if (200 != $http_response->code) {
       watchdog('edoweb_storage', 'Unable to save @id to @api.',
         array(
@@ -238,7 +250,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
+
     return TRUE;
+
   }
 
   /*
