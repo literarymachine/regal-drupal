@@ -67,29 +67,9 @@
 
       function createField(instance) {
         console.log(instance);
-        var field = $('<div class="field"><div class="field-label">' + instance['label'] + ':&nbsp;</div></div>');
-        var field_items = $('<div class="field-items" />');
-        field.append(field_items);
-        switch (instance['widget']['type']) {
-          case 'text_textarea':
-          case 'text_textfield':
-            field_items.append(createTextInput(instance));
-            var add_button = $('<a href="#">+</a>')
-              .bind('click', function() {
-                $(this).before(createTextInput(instance));
-                return false;
-              }).css('float', 'right');
-            field_items.append(add_button);
-            break;
-          case 'edoweb_autocomplete_widget':
-            var add_button = $('<a href="#">+</a>')
-              .bind('click', function() {
-                $(this).before(createLinkInput(instance));
-                return false;
-              }).css('float', 'right');
-            field_items.append(add_button);
-            break
-        }
+        var cls = 'field-name-' + instance['field_name'].replace(/_/g, '-');
+        var field = $('<div class="field ' + cls + '"><div class="field-label">' + instance['label'] + ':&nbsp;</div><div class="field-items" /></div>');
+        activateFields(field);
         return field;
       }
 
@@ -127,36 +107,44 @@
         field.append(link);
       }
 
-      $.each($('.field', context), function() {
-        var field = $(this);
-        var field_name = getFieldName(field);
-        var instance = Drupal.settings.edoweb.fields[field_name]['instance'];
-        switch (instance['widget']['type']) {
-          case 'text_textarea':
-          case 'text_textfield':
-            field.find('.field-items').each(function() {
-              enableTextInput($(this).find('.field-item'));
-              var add_button = $('<a href="#">+</a>')
-                .bind('click', function() {
-                  $(this).before(createTextInput(instance));
-                  return false;
-                }).css('float', 'right');
-              $(this).append(add_button);
-            });
-            break;
-          case 'edoweb_autocomplete_widget':
-            field.find('.field-items').each(function() {
-              //enableLinkInput($(this).find('.field-item'));
-              var add_button = $('<a href="#">+</a>')
-                .bind('click', function() {
-                  $(this).before(createLinkInput(instance));
-                  return false;
-                }).css('float', 'right');
-              $(this).append(add_button);
-            });
-            break;
-        }
-      });
+      function activateFields(fields) {
+        $.each(fields, function() {
+          var field = $(this);
+          var field_name = getFieldName(field);
+          var instance = Drupal.settings.edoweb.fields[field_name]['instance'];
+          switch (instance['widget']['type']) {
+            case 'text_textarea':
+            case 'text_textfield':
+              field.find('.field-items').each(function() {
+                if ($(this).find('.field-item').length) {
+                  enableTextInput($(this).find('.field-item'));
+                } else {
+                  $(this).append(createTextInput(instance));
+                }
+                var add_button = $('<a href="#">+</a>')
+                  .bind('click', function() {
+                    $(this).before(createTextInput(instance));
+                    return false;
+                  }).css('float', 'right');
+                $(this).append(add_button);
+              });
+              break;
+            case 'edoweb_autocomplete_widget':
+              field.find('.field-items').each(function() {
+                //enableLinkInput($(this).find('.field-item'));
+                var add_button = $('<a href="#">+</a>')
+                  .bind('click', function() {
+                    $(this).before(createLinkInput(instance));
+                    return false;
+                  }).css('float', 'right');
+                $(this).append(add_button);
+              });
+              break;
+          }
+        });
+      }
+
+      activateFields($('.field', context));
 
       var submit_button = $('<button>Speichern</button>').bind('click', function() {
         var post_data = $('#content', context).rdf().databank.dump({format:'application/rdf+xml', serialize: true});
