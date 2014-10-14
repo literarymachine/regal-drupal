@@ -500,6 +500,7 @@ function _edoweb_storage_entity_serialize_rdf(
         $items = array($items);
       }
       foreach ($items as $item) {
+        if ('' == $item) continue;
         if (isset($field_mapping['type'])
             and $field_mapping['type'] == 'rel') {
           if (is_object($item)) {
@@ -565,6 +566,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   unset($rdf_mapping['rdftype']);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   foreach ($rdf_mapping as $field_name => $mapping) {
+    $entity->{$field_name} = null;
     $field_info = field_info_field($field_name);
     foreach($mapping['predicates'] as $predicate_curie) {
       $rdf_predicate = new LibRDF_URINode(

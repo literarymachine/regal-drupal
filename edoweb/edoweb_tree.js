@@ -35,6 +35,25 @@
         $(this).children('li').sort(sort_desc).appendTo($(this));
       });
 
+      // Find possible add actions
+      var target_bundles = {};
+      $('.edoweb-tree a[data-target-bundle]').each(function() {
+        var target_bundle = $(this).attr('data-target-bundle');
+        if (!(target_bundle in target_bundles)) {
+          var link = $(this).clone().attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle);
+          link.bind('click', function() {
+            history.pushState({tree: true}, null, link.attr('href'));
+            navigateTo(link.attr('href'));
+            return false;
+          });
+          target_bundles[target_bundle] = link;
+        }
+        $(this).remove();
+      });
+      $.each(target_bundles, function() {
+        clipboard.before(this);
+      });
+
       // AJAX navigation
       var navigateTo;
       if (window.history && history.pushState) {
