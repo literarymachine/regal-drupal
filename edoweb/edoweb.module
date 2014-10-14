@@ -1152,21 +1152,10 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     $display = $instance['display']['default'];
     // Load field settings.
     $field = field_info_field($field_name);
-    // Set output for field.
-    $output = array(
-      '#theme' => 'field',
-      '#title' => $instance['label'],
-      '#label_display' => $display['label'],
-      '#field_type' => $field['type'],
-      '#field_name' => $field_name,
-      '#bundle' => $instance['bundle'],
-      '#object' => $entity,
-      '#items' => array(array('value' => 'Test')),
-      '#entity_type' => $instance['entity_type'],
-      '#weight' => $display['weight'],
-      0 => array('#markup' => ''),
+    $instance['settings'] += $field['settings'];
+    $templates[$field_name] = array(
+      'instance' => $instance,
     );
-    $templates[$field_name] = drupal_render($output);
   }
   $settings = array(
     'fields' => $templates
