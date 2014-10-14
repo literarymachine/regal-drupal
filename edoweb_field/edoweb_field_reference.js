@@ -84,36 +84,36 @@
       });
 
       // Load entities into table
-      $(context).find('.field-type-edoweb-ld-reference .field-items').each(function() {
-        var container = $(this);
-        var curies = [];
-        container.find('a[data-curie]').each(function() {
-          curies.push(this.getAttribute('data-curie'));
-        });
-        var columns = container.find('a[data-target-bundle]')
-          .attr('data-target-bundle')
-          .split(' ')[0];
-        if (curies.length > 0) {
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          container.before(throbber);
-          entity_list('edoweb_basic', curies, columns).onload = function () {
-            if (this.status == 200) {
-              var result_table = $(this.responseText).find('table');
-              result_table.find('a[data-curie][data-target-bundle]').each(function() {
-                entity_label($(this));
-              });
-              result_table.removeClass('sticky-enabled');
-              result_table.tablesorter({sortList: [[1,1]]});
-              //TODO: check interference with tree navigation block
-              //Drupal.attachBehaviors(result_table);
-              container.replaceWith(result_table);
-              hideEmptyTableColumns(result_table);
-              hideTableHeaders(result_table);
-            }
-            throbber.remove();
-          };
-        }
-      });
+      //$(context).find('.field-type-edoweb-ld-reference .field-items').each(function() {
+      //  var container = $(this);
+      //  var curies = [];
+      //  container.find('a[data-curie]').each(function() {
+      //    curies.push(this.getAttribute('data-curie'));
+      //  });
+      //  var columns = container.find('a[data-target-bundle]')
+      //    .attr('data-target-bundle')
+      //    .split(' ')[0];
+      //  if (curies.length > 0) {
+      //    var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+      //    container.before(throbber);
+      //    entity_list('edoweb_basic', curies, columns).onload = function () {
+      //      if (this.status == 200) {
+      //        var result_table = $(this.responseText).find('table');
+      //        result_table.find('a[data-curie][data-target-bundle]').each(function() {
+      //          entity_label($(this));
+      //        });
+      //        result_table.removeClass('sticky-enabled');
+      //        result_table.tablesorter({sortList: [[1,1]]});
+      //        //TODO: check interference with tree navigation block
+      //        //Drupal.attachBehaviors(result_table);
+      //        container.replaceWith(result_table);
+      //        hideEmptyTableColumns(result_table);
+      //        hideTableHeaders(result_table);
+      //      }
+      //      throbber.remove();
+      //    };
+      //  }
+      //});
 
       // Load entity-labels in facet list
       $(context).find('*[data-curie].facet').each(function() {
@@ -127,14 +127,14 @@
       })
 
       // Tooltips
-      $(context).find('form#edoweb-basic-form div.description').each(function() {
-        var tooltip_icon = $('<img />')
-          .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
-          .attr('title', $(this).text())
-          .css('height', '1em');
-        $(this).prevAll('label').append(tooltip_icon);
-        $(this).remove();
-      });
+      //$(context).find('form#edoweb-basic-form div.description').each(function() {
+      //  var tooltip_icon = $('<img />')
+      //    .attr('src', Drupal.settings.edoweb_field.basePath + '/tooltip.svg')
+      //    .attr('title', $(this).text())
+      //    .css('height', '1em');
+      //  $(this).prevAll('label').append(tooltip_icon);
+      //  $(this).remove();
+      //});
 
       // Attach lookup overlay to form
       var modal_overlay = $('<div />').dialog({
@@ -234,52 +234,52 @@
       });
 
       // Group lookup fieldsets by group name
-      var field_groups = {};
-      $(context).find('input.edoweb_autocomplete_widget[data-field-group]').each(function() {
-        // Prevent multiple behaviour attach
-        if ($(this).hasClass('edoweb-field-behaviour-attached')) return false;
-        $(this).addClass('edoweb-field-behaviour-attached');
-        var field_group = $(this).attr('data-field-group');
-        var source_widget = $(this).closest('.field-widget-edoweb-autocomplete-widget');
-        if (field_groups[field_group]) {
-          field_groups[field_group].push(source_widget);
-        } else {
-          field_groups[field_group] = [source_widget];
-        }
-      });
+      //var field_groups = {};
+      //$(context).find('input.edoweb_autocomplete_widget[data-field-group]').each(function() {
+      //  // Prevent multiple behaviour attach
+      //  if ($(this).hasClass('edoweb-field-behaviour-attached')) return false;
+      //  $(this).addClass('edoweb-field-behaviour-attached');
+      //  var field_group = $(this).attr('data-field-group');
+      //  var source_widget = $(this).closest('.field-widget-edoweb-autocomplete-widget');
+      //  if (field_groups[field_group]) {
+      //    field_groups[field_group].push(source_widget);
+      //  } else {
+      //    field_groups[field_group] = [source_widget];
+      //  }
+      //});
 
-      $.each(field_groups, function (field_group, source_widgets) {
-        var insert_position = source_widgets[0].prev();
-        // FIXME: make label configurable
-        var field_group_label = "Mitwirkende";
-        var group_fieldset = $('<fieldset><legend>' + field_group_label + ' </legend><div class="fieldset-wrapper"><label><select /></label></div></fieldset>');
-        var select = group_fieldset.find('select');
-        select.change(function() {
-          $.each(source_widgets, function(i, source_widget) {
-            source_widget.hide();
-            select.nextAll('span').hide();
-          });
-          $(select.nextAll('span').get(this.selectedIndex)).show();
-          source_widgets[this.selectedIndex].show();
-        });
-        $.each(source_widgets, function(i, source_widget) {
-          var focus_link = source_widget.find('a[name="focus"]').first();
-          group_fieldset.find('select').append($('<option>' + source_widget.find('label').get(0).childNodes[0].data + '</option>'));
-          if (focus_link.length > 0) {
-            group_fieldset.prepend(focus_link);
-            select.get(0).selectedIndex = i;
-          }
-          var meta = $('<span />');
-          meta.append(source_widget.find('label img'));
-          meta.append(source_widget.find('label a'));
-          source_widget.find('label').remove();
-          select.closest('label').append(meta.hide());
-          group_fieldset.find('div.fieldset-wrapper').append(source_widget.hide());
-        });
-        insert_position.after(group_fieldset);
-        $(select.nextAll('span').get(select.get(0).selectedIndex)).show();
-        source_widgets[select.get(0).selectedIndex].show();
-      });
+      //$.each(field_groups, function (field_group, source_widgets) {
+      //  var insert_position = source_widgets[0].prev();
+      //  // FIXME: make label configurable
+      //  var field_group_label = "Mitwirkende";
+      //  var group_fieldset = $('<fieldset><legend>' + field_group_label + ' </legend><div class="fieldset-wrapper"><label><select /></label></div></fieldset>');
+      //  var select = group_fieldset.find('select');
+      //  select.change(function() {
+      //    $.each(source_widgets, function(i, source_widget) {
+      //      source_widget.hide();
+      //      select.nextAll('span').hide();
+      //    });
+      //    $(select.nextAll('span').get(this.selectedIndex)).show();
+      //    source_widgets[this.selectedIndex].show();
+      //  });
+      //  $.each(source_widgets, function(i, source_widget) {
+      //    var focus_link = source_widget.find('a[name="focus"]').first();
+      //    group_fieldset.find('select').append($('<option>' + source_widget.find('label').get(0).childNodes[0].data + '</option>'));
+      //    if (focus_link.length > 0) {
+      //      group_fieldset.prepend(focus_link);
+      //      select.get(0).selectedIndex = i;
+      //    }
+      //    var meta = $('<span />');
+      //    meta.append(source_widget.find('label img'));
+      //    meta.append(source_widget.find('label a'));
+      //    source_widget.find('label').remove();
+      //    select.closest('label').append(meta.hide());
+      //    group_fieldset.find('div.fieldset-wrapper').append(source_widget.hide());
+      //  });
+      //  insert_position.after(group_fieldset);
+      //  $(select.nextAll('span').get(select.get(0).selectedIndex)).show();
+      //  source_widgets[select.get(0).selectedIndex].show();
+      //});
 
       // Live search result updates
       var delay = (function() {

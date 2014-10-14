@@ -1139,16 +1139,62 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
-  return "See tree";
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  //drupal_add_js(
+  //  drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  //);
+  //drupal_add_js(
+  //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
+  //);
+  drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
+  $bundle_info = field_info_instances(EDOWEB_ENTITY_TYPE, $entity->bundle_type);
+  $templates = array();
+  foreach ($bundle_info as $field_name => $instance) {
+    $display = $instance['display']['default'];
+    // Load field settings.
+    $field = field_info_field($field_name);
+    // Set output for field.
+    $output = array(
+      '#theme' => 'field',
+      '#title' => $instance['label'],
+      '#label_display' => $display['label'],
+      '#field_type' => $field['type'],
+      '#field_name' => $field_name,
+      '#bundle' => $instance['bundle'],
+      '#object' => $entity,
+      '#items' => array(array('value' => 'Test')),
+      '#entity_type' => $instance['entity_type'],
+      '#weight' => $display['weight'],
+      0 => array('#markup' => ''),
+    );
+    $templates[$field_name] = drupal_render($output);
+  }
+  $settings = array(
+    'fields' => $templates
   );
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  );
+  drupal_add_js(array('edoweb' => $settings), 'setting');
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/edoweb.js'
   );
+  $postdata = file_get_contents("php://input");
+  if ($postdata != '') {
+    $url = current_path();
+    $remote_id = new LibRDF_URINode(end(explode('/', $url)));
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdfa_model = new LibRDF_Model(new LibRDF_Storage());
+    $rdf_parser = new LibRDF_Parser('rdfxml');
+    $rdfa_model->loadStatementsFromString(
+      $rdf_parser, $postdata
+    );
+    foreach ($rdfa_model as $stmt) {
+      $rdf_model->addStatement(new LibRDF_Statement(
+        $remote_id, $stmt->getPredicate(), $stmt->getObject()
+      ));
+    }
+    echo $rdf_model;
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model, $rdf_parser);
+    edoweb_basic_save($entity);
+    die;
+  }
 
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
@@ -1236,10 +1282,6 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
       ))
     ) . '</small>',
     '#weight' => 1001,
-  );
-
-  $entity->content['entity_info'] = array(
-    '#markup' => "<span class=\"entity-info\" data-curie=\"{$entity->remote_id}\" data-bundle=\"{$entity->bundle_type}\" />",
   );
 
   if (1 == variable_get('edoweb_api_debug')) {
@@ -2051,9 +2093,9 @@ function edoweb_block_list_alter(&$blocks) {
  * This hook generates the contents of the blocks themselves.
  */
 function edoweb_block_view($delta = '') {
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
-  );
+  //drupal_add_js(
+  //  drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
+  //);
   $block = array();
   // The $delta parameter tells us which block is being requested.
   switch ($delta) {
