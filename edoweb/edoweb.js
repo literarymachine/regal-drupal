@@ -42,70 +42,121 @@
       });
 
       var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
-        var template = $(Drupal.settings.edoweb.fields[$(this).val()], context);
-        fieldEditable(template);
-        $('#content .field', context).last().after(template);
+        var instance = Drupal.settings.edoweb.fields[$(this).val()].instance;
+        var field = createField(instance);
+        $('#content .field', context).last().after(field);
         $(this).find('option:selected').remove();
       });
 
       $.each(Drupal.settings.edoweb.fields, function(index, value) {
-        var template = $(value);
-        if (! $('#content .' + template.attr('class').split(' ').join('.'), context).length) {
-          var option = $('<option />').text(template.find('.field-label').text()).val(index);
-          additional_fields.append(option);
-        }
+        var option = $('<option />').text(value['instance']['label']).val(index);
+        additional_fields.append(option);
       });
       $('#content', context).prepend(additional_fields);
 
-      fieldEditable($('.field', context));
-
-      function fieldEditable(fields) {
-        fields.find('.field-items').filter(function() {return $(this).find('.field-item[property]').length}).each(function() {
-          $(this).find('.field-item')
-            .attr('contenteditable', true)
-            .css('border', '1px solid grey')
-            .css('margin-top', '0.3em')
-            .css('padding', '0.1em')
-            .keydown(function(e) {
-              var target = $(e.target);
-              if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
-                $(this).remove();
-                return false;
-              }
-            });
-          var add_button = $('<a href="#">+</a>')
-            .bind('click', function() {
-              var input = $(this).prev().clone(true).text('').toggleClass('even odd');
-              $(this).before(input);
-              return false;
-            }).css('float', 'right');
-          $(this).append(add_button);
+      function getFieldName(field) {
+        var cls = field.attr('class').split(' ');
+        var field_name;
+        $.each(cls, function(i, v) {
+          if (v.indexOf('field-name-') == 0) {
+            field_name = v.slice(11).replace(/-/g, '_');
+          }
         });
-        fields.find('.field-items').filter(function() {return $(this).find('.field-item[rel]').length}).each(function() {
-          //$(this).find('.field-item')
-          //  .attr('contenteditable', true)
-          //  .css('border', '1px solid grey')
-          //  .css('margin-top', '0.3em')
-          //  .css('padding', '0.1em')
-          //  .keydown(function(e) {
-          //    var target = $(e.target);
-          //    if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
-          //      $(this).remove();
-          //      return false;
-          //    }
-          //  });
-          var add_button = $('<a href="#">+</a>')
-            .bind('click', function() {
-              var input = $(this).prev().clone(true).text('').toggleClass('even odd');
-              var uri = prompt('URI', 'http://example.org/1');
-              var link = $('<a />').attr('href', uri).text(uri);
-              input.append(link);
-              $(this).before(input);
-              return false;
-            }).css('float', 'right');
-          $(this).append(add_button);
-        });
+        return field_name;
       }
+
+      function createField(instance) {
+        console.log(instance);
+        var field = $('<div class="field"><div class="field-label">' + instance['label'] + ':&nbsp;</div></div>');
+        var field_items = $('<div class="field-items" />');
+        field.append(field_items);
+        switch (instance['widget']['type']) {
+          case 'text_textarea':
+          case 'text_textfield':
+            field_items.append(createTextInput(instance));
+            var add_button = $('<a href="#">+</a>')
+              .bind('click', function() {
+                $(this).before(createTextInput(instance));
+                return false;
+              }).css('float', 'right');
+            field_items.append(add_button);
+            break;
+          case 'edoweb_autocomplete_widget':
+            var add_button = $('<a href="#">+</a>')
+              .bind('click', function() {
+                $(this).before(createLinkInput(instance));
+                return false;
+              }).css('float', 'right');
+            field_items.append(add_button);
+            break
+        }
+        return field;
+      }
+
+      function createTextInput(instance) {
+        var input = $('<div class="field-item" />')
+          .attr('property', instance['settings']['predicates'].join(' '));
+        enableTextInput(input);
+        return input;
+      }
+
+      function enableTextInput(field) {
+        field.attr('contenteditable', true)
+          .css('border', '1px solid grey')
+          .css('margin-top', '0.3em')
+          .css('padding', '0.1em')
+          .keydown(function(e) {
+            var target = $(e.target);
+            if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
+              $(this).remove();
+              return false;
+            }
+          });
+      }
+
+      function createLinkInput(instance) {
+        var input = $('<div class="field-item" />')
+          .attr('rel', instance['settings']['predicates'].join(' '));
+        enableLinkInput(input);
+        return input;
+      }
+
+      function enableLinkInput(field) {
+        var uri = prompt('URI', 'http://example.org/1');
+        var link = $('<a />').attr('href', uri).text(uri);
+        field.append(link);
+      }
+
+      $.each($('.field', context), function() {
+        var field = $(this);
+        var field_name = getFieldName(field);
+        var instance = Drupal.settings.edoweb.fields[field_name]['instance'];
+        switch (instance['widget']['type']) {
+          case 'text_textarea':
+          case 'text_textfield':
+            field.find('.field-items').each(function() {
+              enableTextInput($(this).find('.field-item'));
+              var add_button = $('<a href="#">+</a>')
+                .bind('click', function() {
+                  $(this).before(createTextInput(instance));
+                  return false;
+                }).css('float', 'right');
+              $(this).append(add_button);
+            });
+            break;
+          case 'edoweb_autocomplete_widget':
+            field.find('.field-items').each(function() {
+              //enableLinkInput($(this).find('.field-item'));
+              var add_button = $('<a href="#">+</a>')
+                .bind('click', function() {
+                  $(this).before(createLinkInput(instance));
+                  return false;
+                }).css('float', 'right');
+              $(this).append(add_button);
+            });
+            break;
+        }
+      });
 
       var submit_button = $('<button>Speichern</button>').bind('click', function() {
         var post_data = $('#content', context).rdf().databank.dump({format:'application/rdf+xml', serialize: true});
