@@ -28,14 +28,21 @@ class LinkedDataClient {
    * @param $entity
    *   The drupal entity to load data into
    */
-  public function load($entity) {
+  public function load($remote_id) {
     if (is_null(self::$__triple_store)) {
-      $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
+      $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
     } else {
       $rdf_model = self::$__triple_store;
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
+    $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
+    $entity = entity_create(EDOWEB_ENTITY_TYPE, array(
+      'local_id' => $remote_id,
+      'remote_id' => $remote_id,
+      'bundle_type' => $bundle,
+    ));
     _edoweb_storage_entity_deserialize_rdf($entity, "$rdf_model", $rdf_parser);
+    return $entity;
   }
 
   /*

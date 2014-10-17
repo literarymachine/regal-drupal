@@ -477,3 +477,10 @@ function edoweb_field_update_7100() {
   $schema = drupal_get_schema('edoweb_ld_reference_label_cache', TRUE);
   db_create_table('edoweb_ld_reference_label_cache', $schema);
 }
+
+/**
+ * Drop cache table for linked data labels
+ */
+function edoweb_field_update_7101() {
+  db_drop_table('edoweb_ld_reference_label_cache');
+}

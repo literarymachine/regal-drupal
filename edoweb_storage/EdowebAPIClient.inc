@@ -204,7 +204,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   public function saveResource($entity, $transformers = null) {
-
     $data = array();
     $data['type'] = $entity->bundle_type;
     if ($transformers) $data['transformer'] = $transformers;
@@ -282,111 +281,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return;
     }
-  }
-
-  /*
-   * Import an entity based on its remote id.
-   */
-  public function importEntity($remote_id, $import_mode = 'overwrite') {
-
-    if (is_null(LinkedDataClient::getTripleStore())) {
-      $linkedDataClient = new LinkedDataClient();
-      $http_url = _edoweb_expand_curie($remote_id);
-      $repository_data = $linkedDataClient->getRDF($http_url);
-    } else {
-      $repository_data = LinkedDataClient::getTripleStore();
-    }
-
-    // Import the entity itself
-    $entity = entity_get_controller('edoweb_basic')->createFromRdf(
-      $remote_id, $repository_data
-    );
-
-    // Get local ID in case of overwriting
-    if ('overwrite' == $import_mode) {
-      $local_id = db_select('edoweb_basic')
-        ->condition('remote_id', $remote_id, '=')
-        ->fields('edoweb_basic', array('local_id'))
-        ->execute()
-        ->fetchField();
-      $entity->local_id = $local_id;
-    }
-    $entity->created = time();
-    $primary_keys = $entity->local_id ? 'local_id' : array();
-
-    // Directly write out the entity record bypassing the controller to
-    // prevent needlessly writing objects back to the API
-    try {
-      drupal_write_record('edoweb_basic', $entity, $primary_keys);
-      watchdog('edoweb_storage', 'Imported @id.',
-        array(
-          '@id' => $remote_id,
-        )
-      );
-    } catch (PDOException $e) {
-      watchdog('edoweb_storage', 'Failed to import @id.',
-        array(
-          '@id' => $remote_id,
-        )
-      );
-      return FALSE;
-    }
-
-    return TRUE;
-
-  }
-
-  /*
-   * Import entities in a given range
-   */
-  public function import($from = 0, $until = 10) {
-
-    // Build resource list url
-    $http_url = sprintf(
-      'http://%s:%s@%s/resourceIndex?namespace=%s&from=%s&until=%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
-      $this->__edoweb_api_host,
-      variable_get('edoweb_api_namespace'),
-      $from,
-      $until
-    );
-
-    // Fetch resource list
-    $http_response = $this->_http_get($http_url, 'application/json');
-    if ((200 != $http_response->code) || !isset($http_response->data)) {
-      watchdog('edoweb_storage', 'Unable to fetch resource listing from @api.',
-        array(
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return;
-    }
-
-    // Resource list contains full representations of resources in JSON-LD
-    $jsonld = json_decode($http_response->data);
-    $options = array('format' => 'application/ntriples');
-    $rdf_ntriples = jsonld_to_rdf($jsonld, $options);
-    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_ntriples);
-
-    // entity_load needs to be triggered below so that field data is
-    // cached. In order to prevent re-loading the data, we set the
-    // triplestore here.
-    LinkedDataClient::setTripleStore($rdf_model);
-
-    // Import each resource
-    $imported_entity_ids = array();
-    foreach ($jsonld as $graph) {
-      if ($this->importEntity($graph->primaryTopic)) {
-        edoweb_basic_load($graph->primaryTopic);
-        $imported_entity_ids[] = $graph->primaryTopic;
-      }
-    }
-
-    return $imported_entity_ids;
-
   }
 
   public function index($entity) {

@@ -26,39 +26,23 @@ class EdowebBasicController extends EntityAPIController {
    * Load an edoweb_basic entity.
    */
   public function load($remote_ids = array(), $conditions = array()) {
-    $local_ids = array();
+    $cached_entities = $this->cacheGet($remote_ids, $conditions);
+    $entities = array();
     foreach ($remote_ids as $remote_id) {
-      $local_id = $this->_get_local_id($remote_id);
-      if (!$local_id) {
+      if (array_key_exists($remote_id, $cached_entities)) {
+        $entities[$remote_id] = $cached_entities[$remote_id];
+      } else {
         $api = new EdowebAPIClient();
-        if ($api->importEntity($remote_id)) {
-          $local_id = $this->_get_local_id($remote_id);
+        if ($entity = $api->load($remote_id)) {
+          $entities[$remote_id] = $entity;
+          $this->cacheSet(array($remote_id => $entities[$remote_id]));
         }
       }
-      if ($local_id && (1 == variable_get('edoweb_api_nocache'))
-          && !isset($this->__entity_loaded[$local_id])) {
-        cache_clear_all("field:edoweb_basic:{$local_id}", 'cache_field');
-        $this->__entity_loaded[$local_id] = true;
-        $local_ids[] = $local_id;
-      } else if ($local_id) {
-        $local_ids[] = $local_id;
-      }
     }
-    $entities = parent::load($local_ids, $conditions);
     return $entities;
   }
 
-  protected function _get_local_id($remote_id) {
-    return db_query(
-      'SELECT local_id FROM {edoweb_basic} WHERE remote_id = :remote_id',
-      array(':remote_id' => $remote_id)
-    )->fetchField();
-  }
-
   public function clearCache($remote_id) {
-    if ($local_id = $this->_get_local_id($remote_id)) {
-      cache_clear_all("field:edoweb_basic:{$local_id}", 'cache_field');
-    }
   }
 
   public function createFromRdf($subject_uri, $rdf_model) {
@@ -84,11 +68,9 @@ class EdowebBasicController extends EntityAPIController {
    * field storage (module edoweb_storage).
    */
   public function save($entity) {
-    // If our entity has no local_id, then we need to give it a
-    // time of creation.
-    if (empty($entity->local_id)) {
-      $entity->created = time();
-    }
+
+    $invocation = isset($entity->remote_id)
+     ? 'entity_update' : 'entity_insert';
 
     // If our entity has no owner, set current user.
     if (empty($entity->uid)) {
@@ -98,32 +80,14 @@ class EdowebBasicController extends EntityAPIController {
     // Invoke hook_entity_presave().
     module_invoke_all('entity_presave', $entity, 'edoweb_basic');
 
-    // We're going to invoke either hook_entity_update() or
-    // hook_entity_insert(), depending on whether or not this is a
-    // new entity. We'll just store the name of hook_entity_insert()
-    // and change it if we need to.
-    $invocation = 'entity_insert';
-    // Now we need to either insert or update the fields which are
-    // attached to this entity. We use the same primary_keys logic
-    // to determine whether to update or insert, and which hook we
-    // need to invoke.
-    if (empty($primary_keys)) {
-      field_attach_insert('edoweb_basic', $entity);
-    } else {
-      field_attach_update('edoweb_basic', $entity);
-      $invocation = 'entity_update';
-    }
-
     // Save local record
     $api = new EdowebAPIClient();
-    $api->importEntity($entity->remote_id);
-    if (isset($entity->local_id)) {
-      cache_clear_all("field:edoweb_basic:{$entity->local_id}", 'cache_field');
-    }
+    $api->save($entity);
 
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');
     return $entity;
+
   }
 
   /**
@@ -142,34 +106,15 @@ class EdowebBasicController extends EntityAPIController {
    *   An array of entity IDs or a single numeric ID.
    */
   public function delete_multiple($entities) {
-    $local_ids = array();
     if (!empty($entities)) {
-      $transaction = db_transaction();
       try {
         foreach ($entities as $entity) {
-          $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
-          if (FALSE !== $parents) {
-            foreach($parents as $parent) {
-              $this->clearCache($parent['value']);
-            }
-          }
-          $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-          if (FALSE !== $children) {
-            foreach($children as $child) {
-              $child_entity = edoweb_basic_load($child['value']);
-              $this->delete($child_entity);
-            }
-          }
           // Invoke hook_entity_delete().
           module_invoke_all('entity_delete', $entity, 'edoweb_basic');
-          field_attach_delete('edoweb_basic', $entity);
-          $local_ids[] = $entity->local_id;
+          $api = new EdowebAPIClient();
+          $api->delete($entity);
         }
-        db_delete('edoweb_basic')
-          ->condition('local_id', $local_ids, 'IN')
-          ->execute();
       } catch (Exception $e) {
-        $transaction->rollback();
         watchdog_exception('edoweb', $e);
         throw $e;
       }
