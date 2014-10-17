@@ -135,9 +135,6 @@ function edoweb_field_field_validate($entity_type, $entity, $field, $instance, $
   drupal_add_js(array('edoweb_field' => array(
     'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
   )), 'setting');
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  //);
 
   switch ($field['type']) {
     case 'edoweb_date':
@@ -357,9 +354,6 @@ function edoweb_field_field_widget_form(&$form, &$form_state, $field, $instance,
       drupal_add_js(array('edoweb_field' => array(
         'basePath' => base_path() . drupal_get_path('module', 'edoweb_field')
       )), 'setting');
-      //drupal_add_js(
-      //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-      //);
 
       $element += array('#type' => 'item');
 
