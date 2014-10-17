@@ -409,9 +409,6 @@ function edoweb_menu() {
 function edoweb_info_page() {
   drupal_set_title('');
   drupal_add_js(
-    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  );
-  drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/edoweb.js'
   );
   $query = new EntityFieldQuery();
@@ -658,6 +655,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'issue':
     case 'article':
     case 'file':
+    case 'collection':
       $columns = array(
         array(
           'data' => t('Title'),
@@ -942,10 +940,6 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  */
 function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE) {
 
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  );
-
   // Prepare query: header for table sort
   // TODO: decide which table header to use if multiple target bundles
   // are set.
@@ -1139,26 +1133,24 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
-  //);
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb_field') . '/edoweb_field_reference.js'
-  //);
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  );
   drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
   $bundle_info = field_info_instances(EDOWEB_ENTITY_TYPE, $entity->bundle_type);
-  $templates = array();
+  $instances = array();
   foreach ($bundle_info as $field_name => $instance) {
     $display = $instance['display']['default'];
     // Load field settings.
     $field = field_info_field($field_name);
     $instance['settings'] += $field['settings'];
-    $templates[$field_name] = array(
+    $instances[$field_name] = array(
       'instance' => $instance,
     );
   }
   $settings = array(
-    'fields' => $templates
+    'fields' => $instances,
+    'namespaces' => edoweb_rdf_namespaces(),
   );
   drupal_add_js(array('edoweb' => $settings), 'setting');
   drupal_add_js(
