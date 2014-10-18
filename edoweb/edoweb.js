@@ -52,21 +52,28 @@
         width: '80%'
       });
 
+      console.log(Drupal.settings.edoweb);
       var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
         var instance = Drupal.settings.edoweb.fields[$(this).val()].instance;
         var field = createField(instance);
-        $('#content .field', context).last().after(field);
+        activateFields(field);
+        $('#content .content', context).prepend(field);
         $(this).find('option:selected').remove();
       });
 
       $.each(Drupal.settings.edoweb.fields, function(index, value) {
-        var field_class = getFieldClassName(value['instance']);
-        if (! $('#content', context).find('.' + field_class).length) {
-          var option = $('<option />').text(value['instance']['label']).val(index);
+        var instance = value['instance'];
+        var field_class = getFieldClassName(instance);
+        var existing_items = $('#content', context).find('.' + field_class);
+        if (! existing_items.length && instance['required']) {
+          var field = createField(instance);
+          $('#content .content', context).prepend(field);
+        } else if (! existing_items.length) {
+          var option = $('<option />').text(instance['label']).val(index);
           additional_fields.append(option);
         }
       });
-      $('.tabs.primary', context).after(additional_fields);
+      $('#content .content', context).before(additional_fields);
 
       function getFieldName(field) {
         var cls = field.attr('class').split(' ');
@@ -88,7 +95,6 @@
         console.log(instance);
         var cls = 'field-name-' + instance['field_name'].replace(/_/g, '-');
         var field = $('<div class="field ' + cls + '"><div class="field-label">' + instance['label'] + ':&nbsp;</div><div class="field-items" /></div>');
-        activateFields(field);
         return field;
       }
 
@@ -138,29 +144,36 @@
           switch (instance['widget']['type']) {
             case 'text_textarea':
             case 'text_textfield':
+            case 'number':
               field.find('.field-items').each(function() {
                 if ($(this).find('.field-item').length) {
                   enableTextInput($(this).find('.field-item'));
                 } else {
                   createTextInput(instance, $(this));
                 }
-                var add_button = $('<a href="#">+</a>')
-                  .bind('click', function() {
-                    createTextInput(instance, $(this).siblings('.field-items'));
-                    return false;
-                  }).css('float', 'right');
-                $(this).after(add_button);
+                if ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                  var add_button = $('<a href="#">+</a>')
+                    .bind('click', function() {
+                      createTextInput(instance, $(this).siblings('.field-items'));
+                      return false;
+                    }).css('float', 'right');
+                  $(this).after(add_button);
+                }
               });
               break;
             case 'edoweb_autocomplete_widget':
               field.find('.field-items').each(function() {
-                var items = $(this);
-                var add_button = $('<a href="#">+</a>')
-                  .bind('click', function() {
-                    createLinkInput(instance, $(this).siblings('.field-items'));
-                    return false;
-                  }).css('float', 'right');
-                $(this).after(add_button);
+                if ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                  var items = $(this);
+                  var add_button = $('<a href="#">+</a>')
+                    .bind('click', function() {
+                      createLinkInput(instance, $(this).siblings('.field-items'));
+                      return false;
+                    }).css('float', 'right');
+                  $(this).after(add_button);
+                }
               });
               break;
           }
@@ -175,7 +188,7 @@
           console.log(data);
         });
       });
-      $('.tabs.primary', context).after(submit_button);
+      $('#content .content', context).before(submit_button);
 
     }
   };
@@ -407,7 +420,6 @@
       dataType: 'text',
       error: function(request, status, error) {
         throbber.remove();
-        //console.log(status);
       },
       success: function(data, status, request) {
         throbber.remove();
@@ -472,18 +484,13 @@
           return false;
         });
 
-        container.find('th a')
-          .add(container.find('.pager-item a'))
-          .add(container.find('.pager-first a'))
-          .add(container.find('.pager-previous a'))
-          .add(container.find('.pager-next a'))
-          .add(container.find('.pager-last a'))
-            .click(function(el, a, b, c) {
-              var target_type = container.find('input[type=radio]:checked').first().val();
-              var url = jQuery.url(el.currentTarget.getAttribute('href'));
-              refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type, instance, callback);
-              return (false);
-            });
+        container.find('th a').add('ul.pager a')
+          .click(function(el, a, b, c) {
+            var target_type = container.find('input[type=radio]:checked').first().val();
+            var url = jQuery.url(el.currentTarget.getAttribute('href'));
+            refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type, instance, callback);
+            return false;
+          });
 
         container.find('.sticky-enabled > tbody > tr').each(function() {
           var row = jQuery(this);
