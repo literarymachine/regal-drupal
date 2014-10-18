@@ -121,7 +121,7 @@
 
       function createLinkInput(instance, target) {
         modal_overlay.html('<div />');
-        refreshTable(modal_overlay, target, null, null, null, null, null, instance, function(uri) {
+        refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
           var input = $('<div class="field-item" />')
             .attr('rel', instance['settings']['predicates'].join(' '));
           var target_bundles = instance['settings']['handler_settings']['target_bundles'];
@@ -190,6 +190,23 @@
       });
       $('#content .content', context).before(submit_button);
 
+      var import_button = $('<button>Importieren</button>').bind('click', function() {
+        instance = {'bundle': Drupal.settings.edoweb.bundle, 'field_name': ''}
+        modal_overlay.html('<div />');
+        refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
+          entity_render_view('edoweb_basic', compact_uri(uri)).onload = function() {
+            var entity_view = $(this.responseText).find('.content');
+            var page_title = $(this.responseText).find('h2').text();
+            Drupal.attachBehaviors(entity_view);
+            $('#content .content', context).replaceWith(entity_view);
+            $('#page-title', context).text(page_title);
+          };
+        });
+        modal_overlay.dialog('open');
+        return false;
+      });
+      $('#content .content', context).before(import_button);
+
     }
   };
 
@@ -202,7 +219,7 @@
       });
 
       // Load entities into table
-//      entity_table($(context).find('.field-type-edoweb-ld-reference .field-items'));
+      entity_table($(context).find('.field-type-edoweb-ld-reference .field-items'));
 
       // Load entity-labels in facet list
       $(context).find('*[data-curie].facet').each(function() {
@@ -304,94 +321,7 @@
   }
 
   var pending_requests = [];
-  function importTable(container, source, page, sort, order, term, type) {
-    if(!page) page = 0;
-    if(!sort) sort = '';
-    if(!order) order = '';
-    if(!term) term = '';
-    if(!type) type = '';
-
-    var bundle_name = source.closest('form[data-bundle]').attr('data-bundle');
-    var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name;
-
-    var params = {
-      page: page,
-      sort: sort,
-      order: order,
-      'query[0][term]': term,
-      'query[0][type]': type,
-    };
-
-    var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-    container.find('input[type="text"]').after(throbber);
-
-    var request = jQuery.ajax({
-      cache: false,
-      url: qurl,
-      data: params,
-      dataType: 'text',
-      error: function(request, status, error) {
-        throbber.remove();
-        //console.log(status);
-      },
-      success: function(data, status, request) {
-        throbber.remove();
-        var html = $(data);
-        html.find('a[data-bundle]').remove();
-
-        var type_selector = html.find('input[type=radio]');
-        if (type_selector.length == 1) {
-          type_selector.parent().hide();
-        }
-        type_selector.bind('change', function() {
-          $(this).closest('form').find('input[name="op"]').click();
-        });
-
-        container.html(html);
-
-        container.find('input[name="op"]').click(function() {
-          var term = container.find('input[type="text"]').val();
-          var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
-          importTable(container, source, null, null, null, term, target_type);
-          return false;
-        });
-
-        container.find('th a')
-          .add(container.find('.pager-item a'))
-          .add(container.find('.pager-first a'))
-          .add(container.find('.pager-previous a'))
-          .add(container.find('.pager-next a'))
-          .add(container.find('.pager-last a'))
-            .click(function(el, a, b, c) {
-              var url = jQuery.url(el.currentTarget.getAttribute('href'));
-              var target_type = container.find('input[type=radio]:checked').first().val();
-              importTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type);
-              return (false);
-            });
-
-        container.find('.sticky-enabled > tbody > tr').each(function() {
-          var row = jQuery(this);
-          jQuery(this).children('td').last()
-            .append('<button>Importieren</button>')
-            .bind('click', function(event) {
-              container.dialog('close');
-              var resource_uri = row.children('td').first().children('a').first().text();
-              window.onbeforeunload = function(){};
-              window.location.replace(window.location.pathname + '?source=' + resource_uri);
-              return false;
-            });
-        });
-
-        hideEmptyTableColumns(container.find('.sticky-enabled'));
-        hideTableHeaders(container.find('.sticky-enabled'));
-        Drupal.attachBehaviors(container);
-
-      }
-    });
-    pending_requests.push(request);
-  }
-
-  function refreshTable(container, source, page, sort, order, term, type, instance, callback) {
+  function refreshTable(container, page, sort, order, term, type, instance, callback) {
     if(!page) page = 0;
     if(!sort) sort = '';
     if(!order) order = '';
@@ -480,7 +410,7 @@
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
           var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
-          refreshTable(container, source, null, null, null, term, target_type, instance, callback);
+          refreshTable(container, null, null, null, term, target_type, instance, callback);
           return false;
         });
 
@@ -488,14 +418,14 @@
           .click(function(el, a, b, c) {
             var target_type = container.find('input[type=radio]:checked').first().val();
             var url = jQuery.url(el.currentTarget.getAttribute('href'));
-            refreshTable(container, source, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type, instance, callback);
+            refreshTable(container, url.param('page'), url.param('sort'), url.param('order'), url.param('query[0][term]'), target_type, instance, callback);
             return false;
           });
 
         container.find('.sticky-enabled > tbody > tr').each(function() {
           var row = jQuery(this);
           jQuery(this).children('td').last()
-            .append('<button>Hinzufügen</button>')
+            .append('<button>Übernehmen</button>')
             .bind('click', function(event) {
               container.dialog('close');
               var resource_uri = row.children('td').first().children('a').first().attr('href');

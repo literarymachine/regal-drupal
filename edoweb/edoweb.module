@@ -1153,6 +1153,7 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
     );
   }
   $settings = array(
+    'bundle' => $entity->bundle_type,
     'fields' => $instances,
     'namespaces' => edoweb_rdf_namespaces(),
   );
