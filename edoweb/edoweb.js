@@ -52,28 +52,28 @@
         width: '80%'
       });
 
-      console.log(Drupal.settings.edoweb);
-      var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
-        var instance = Drupal.settings.edoweb.fields[$(this).val()].instance;
-        var field = createField(instance);
-        activateFields(field);
-        $('#content .content', context).prepend(field);
-        $(this).find('option:selected').remove();
-      });
-
-      $.each(Drupal.settings.edoweb.fields, function(index, value) {
-        var instance = value['instance'];
-        var field_class = getFieldClassName(instance);
-        var existing_items = $('#content', context).find('.' + field_class);
-        if (! existing_items.length && instance['required']) {
+      if (typeof Drupal.settings.edoweb != 'undefined') {
+        var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
+          var instance = Drupal.settings.edoweb.fields[$(this).val()].instance;
           var field = createField(instance);
+          activateFields(field);
           $('#content .content', context).prepend(field);
-        } else if (! existing_items.length) {
-          var option = $('<option />').text(instance['label']).val(index);
-          additional_fields.append(option);
-        }
-      });
-      $('#content .content', context).before(additional_fields);
+          $(this).find('option:selected').remove();
+        });
+        $.each(Drupal.settings.edoweb.fields, function(index, value) {
+          var instance = value['instance'];
+          var field_class = getFieldClassName(instance);
+          var existing_items = $('#content', context).find('.' + field_class);
+          if (! existing_items.length && instance['required']) {
+            var field = createField(instance);
+            $('#content .content', context).prepend(field);
+          } else if (! existing_items.length) {
+            var option = $('<option />').text(instance['label']).val(index);
+            additional_fields.append(option);
+          }
+        });
+        $('#content .content', context).before(additional_fields);
+      }
 
       function getFieldName(field) {
         var cls = field.attr('class').split(' ');
