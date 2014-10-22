@@ -1443,14 +1443,18 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   // Create a basic entity structure to be used and passed to the validation
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create(
-    array('bundle_type' => $bundle_type)
+    array(
+      'remote_id' => 'edoweb:12345',
+      'bundle_type' => $bundle_type,
+      'created' => time(),
+      'updated' => time(),
+    )
   );
   $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   if (NULL !== $parent) {
     $wrapper->field_edoweb_struct_parent = $parent->remote_id;
   }
-  _edoweb_build_breadcrumb($entity);
-  return drupal_get_form('edoweb_basic_form', $entity);
+  return edoweb_basic_view($entity);
 }
 
 /**
