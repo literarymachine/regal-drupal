@@ -52,28 +52,56 @@
         width: '80%'
       });
 
-      if (typeof Drupal.settings.edoweb != 'undefined') {
+      $('.edoweb.entity', context).each(function() {
+        var bundle = $(this).attr('data-entity-bundle');
+        var entity = $(this);
         var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
-          var instance = Drupal.settings.edoweb.fields[$(this).val()].instance;
+          var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
-          activateFields(field);
-          $('#content .content', context).prepend(field);
+          activateFields(field, bundle);
+          entity.find('.content').prepend(field);
           $(this).find('option:selected').remove();
         });
-        $.each(Drupal.settings.edoweb.fields, function(index, value) {
+        $.each(Drupal.settings.edoweb.fields[bundle], function(index, value) {
           var instance = value['instance'];
           var field_class = getFieldClassName(instance);
-          var existing_items = $('#content', context).find('.' + field_class);
+          var existing_items = entity.find('.' + field_class);
           if (! existing_items.length && instance['required']) {
             var field = createField(instance);
-            $('#content .content', context).prepend(field);
+            entity.find('.content').prepend(field);
           } else if (! existing_items.length) {
             var option = $('<option />').text(instance['label']).val(index);
             additional_fields.append(option);
           }
         });
-        $('#content .content', context).before(additional_fields);
-      }
+        entity.find('.content').before(additional_fields);
+
+        var submit_button = $('<button>Speichern</button>').bind('click', function() {
+          var post_data = entity.rdf().databank.dump({format:'application/rdf+xml', serialize: true});
+          $.post('', post_data, function(data, textStatus, jqXHR) {
+            console.log(data);
+          });
+        });
+        entity.find('.content').before(submit_button);
+
+        var import_button = $('<button>Importieren</button>').bind('click', function() {
+          instance = {'bundle': bundle, 'field_name': ''}
+          modal_overlay.html('<div />');
+          refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
+            entity_render_view('edoweb_basic', compact_uri(uri)).onload = function() {
+              var entity_view = $(this.responseText).find('.content');
+              var page_title = $(this.responseText).find('h2').text();
+              Drupal.attachBehaviors(entity_view);
+              entity.find('.content').replaceWith(entity_view);
+              $('#page-title', context).text(page_title);
+            };
+          });
+          modal_overlay.dialog('open');
+          return false;
+        });
+        entity.find('.content').before(import_button);
+        activateFields(entity.find('.field'), bundle);
+      });
 
       function getFieldName(field) {
         var cls = field.attr('class').split(' ');
@@ -92,7 +120,6 @@
       }
 
       function createField(instance) {
-        console.log(instance);
         var cls = 'field-name-' + instance['field_name'].replace(/_/g, '-');
         var field = $('<div class="field ' + cls + '"><div class="field-label">' + instance['label'] + ':&nbsp;</div><div class="field-items" /></div>');
         return field;
@@ -136,11 +163,11 @@
         modal_overlay.dialog('open');
       }
 
-      function activateFields(fields) {
+      function activateFields(fields, bundle) {
         $.each(fields, function() {
           var field = $(this);
           var field_name = getFieldName(field);
-          var instance = Drupal.settings.edoweb.fields[field_name]['instance'];
+          var instance = Drupal.settings.edoweb.fields[bundle][field_name]['instance'];
           switch (instance['widget']['type']) {
             case 'text_textarea':
             case 'text_textfield':
@@ -179,33 +206,6 @@
           }
         });
       }
-
-      activateFields($('.field', context));
-
-      var submit_button = $('<button>Speichern</button>').bind('click', function() {
-        var post_data = $('#content', context).rdf().databank.dump({format:'application/rdf+xml', serialize: true});
-        $.post('', post_data, function(data, textStatus, jqXHR) {
-          console.log(data);
-        });
-      });
-      $('#content .content', context).before(submit_button);
-
-      var import_button = $('<button>Importieren</button>').bind('click', function() {
-        instance = {'bundle': Drupal.settings.edoweb.bundle, 'field_name': ''}
-        modal_overlay.html('<div />');
-        refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
-          entity_render_view('edoweb_basic', compact_uri(uri)).onload = function() {
-            var entity_view = $(this.responseText).find('.content');
-            var page_title = $(this.responseText).find('h2').text();
-            Drupal.attachBehaviors(entity_view);
-            $('#content .content', context).replaceWith(entity_view);
-            $('#page-title', context).text(page_title);
-          };
-        });
-        modal_overlay.dialog('open');
-        return false;
-      });
-      $('#content .content', context).before(import_button);
 
     }
   };
@@ -265,7 +265,6 @@
       container.find('a[data-curie]').each(function() {
         curies.push(this.getAttribute('data-curie'));
       });
-      console.log(curies);
       var columns = container.find('a[data-target-bundle]')
         .attr('data-target-bundle')
         .split(' ')[0];
