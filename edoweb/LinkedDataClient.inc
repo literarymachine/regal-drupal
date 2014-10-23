@@ -37,7 +37,6 @@ class LinkedDataClient {
     $rdf_parser = new LibRDF_Parser('rdfxml');
     $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
     $entity = entity_create(EDOWEB_ENTITY_TYPE, array(
-      'local_id' => $remote_id,
       'remote_id' => $remote_id,
       'bundle_type' => $bundle,
     ));

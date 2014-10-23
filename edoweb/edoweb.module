@@ -1188,26 +1188,32 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
+
+  $attr_bundle = 'data-entity-bundle="' .  $entity->bundle_type . '"';
+  $attr_rdf_typeof = 'typeof="' . implode(' ', edoweb_rdf_types($entity->bundle_type)) . '"';
+  $attr_rdf_resource = isset($entity->remote_id)
+    ? 'resource="' .  $entity->remote_id . '"' : '';
+
   // Start setting up the content.
   $entity->content = array(
     '#view_mode' => $view_mode,
-    '#prefix' => '<div class="edoweb entity" data-entity-bundle="' .  $entity->bundle_type . '" about="' . $entity->remote_id . '">',
-    '#suffix' => '</div>',
+    '#prefix' => "<div class=\"edoweb entity\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>", '#suffix' => '</div>',
   );
-  // Build fields content - this is where the Field API really comes in to play.
-  // The task has very little code here because it all gets taken care of by
-  // field module.
-  // field_attach_prepare_view() lets the fields load any data they need
-  // before viewing.
-  field_attach_prepare_view($entity_type, array($entity->remote_id => $entity),
-    $view_mode);
 
-  // We call entity_prepare_view() so it can invoke hook_entity_prepare_view()
-  // for us.
-  entity_prepare_view($entity_type, array($entity->remote_id => $entity));
-  // Now field_attach_view() generates the content for the fields.
-  $entity->content += field_attach_view($entity_type, $entity, $view_mode);
+  if (isset($entity->remote_id)) {
+    // Build fields content - this is where the Field API really comes in to play.
+    // The task has very little code here because it all gets taken care of by
+    // field module.
+    // field_attach_prepare_view() lets the fields load any data they need
+    // before viewing.
+    field_attach_prepare_view($entity_type, array($entity->remote_id => $entity), $view_mode);
 
+    // We call entity_prepare_view() so it can invoke hook_entity_prepare_view()
+    // for us.
+    entity_prepare_view($entity_type, array($entity->remote_id => $entity));
+    // Now field_attach_view() generates the content for the fields.
+    $entity->content += field_attach_view($entity_type, $entity, $view_mode);
+  }
 
   // Remove any structural fields from the form because they will be
   // displayed separately
@@ -1263,18 +1269,20 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     '#weight' => 1000,
   );
 
-  $entity->content['remote_id'] = array(
-    '#type' => 'item',
-    '#markup' => '<small>' . l(
-      'View source',
-      _edoweb_expand_curie($entity->remote_id),
-      array('attributes' => array(
-        'target'=>'_blank',
-        'class' => array('entity-id'),
-      ))
-    ) . '</small>',
-    '#weight' => 1001,
-  );
+  if (isset($entity->remote_id)) {
+    $entity->content['remote_id'] = array(
+      '#type' => 'item',
+      '#markup' => '<small>' . l(
+        'View source',
+        _edoweb_expand_curie($entity->remote_id),
+        array('attributes' => array(
+          'target'=>'_blank',
+          'class' => array('entity-id'),
+        ))
+      ) . '</small>',
+      '#weight' => 1001,
+    );
+  }
 
   if (1 == variable_get('edoweb_api_debug')) {
     $entity->content['turtle'] = array(
@@ -1304,7 +1312,9 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   _edoweb_build_breadcrumb($entity);
 
   // Add custom HTTP header for AJAX requests
-  drupal_add_http_header('X-Edoweb-Entity', $entity->remote_id);
+  if (isset($entity->remote_id)) {
+    drupal_add_http_header('X-Edoweb-Entity', $entity->remote_id);
+  }
 
   // And finally return the content.
   return $entity->content;
@@ -1448,7 +1458,6 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create(
     array(
-      'remote_id' => 'edoweb:12345',
       'bundle_type' => $bundle_type,
       'created' => time(),
       'updated' => time(),
@@ -1977,8 +1986,8 @@ function edoweb_rdf_mapping() {
 
 }
 
-function edoweb_rdf_types() {
-  return array(
+function edoweb_rdf_types($bundle = null) {
+  $rdf_types = array(
     'person' => array('gnd:DifferentiatedPerson'),
     'corporate_body' => array('gnd:CorporateBody'),
     'event' => array('gnd:ConferenceOrEvent'),
@@ -2004,6 +2013,7 @@ function edoweb_rdf_types() {
       'bibo:Series',
     ),
   );
+  return $bundle ? $rdf_types[$bundle] : $rdf_types;
 }
 
 /*

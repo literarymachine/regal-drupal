@@ -102,8 +102,8 @@ class EdowebBasicController extends EntityAPIController {
   /**
    * Delete one or more edoweb_basic entities.
    *
-   * @param $local_ids
-   *   An array of entity IDs or a single numeric ID.
+   * @param $entities
+   *   An array of entities
    */
   public function delete_multiple($entities) {
     if (!empty($entities)) {
