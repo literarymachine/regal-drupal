@@ -38,6 +38,27 @@ function edoweb_init() {
   $action_access = ((in_array('edoweb_backend_admin', $user->roles)
                     || in_array('edoweb_backend_user', $user->roles)));
   drupal_add_js(array('actionAccess' => $action_access), 'setting');
+
+  $bundle_infos = field_info_instances(EDOWEB_ENTITY_TYPE);
+  $instances = array();
+  foreach ($bundle_infos as $bundle => $bundle_info) {
+    foreach ($bundle_info as $field_name => $instance) {
+      // Load field settings.
+      $field = field_info_field($field_name);
+      if (isset($field['cardinality'])) {
+        $instance['settings']['cardinality'] = $field['cardinality'];
+      }
+      $instance['settings'] += $field['settings'];
+      $instances[$bundle][$field_name] = array(
+        'instance' => $instance,
+      );
+    }
+  }
+  $settings = array(
+    'fields' => $instances,
+    'namespaces' => edoweb_rdf_namespaces(),
+  );
+  drupal_add_js(array('edoweb' => $settings), 'setting');
 }
 
 /**
@@ -1132,32 +1153,15 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view()
  * @see hook_entity_view_alter()
  */
-function edoweb_basic_view($entity, $view_mode = 'tweaky') {
+function edoweb_basic_view($entity, $view_mode = 'default') {
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
   drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
   drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
-  $bundle_info = field_info_instances(EDOWEB_ENTITY_TYPE, $entity->bundle_type);
-  $instances = array();
-  foreach ($bundle_info as $field_name => $instance) {
-    $display = $instance['display']['default'];
-    // Load field settings.
-    $field = field_info_field($field_name);
-    if (isset($field['cardinality'])) {
-      $instance['settings']['cardinality'] = $field['cardinality'];
-    }
-    $instance['settings'] += $field['settings'];
-    $instances[$field_name] = array(
-      'instance' => $instance,
-    );
-  }
-  $settings = array(
-    'bundle' => $entity->bundle_type,
-    'fields' => $instances,
-    'namespaces' => edoweb_rdf_namespaces(),
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
   );
-  drupal_add_js(array('edoweb' => $settings), 'setting');
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/edoweb.js'
   );
@@ -1187,6 +1191,8 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   // Start setting up the content.
   $entity->content = array(
     '#view_mode' => $view_mode,
+    '#prefix' => '<div class="edoweb entity" data-entity-bundle="' .  $entity->bundle_type . '" about="' . $entity->remote_id . '">',
+    '#suffix' => '</div>',
   );
   // Build fields content - this is where the Field API really comes in to play.
   // The task has very little code here because it all gets taken care of by
@@ -1291,11 +1297,9 @@ function edoweb_basic_view($entity, $view_mode = 'tweaky') {
   global $language ;
   $langcode = $language->language ;
   // And now invoke hook_entity_view().
-  module_invoke_all('entity_view', $entity, $entity_type, $view_mode,
-    $langcode);
+  module_invoke_all('entity_view', $entity, $entity_type, $view_mode, $langcode);
   // Now invoke hook_entity_view_alter().
-  drupal_alter(array('edoweb_basic_view', 'entity_view'),
-    $entity->content, $entity_type);
+  drupal_alter(array('edoweb_basic_view', 'entity_view'), $entity->content, $entity_type);
 
   _edoweb_build_breadcrumb($entity);
 
