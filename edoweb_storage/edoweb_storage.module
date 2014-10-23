@@ -550,17 +550,10 @@ function _edoweb_storage_entity_serialize_rdf(
   }
 }
 
-function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser) {
+function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  try {
-    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
-  } catch (LibRDF_Error $e) {
-    // TODO: log errors
-    // drupal_set_message($e->getMessage(), 'error');
-  }
 
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping['rdftype']);
@@ -659,6 +652,8 @@ function _get_rdf_subject($entity, $field_name) {
       && in_array($field_name, $datastream_properties)
   ) {
     return new LibRDF_URINode("$rdf_subject/data");
+  } else if ('_:' == substr($rdf_subject, 0, 2)) {
+    return new LibRDF_BlankNode(substr($rdf_subject, 2));
   } else {
     return new LibRDF_URINode($rdf_subject);
   }
@@ -700,7 +695,9 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
    */
   $rdf_ntriples = _edoweb_escape_utf8($rdf_ntriples);
   $rdf_parser = new LibRDF_Parser('ntriples');
-  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_ntriples, $rdf_parser);
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_ntriples);
+  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
 }
 
 function _edoweb_escape_utf8($string) {
