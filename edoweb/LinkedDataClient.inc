@@ -40,7 +40,7 @@ class LinkedDataClient {
       'remote_id' => $remote_id,
       'bundle_type' => $bundle,
     ));
-    _edoweb_storage_entity_deserialize_rdf($entity, "$rdf_model", $rdf_parser);
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
     return $entity;
   }
 

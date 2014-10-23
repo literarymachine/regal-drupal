@@ -55,10 +55,7 @@ class EdowebBasicController extends EntityAPIController {
         'bundle_type' => $bundle_type,
       )
     );
-    $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_storage_entity_deserialize_rdf(
-      $entity, "$rdf_model", $rdf_parser
-    );
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
     return $entity;
   }
 

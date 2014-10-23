@@ -1154,6 +1154,8 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'default') {
+  global $base_url;
+  $page_url = $base_url . '/' . current_path();
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
@@ -1167,22 +1169,25 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   );
   $postdata = file_get_contents("php://input");
   if ($postdata != '') {
-    $url = current_path();
-    $remote_id = new LibRDF_URINode(end(explode('/', $url)));
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-    $rdfa_model = new LibRDF_Model(new LibRDF_Storage());
     $rdf_parser = new LibRDF_Parser('rdfxml');
-    $rdfa_model->loadStatementsFromString(
+
+    $rdf_model->loadStatementsFromString(
       $rdf_parser, $postdata
     );
-    foreach ($rdfa_model as $stmt) {
-      $rdf_model->addStatement(new LibRDF_Statement(
-        $remote_id, $stmt->getPredicate(), $stmt->getObject()
-      ));
+
+    $entity_uri = $rdf_model->getTarget(
+      new LibRDF_URINode($page_url),
+      new LibRDF_URINode('http://xmlns.com/foaf/0.1/primaryTopic')
+    );
+    $entity->remote_id = $entity_uri->getValue();
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
+    if ($entity_uri instanceof LibRDF_BlankNode) {
+      $entity->remote_id = null;
     }
-    echo $rdf_model;
-    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model, $rdf_parser);
     edoweb_basic_save($entity);
+    echo $entity->remote_id;
+    drupal_add_http_header('X-Edoweb-Entity', $entity->remote_id);
     die;
   }
 
@@ -1192,12 +1197,14 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   $attr_bundle = 'data-entity-bundle="' .  $entity->bundle_type . '"';
   $attr_rdf_typeof = 'typeof="' . implode(' ', edoweb_rdf_types($entity->bundle_type)) . '"';
   $attr_rdf_resource = isset($entity->remote_id)
-    ? 'resource="' .  $entity->remote_id . '"' : '';
+    ? 'resource="' . $entity->remote_id . '"'
+    : 'resource="[_:foo]"';
 
   // Start setting up the content.
   $entity->content = array(
     '#view_mode' => $view_mode,
-    '#prefix' => "<div class=\"edoweb entity\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>", '#suffix' => '</div>',
+    '#prefix' => "<div class=\"edoweb entity\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>",
+    '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
   );
 
   if (isset($entity->remote_id)) {
