@@ -288,10 +288,11 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
       foreach ($items as $delta => $item) {
         $curie = _edoweb_compact_uri($item['value']);
         $elements[$delta] = array(
-          '#markup' => l($item['value'], $item['value'],
+          '#markup' => l($item['value'], 'resource/' . $curie,
             array('attributes' => array(
               'data-target-bundle' => implode(' ', $target_bundles),
               'data-curie' => $curie,
+              'resource' => $curie,
             ))
           ),
         );

@@ -156,7 +156,8 @@
           for (target_bundle in target_bundles) break;
           var link = $('<a />').attr('href', uri).text(uri)
             .attr('data-target-bundle', target_bundle)
-            .attr('data-curie', compact_uri(uri));
+            .attr('data-curie', compact_uri(uri))
+            .attr('resource', compact_uri(uri));
           input.append(link);
           target.append(input);
           entity_table(target);
