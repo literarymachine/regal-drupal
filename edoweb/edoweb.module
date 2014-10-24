@@ -1175,7 +1175,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     $rdf_model->loadStatementsFromString(
       $rdf_parser, $postdata
     );
-
     $entity_uri = $rdf_model->getTarget(
       new LibRDF_URINode($page_url),
       new LibRDF_URINode('http://xmlns.com/foaf/0.1/primaryTopic')

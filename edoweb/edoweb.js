@@ -76,11 +76,16 @@
         });
         entity.before(additional_fields);
 
-        var submit_button = $('<button>Speichern</button>').bind('click', function() {
-          var post_data = entity.rdf().databank.dump({format:'application/rdf+xml', serialize: true});
-          $.post('', post_data, function(data, textStatus, jqXHR) {
-            console.log(data);
+        var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
+          var button = $(this);
+          var rdf = entity.rdf();
+          var url = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0).s.value.toString();
+          var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
+          $.post(url, post_data, function(data, textStatus, jqXHR) {
+            var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
+            button.trigger('insert', resource_uri);
           });
+          return false;
         });
         entity.before(submit_button);
 
@@ -364,31 +369,15 @@
           }
 
           $(this).bind('click', function(e) {
-            var url = Drupal.settings.basePath + '?q=edoweb_entity_add/edoweb_basic/' + this.getAttribute('data-bundle');
+            var url = Drupal.settings.basePath + 'resource/add/' + this.getAttribute('data-bundle');
             $.get(url, function(data) {
-              var form = $(data);
-              // TODO: implement unlimited nesting, i.e. allow modal
-              // dialog over modal dialog
-              form.find('.field-type-edoweb-ld-reference').remove();
-              form.submit(function(e) {
-                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-                form.append(throbber);
-                var post_data = $(this).serializeArray();
-                // Need to set this manually so that Drupal detects the
-                // proper triggering element!
-                post_data.push({name: 'finish', value: 'Fertigstellen'})
-                var form_url = $(this).attr('action');
-                $.post(form_url, post_data, function(data, textStatus, jqXHR) {
-                  throbber.remove();
-                  var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
-                  container.dialog('close');
-                  //FIXME: hardcoded URL prefix
-                  callback('http://api.localhost/resource/' + resource_uri);
-                });
-                return false;
-              });
+              var form = $(data).find('.edoweb.entity');
               container.html(form);
               Drupal.attachBehaviors(container);
+              container.find('#save-entity').bind('insert', function(event, uri) {
+                container.dialog('close');
+                callback('http://api.localhost/resource/' + uri);
+              });
             });
             return false;
           });
