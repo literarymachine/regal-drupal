@@ -2094,7 +2094,11 @@ function edoweb_block_list_alter(&$blocks) {
   if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
       && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
   {
-    $blocks = array();
+    foreach ($blocks as $id => $block) {
+      if ('content' !== $block->region) {
+        unset($blocks[$id]);
+      }
+    }
   }
 }
 

@@ -74,7 +74,7 @@
             additional_fields.append(option);
           }
         });
-        entity.find('.content').before(additional_fields);
+        entity.before(additional_fields);
 
         var submit_button = $('<button>Speichern</button>').bind('click', function() {
           var post_data = entity.rdf().databank.dump({format:'application/rdf+xml', serialize: true});
@@ -82,24 +82,25 @@
             console.log(data);
           });
         });
-        entity.find('.content').before(submit_button);
+        entity.before(submit_button);
 
         var import_button = $('<button>Importieren</button>').bind('click', function() {
           instance = {'bundle': bundle, 'field_name': ''}
           modal_overlay.html('<div />');
           refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
             entity_render_view('edoweb_basic', compact_uri(uri)).onload = function() {
-              var entity_view = $(this.responseText).find('.content');
+              var entity_content = $(this.responseText).find('.content');
               var page_title = $(this.responseText).find('h2').text();
-              Drupal.attachBehaviors(entity_view);
-              entity.find('.content').replaceWith(entity_view);
+              Drupal.attachBehaviors(entity_content);
+              activateFields(entity_content.find('.field'), bundle);
+              entity.find('.content').replaceWith(entity_content);
               $('#page-title', context).text(page_title);
             };
           });
           modal_overlay.dialog('open');
           return false;
         });
-        entity.find('.content').before(import_button);
+        entity.before(import_button);
         activateFields(entity.find('.field'), bundle);
       });
 

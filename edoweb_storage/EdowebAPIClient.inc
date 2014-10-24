@@ -370,9 +370,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       return FALSE;
     }
+
     $rdf_parser = new LibRDF_Parser('ntriples');
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-
     try {
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
@@ -463,7 +463,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $rdf_parser = new LibRDF_Parser('ntriples');
     foreach ($hits->hits as $hit) {
       // Parse results
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $options = array(
         'format' => 'application/ntriples',
       );
