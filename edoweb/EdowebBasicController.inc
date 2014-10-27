@@ -25,7 +25,7 @@ class EdowebBasicController extends EntityAPIController {
   /**
    * Load an edoweb_basic entity.
    */
-  public function load($remote_ids = array(), $conditions = array()) {
+  public function load($remote_ids = array(), $conditions = array(), $rdf_model = null) {
     $cached_entities = $this->cacheGet($remote_ids, $conditions);
     $entities = array();
     foreach ($remote_ids as $remote_id) {
@@ -33,7 +33,7 @@ class EdowebBasicController extends EntityAPIController {
         $entities[$remote_id] = $cached_entities[$remote_id];
       } else {
         $api = new EdowebAPIClient();
-        if ($entity = $api->load($remote_id)) {
+        if ($entity = $api->load($remote_id, $rdf_model)) {
           $entities[$remote_id] = $entity;
           $this->cacheSet(array($remote_id => $entities[$remote_id]));
         }

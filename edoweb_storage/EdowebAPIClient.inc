@@ -64,9 +64,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    * @param $entity
    *   The drupal entity to load data into
    */
-  public function load($entity) {
+  public function load($remote_id, $rdf_model = null) {
     $linkedDataClient = new LinkedDataClient();
-    return $linkedDataClient->load($entity);
+    return $linkedDataClient->load($remote_id, $rdf_model);
   }
 
   public function getTransformers($entity) {
@@ -416,7 +416,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       null, $foaf_primary_topic, null
     );
 
-    LinkedDataClient::setTripleStore($rdf_model);
     foreach ($primary_topics as $primary_topic) {
       $remote_id = $primary_topic->getObject()->getValue();
       $entity = entity_get_controller('edoweb_basic')->createFromRdf(

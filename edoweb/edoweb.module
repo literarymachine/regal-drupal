@@ -1139,6 +1139,7 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'tweaky') {
+  return "See tree";
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
@@ -1327,8 +1328,15 @@ function _edoweb_build_tree($entity) {
   // Add child enities to tree
   $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
   if (FALSE !== $children) {
+    $ld_client = new LinkedDataClient();
+    $ld_data = $ld_client->getRDF(
+      _edoweb_expand_curie("{$entity->remote_id}/parts")
+    );
     foreach ($children as $child) {
-      $child_entity = edoweb_basic_load($child['value']);
+      $child_entity = entity_get_controller('edoweb_basic')->load(
+        array($child['value']), array(), $ld_data
+      );
+      $child_entity = end($child_entity);
       // Append download links for file children
       if ('file' == $child_entity->bundle_type) {
         $datastreams = field_get_items(
@@ -2110,6 +2118,8 @@ function _edoweb_format_date($timestamp) {
 }
 
 function _edoweb_http_request($request_url, $http_options) {
+
+file_put_contents('php://stderr', "$request_url\n");
 
   $http_options += array(
     'timeout' => 60,

@@ -28,11 +28,11 @@ class LinkedDataClient {
    * @param $entity
    *   The drupal entity to load data into
    */
-  public function load($remote_id) {
-    if (is_null(self::$__triple_store)) {
+  public function load($remote_id, $rdf_model = null) {
+    if (is_null($rdf_model)) {
       $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
     } else {
-      $rdf_model = self::$__triple_store;
+      file_put_contents('php://stderr', "Loading $remote_id from data\n");
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
     $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
@@ -80,7 +80,23 @@ class LinkedDataClient {
 
     $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
-      $rdf_data = $http_response->data;
+      if ($http_response->headers['content-type'] == 'application/json') {
+        $json_ld = json_decode($http_response->data);
+        $options = array(
+          'format' => 'application/ntriples',
+        );
+        try {
+          $rdf_data = _edoweb_escape_utf8(
+            jsonld_to_rdf($json_ld, $options)
+          );
+          $rdf_parser = new LibRDF_Parser('ntriples');
+        } catch(JsonLdException $e) {
+          watchdog('edoweb', 'Unable to parse JSON LD');
+          return FALSE;
+        }
+      } else {
+        $rdf_data = $http_response->data;
+      }
     } else {
       $rdf_data = '';
     }
@@ -141,14 +157,6 @@ class LinkedDataClient {
 
     return $rdf_model;
 
-  }
-
-  public static function setTripleStore($triple_store) {
-    self::$__triple_store = $triple_store;
-  }
-
-  public static function getTripleStore() {
-    return self::$__triple_store;
   }
 
 }

@@ -95,13 +95,4 @@ class EdowebBasicEntity extends Entity {
       : implode(' | ', $title_values);
   }
 
-  public function getSource() {
-    return $this->__source;
-  }
-
-  public function setSource($source) {
-    $this->__source = $source;
-  }
-
 }
-

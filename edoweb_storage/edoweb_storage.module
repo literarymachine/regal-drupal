@@ -573,6 +573,10 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
       // Modify subject URI for datastream metadata
       $rdf_subject = _get_rdf_subject($entity, $field_name);
       foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        // FIXME: wrong datatype of child relations
+        if ('field_edoweb_struct_child' == $field_name && !$value instanceof LibRDF_URINode) {
+          $value = new LibRDF_URINode($value->getValue());
+        }
         // External datasources may provide incompatible data, filter that out
         if (($field_info['type'] == 'edoweb_ld_reference')
             && (!$value instanceof LibRDF_URINode))
