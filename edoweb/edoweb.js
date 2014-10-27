@@ -39,8 +39,15 @@
       if (search = localStorage.getItem('edoweb_search')) {
         $('a[href="' + home_href + '"]').attr('href', home_href + search);
       }
-      $('input#edit-delete').bind('click', function() {
+      $('input#edit-delete', context).bind('click', function() {
         return confirm('Möchten Sie den Eintrag unwideruflich löschen?');
+      });
+
+      $('.tabs a').bind('click', function() {
+        var href = $(this).attr('href');
+        history.pushState({tree: true}, null, href);
+        Drupal.navigateTo(href);
+        return false;
       });
 
       // Attach lookup overlay to page
@@ -84,7 +91,13 @@
           $.post(url, post_data, function(data, textStatus, jqXHR) {
             var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
             button.trigger('insert', resource_uri);
-            Drupal.navigateTo(Drupal.settings.basePath + 'resource/' + resource_uri);
+            var href = Drupal.settings.basePath + 'resource/' + resource_uri;
+            history.pushState({tree: true}, null, href);
+            Drupal.navigateTo(href);
+            entity_load_json('edoweb_basic', resource_uri).onload = function() {
+              localStorage.setItem('cut_entity', this.responseText);
+              Drupal.refreshInsert(context);
+            };
           });
           return false;
         });
