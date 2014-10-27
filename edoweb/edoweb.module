@@ -399,8 +399,7 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/structure'] = array(
     'page callback' => 'edoweb_basic_structure',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_field_access',
-    'access arguments' => array(1, array('field_edoweb_struct_parent')),
+    'access arguments' => array('edit any edoweb_basic entity'),
     'type' => MENU_CALLBACK,
   );
 
@@ -1339,40 +1338,15 @@ function _edoweb_find_top_level_parent($entity) {
 
 function _edoweb_build_tree($entity) {
 
-  // Cache entity currently loaded in content region
-  static $loaded_entity;
-  if (null === $loaded_entity) {
-    $loaded_entity = menu_get_object(EDOWEB_ENTITY_TYPE);
-  }
-
   // Add current entity to tree
   $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
   $entity_url = entity_class_uri($entity);
   $entity_bundle = $entity->bundle();
   $options = array('attributes' => array('data-bundle' => $entity_bundle));
-  $tree_item = array('data' => l($title, $entity_url['path'], $options));
-  if ($entity == $loaded_entity) {
-    $tree_item['class'] = array('active');
-  }
-
-  // Add links to insert child entities
-  $instance_definition = field_info_instance(
-    EDOWEB_ENTITY_TYPE, 'field_edoweb_struct_child', $entity->bundle_type
+  $tree_item = array(
+    'data' => l($title, $entity_url['path'], $options),
+    'class' => array('expanded'),
   );
-  $target_bundles = isset($instance_definition['settings']['handler_settings']['target_bundles'])
-    ? array_values($instance_definition['settings']['handler_settings']['target_bundles'])
-    : array();
-  $links = '';
-  foreach($target_bundles as $target_bundle) {
-    $url = "{$entity_url['path']}/children/add/$target_bundle";
-    if (drupal_valid_path($url)) {
-      $links .= l(
-        _edoweb_map_string("Add {$target_bundle}"), $url,
-        array('attributes' => array('data-target-bundle' => $target_bundle))
-      );
-    }
-  }
-  $tree_item['data'] .= " $links";
 
   // Add child enities to tree
   $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
@@ -1402,7 +1376,15 @@ function _edoweb_build_tree($entity) {
           }
         }
       }
-      $tree_item['children'][] = _edoweb_build_tree($child_entity);
+      $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
+      $entity_url = entity_class_uri($child_entity);
+      $entity_bundle = $child_entity->bundle();
+      $options = array('attributes' => array('data-bundle' => $entity_bundle));
+      $tree_child = array(
+        'data' => l($title, $entity_url['path'], $options),
+        'class' => array('collapsed'),
+      );
+      $tree_item['children'][] = $tree_child;
     }
   }
 
@@ -1481,19 +1463,30 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity) {
-  $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
-  if (!$new_parent_id) die('Missing new parent ID');
-  $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-  $prev_parent_id = $wrapper->field_edoweb_struct_parent->value();
-  $wrapper->field_edoweb_struct_parent = $new_parent_id;
-  $api = new EdowebAPIClient();
-  if ($api->saveResource($entity)) {
-    entity_get_controller('edoweb_basic')->clearCache($prev_parent_id);
-    entity_get_controller('edoweb_basic')->clearCache($new_parent_id);
-    entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
-    die("Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
+  // TODO: check edit access for POST
+  if ('POST' == $_SERVER['REQUEST_METHOD']) {
+    $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
+    if (!$new_parent_id) die('Missing new parent ID');
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
+    $prev_parent_id = $wrapper->field_edoweb_struct_parent->value();
+    $wrapper->field_edoweb_struct_parent = $new_parent_id;
+    $api = new EdowebAPIClient();
+    if ($api->saveResource($entity)) {
+      entity_get_controller('edoweb_basic')->clearCache($prev_parent_id);
+      entity_get_controller('edoweb_basic')->clearCache($new_parent_id);
+      entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
+      die("Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
+    } else {
+      die("Failed moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
+    }
   } else {
-    die("Failed moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
+    $subtree = _edoweb_build_tree($entity);
+    die(theme_item_list(array(
+      'items' => array($subtree),
+      'title' => null,
+      'type' => 'ul',
+      'attributes' => array('class' => array('edoweb-tree')),
+    )));
   }
 }
 

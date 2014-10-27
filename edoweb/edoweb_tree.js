@@ -19,25 +19,49 @@
 
 (function($) {
 
+  // AJAX navigation
+  if (window.history && history.pushState) {
+    Drupal.navigateTo = function(href) {
+      var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+      $('#content').html(throbber);
+      $.get(href, function(data, textStatus, jqXHR) {
+        throbber.remove();
+        var html = $(data);
+        Drupal.attachBehaviors(html);
+        $('#content').replaceWith(html.find('#content'));
+        $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+        document.title = html.filter('title').text();
+        $('.edoweb-tree li.active').removeClass('active');
+        $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
+      });
+    };
+    if (!this.attached) {
+      history.replaceState({tree: true}, null, document.location);
+      window.addEventListener("popstate", function(e) {
+        if (e.state && e.state.tree) {
+          Drupal.navigateTo(location.pathname);
+          Drupal.refreshTree();
+        }
+      });
+      this.attached = true;
+    }
+  } else {
+    Drupal.navigateTo = function(href) {
+      window.location = href;
+    };
+  }
+
   Drupal.behaviors.edoweb_tree = {
     attached: false,
     attach: function (context, settings) {
-      // Init tree
-      $('.edoweb-tree ul', context).hide();
-      $('.edoweb-tree li', context).toggleClass('collapsed');
 
       // Attach clipboard
       var clipboard = $('<div id="edoweb-tree-clipboard" />');
-      $('.edoweb-tree').before(clipboard);
-
-      // Sort tree
-      $('.edoweb-tree ul', context).each(function() {
-        $(this).children('li').sort(sort_desc).appendTo($(this));
-      });
+      $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
 
       // Find possible add actions
       var target_bundles = {};
-      $('.edoweb-tree a[data-target-bundle]').each(function() {
+      $('.edoweb-tree a[data-target-bundle]', context).each(function() {
         var target_bundle = $(this).attr('data-target-bundle');
         if (!(target_bundle in target_bundles)) {
           var link = $(this).clone().attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle);
@@ -54,44 +78,25 @@
         clipboard.before(this);
       });
 
-      // AJAX navigation
-      if (window.history && history.pushState) {
-        Drupal.navigateTo = function(href) {
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-          $('#content', context).html(throbber);
-          $.get(href, function(data, textStatus, jqXHR) {
-            throbber.remove();
-            var html = $(data);
-            Drupal.attachBehaviors(html);
-            $('#content', context).replaceWith(html.find('#content'));
-            $('#breadcrumb', context).replaceWith(html.find('#breadcrumb'));
-            document.title = html.filter('title').text();
-          });
-        };
-        if (!this.attached) {
-          history.replaceState({tree: true}, null, document.location);
-          window.addEventListener("popstate", function(e) {
-            if (e.state && e.state.tree) {
-              Drupal.navigateTo(location.pathname);
-              $('.edoweb-tree li.active', context).removeClass('active');
-              $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
-              refreshInsert();
-            }
-          });
-          this.attached = true;
-        }
-      } else {
-        Drupal.navigateTo = function(href) {
-          window.location = href;
-        };
-      }
-
       $('.edoweb-tree li', context).each(function() {
 
-          // Expand / collapse tree
+        var list_element = $(this);
+        var link = list_element.children('a:eq(0)');
+
+        // Expand / collapse tree
         $(this).click(function(e) {
           if (e.target != this) return true;
-          $(this).children('div').children('ul').toggle();
+          if ($(this).hasClass('collapsed')) {
+            $.get(link.attr('href') + '/structure').onload = function() {
+              var data = $(this.responseText);
+              Drupal.attachBehaviors(data);
+              var replacement = data.children('ul').children('li');
+              list_element.replaceWith(replacement);
+              Drupal.refreshTree();
+            };
+          } else {
+            $(this).children('div.item-list').remove();
+          }
           $(this).toggleClass('expanded collapsed');
           // Fix FF behaviour that selects text of subordinate lists
           // on expansion
@@ -102,7 +107,6 @@
         });
 
         // Shorten the link captions
-        var link = $(this).children('a:eq(0)');
         if (link.text().length > 40) {
           link.attr('title', link.text());
           link.text(link.text().substr(0, 40) + '...');
@@ -114,7 +118,7 @@
           Drupal.navigateTo(link.attr('href'));
           $('.edoweb-tree li.active', context).removeClass('active');
           link.closest('li').addClass('active');
-          refreshInsert();
+          Drupal.refreshTree();
           return false;
         });
 
@@ -127,12 +131,10 @@
             var entity_id = decodeURIComponent(
               link.attr('href').split('/').pop()
             );
-            var entity_bundle = link.attr('data-bundle');
-            var entity_label = link.text();
-            localStorage.setItem('cut_entity_id', entity_id);
-            localStorage.setItem('cut_entity_bundle', entity_bundle);
-            localStorage.setItem('cut_entity_label', entity_label);
-            refreshInsert(context);
+            entity_load_json('edoweb_basic', entity_id).onload = function() {
+              localStorage.setItem('cut_entity', this.responseText);
+              Drupal.refreshTree();
+            };
             return false;
           });
           actions = actions.add(cut_button);
@@ -158,7 +160,7 @@
       });
 
       // Init insert positions
-      refreshInsert(context);
+      Drupal.refreshTree();
 
     }
   };
@@ -173,40 +175,47 @@
     tree.children('div').children('ul').show();
   }
 
-  var refreshInsert = function (context) {
+  Drupal.refreshTree = function () {
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
     $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
-    expandTree($('.edoweb-tree li.active', context));
+    expandTree($('.edoweb-tree li.active'));
     $.each(UIButtons, function(i, button) {
       button.remove();
     });
     UIButtons = [];
-    var entity_id = localStorage.getItem('cut_entity_id');
-    var entity_bundle = localStorage.getItem('cut_entity_bundle');
-    var entity_label = localStorage.getItem('cut_entity_label');
-    if (entity_id && entity_bundle && entity_label) {
+    var cut_entity = JSON.parse(localStorage.getItem('cut_entity'));
+    if (cut_entity) {
+      var entity_id = cut_entity.remote_id;
+      var entity_bundle = cut_entity.bundle_type;
+      var entity_label = cut_entity.remote_id;
       var clipboard_item = $('<div class="edoweb-tree-clipboard-item"><p>' + entity_label + '</p></div>');
       var clipboard_cancel = $('<span class="octicon octicon-diff-modified"></span>').click(function() {
-        localStorage.removeItem('cut_entity_id');
-        localStorage.removeItem('cut_entity_bundle');
-        localStorage.removeItem('cut_entity_label');
+        localStorage.removeItem('cut_entity');
         $('#edoweb-tree-clipboard').empty();
-        refreshInsert(context);
+        Drupal.refreshTree();
       });
       $('#edoweb-tree-clipboard').html(clipboard_item.find('p').append(clipboard_cancel));
       $('.edoweb-tree a[href="/resource/' + encodeURIComponent(entity_id) + '"]')
         .addClass('edoweb-tree-cut-item')
         .closest('li').find('a[data-bundle]').addClass('edoweb-tree-cut-item');
-      $('.edoweb-tree li', context).each(function() {
+
+      $('.edoweb-tree li').each(function() {
         var insert_position = $(this).children('div.item-list').children('ul');
         if (insert_position.length == 0) {
           insert_position = $('<ul />');
           $(this).append($('<div class="item-list"></div>').append(insert_position));
         }
+
+        var bundle_fields = Drupal.settings.edoweb.fields[$(this).children('a[data-bundle]').attr('data-bundle')];
         var target_bundles = [];
-        $(this).children('.edoweb-tree-toolbox').children('a[data-target-bundle]').each(function(i) {
-          target_bundles[i] = $(this).attr('data-target-bundle');
-        });
+        if ('field_edoweb_struct_child' in bundle_fields) {
+          var target_bundles = Object.keys(bundle_fields
+            ['field_edoweb_struct_child']
+            ['instance']['settings']
+            ['handler_settings']['target_bundles']);
+        }
+        console.log(target_bundles);
+
         if (target_bundles.indexOf(entity_bundle) != -1) {
           var insert_button = $('<a href="#" title="[Einfügen]"><span class="octicon octicon-diff-added" /></a>');
           insert_button.bind('click', function() {
@@ -214,31 +223,46 @@
             var target_parent_id = decodeURIComponent(
               $(this).closest('li').find('a:eq(0)').attr('href').split('/').pop()
             );
-            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-            $('#edoweb-tree-clipboard p>span').replaceWith(throbber);
+            //var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+            //$('#edoweb-tree-clipboard p>span').replaceWith(throbber);
             var post_data = [{name: 'parent_id', value: target_parent_id}];
-            $.post(target_struct_url, post_data, function(data, textStatus, jqXHR) {
-              throbber.remove();
-              localStorage.removeItem('cut_entity_id');
-              localStorage.removeItem('cut_entity_bundle');
-              localStorage.removeItem('cut_entity_label');
-              // Find element that was moved
-              $('.edoweb-tree li').each(function() {
-                var element_id = decodeURIComponent(
-                  $(this).find('a:eq(0)').attr('href').split('/').pop()
-                );
-                if (element_id == entity_id) {
-                  insert_position.append($(this));
-                  expandTree($(this));
-                  // Sort elements
-                  $(this).siblings('li').add($(this)).sort(sort_desc).appendTo($(this).closest('ul'));
-                  return false;
-                }
+            var inserted_item = $('<li />').addClass('collapsed').append($('<a />')
+              .attr('href', Drupal.settings.basePath + 'resource/' + entity_id)
+              .attr('data-bundle', entity_bundle)
+              .text(entity_label));
+            $(this).closest('li')
+              .children('div.item-list')
+              .children('ul').show()
+              .append(inserted_item);
+            var ordered_children = [];
+            $(this).closest('li')
+              .children('div.item-list')
+              .children('ul')
+              .children('li')
+              .children('a')
+              .each(function() {
+                ordered_children.push($(this).attr('href').split('/').pop())
               });
+            console.log(ordered_children);
+            Drupal.refreshTree();
+            //$.post(target_struct_url, post_data, function(data, textStatus, jqXHR) {
+            //  throbber.remove();
+            //  localStorage.removeItem('cut_entity');
+            //  // Find element that was moved
+            //  $('.edoweb-tree li').each(function() {
+            //    var element_id = decodeURIComponent(
+            //      $(this).find('a:eq(0)').attr('href').split('/').pop()
+            //    );
+            //    if (element_id == entity_id) {
+            //      insert_position.append($(this));
+            //      expandTree($(this));
+            //      return false;
+            //    }
+            //  });
 
-              $('#edoweb-tree-clipboard').empty();
-              refreshInsert(context);
-            });
+            //  $('#edoweb-tree-clipboard').empty();
+            //  Drupal.refreshTree();
+            //});
             return false;
           });
           UIButtons.push(insert_button);
@@ -248,14 +272,6 @@
         }
       });
     }
-  }
-
-  var sort_asc = function(a, b) {
-    return ($(b).text()) < ($(a).text()) ? 1 : -1;
-  }
-
-  var sort_desc = function(a, b) {
-    return ($(b).text()) > ($(a).text()) ? 1 : -1;
   }
 
 })(jQuery);
