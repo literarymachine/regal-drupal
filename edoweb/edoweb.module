@@ -421,6 +421,7 @@ function edoweb_menu() {
     'access arguments' => array('edit any edoweb_basic entity'),
     'type' => MENU_CALLBACK
   );
+
   return $items;
 }
 
@@ -1742,14 +1743,38 @@ function edoweb_basic_access_form_submit($form, &$form_state) {
 
 function edoweb_basic_data($entity) {
   $api = new EdowebAPIClient();
-  $file = @file_get_contents($api->getFileUrl($entity));
-  if ($file === FALSE) {
-    return drupal_access_denied();
+  if ('POST' == $_SERVER['REQUEST_METHOD']) {
+    // Handle uploaded files by moving them from the tmp directory
+    // and storing the resulting (local) URI
+    if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
+        && isset($_FILES['files']['error'][0])
+        && isset($_FILES['files']['error'][0])
+    ) {
+      $tmp_name = $_FILES['files']['tmp_name'][0];
+      $file_name = $_FILES['files']['name'][0];
+      $file_type = $_FILES['files']['type'][0];
+      $file_size = $_FILES['files']['size'][0];
+      $file_uri = file_unmanaged_move($tmp_name);
+      $entity->field_edoweb_datastream[LANGUAGE_NONE][]['value'] = $file_uri;
+      $entity->field_edoweb_label[LANGUAGE_NONE][]['value'] = $file_name;
+      $entity->field_edoweb_filetype[LANGUAGE_NONE][]['value'] = $file_type;
+      $entity->field_edoweb_filesize[LANGUAGE_NONE][]['value'] = $file_size;
+      $api->saveFiles($entity);
+    } else if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
+               && !isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])
+    ) {
+      form_set_error('field_edoweb_datastream', t('File is required.'));
+    }
+  } else {
+    $file = @file_get_contents($api->getFileUrl($entity));
+    if ($file === FALSE) {
+      return drupal_access_denied();
+    }
+    foreach ($http_response_header as $header) {
+      header($header);
+    }
+    die($file);
   }
-  foreach ($http_response_header as $header) {
-    header($header);
-  }
-  die($file);
 }
 
 /**
@@ -1866,30 +1891,6 @@ function edoweb_basic_form($form, &$form_state, $entity) {
  */
 function edoweb_basic_form_validate($form, &$form_state) {
   $entity = $form_state['values']['basic_entity'];
-  // Handle uploaded files by moving them from the tmp directory
-  // and storing the resulting (local) URI
-  if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
-      && isset($_FILES['files']['error']['field_edoweb_datastream'])
-      && 0 === $_FILES['files']['error']['field_edoweb_datastream']
-  ) {
-    $tmp_name = $_FILES['files']['tmp_name']['field_edoweb_datastream'];
-    $file_name = $_FILES['files']['name']['field_edoweb_datastream'];
-    $file_type = $_FILES['files']['type']['field_edoweb_datastream'];
-    $file_size = $_FILES['files']['size']['field_edoweb_datastream'];
-    $file_uri = file_unmanaged_move($tmp_name);
-    $entity->field_edoweb_datastream[LANGUAGE_NONE][]['value'] = $file_uri;
-    $entity->field_edoweb_label[LANGUAGE_NONE][]['value'] = $file_name;
-    $entity->field_edoweb_filetype[LANGUAGE_NONE][]['value'] = $file_type;
-    $entity->field_edoweb_filesize[LANGUAGE_NONE][]['value'] = $file_size;
-    $form_state['values']['field_edoweb_datastream'][LANGUAGE_NONE][0]['value'] = $file_uri;
-    $form_state['values']['field_edoweb_label'][LANGUAGE_NONE][0]['value'] = $file_name;
-    $form_state['values']['field_edoweb_filetype'][LANGUAGE_NONE][0]['value'] = $file_type;
-    $form_state['values']['field_edoweb_filesize'][LANGUAGE_NONE][0]['value'] = $file_size;
-  } else if (_edoweb_field_access($entity, array('field_edoweb_datastream'))
-             && !isset($entity->field_edoweb_datastream[LANGUAGE_NONE][0]['value'])
-  ) {
-    form_set_error('field_edoweb_datastream', t('File is required.'));
-  }
   field_attach_form_validate('edoweb_basic', $entity, $form, $form_state);
 }
 

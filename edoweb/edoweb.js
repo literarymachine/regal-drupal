@@ -170,6 +170,22 @@
         modal_overlay.dialog('open');
       }
 
+      function createUploadInput(instance, target) {
+        var input = $('<input id="file" type="file" />');
+        $('#save-entity').bind('insert', function(event, uri) {
+          var files = $('#file').get(0).files;
+          formData = new FormData();
+          for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            formData.append('files[]', file, file.name);
+          }
+          var request = new XMLHttpRequest();
+          request.open("POST", Drupal.settings.basePath + 'resource/' + uri + '/data');
+          request.send(formData);
+        });
+        target.append(input);
+      }
+
       function activateFields(fields, bundle) {
         $.each(fields, function() {
           var field = $(this);
@@ -210,6 +226,22 @@
                 }
               });
               break;
+            case 'edoweb_upload_widget':
+              field.find('.field-items').each(function() {
+                if ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                  var items = $(this);
+                  var add_button = $('<a href="#">+</a>')
+                    .bind('click', function() {
+                      createUploadInput(instance, $(this).siblings('.field-items'));
+                      return false;
+                    }).css('float', 'right');
+                  $(this).after(add_button);
+                }
+              });
+              break;
+            default:
+              console.log(instance['widget']['type']);
           }
         });
       }
