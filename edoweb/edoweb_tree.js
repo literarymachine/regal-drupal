@@ -43,7 +43,7 @@
           var link = $(this).clone().attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle);
           link.bind('click', function() {
             history.pushState({tree: true}, null, link.attr('href'));
-            navigateTo(link.attr('href'));
+            Drupal.navigateTo(link.attr('href'));
             return false;
           });
           target_bundles[target_bundle] = link;
@@ -55,10 +55,9 @@
       });
 
       // AJAX navigation
-      var navigateTo;
       if (window.history && history.pushState) {
-        navigateTo = function(href) {
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+        Drupal.navigateTo = function(href) {
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
           $('#content', context).html(throbber);
           $.get(href, function(data, textStatus, jqXHR) {
             throbber.remove();
@@ -73,7 +72,7 @@
           history.replaceState({tree: true}, null, document.location);
           window.addEventListener("popstate", function(e) {
             if (e.state && e.state.tree) {
-              navigateTo(location.pathname);
+              Drupal.navigateTo(location.pathname);
               $('.edoweb-tree li.active', context).removeClass('active');
               $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
               refreshInsert();
@@ -82,7 +81,7 @@
           this.attached = true;
         }
       } else {
-        navigateTo = function(href) {
+        Drupal.navigateTo = function(href) {
           window.location = href;
         };
       }
@@ -112,7 +111,7 @@
         // Navigate via AJAX
         link.click(function() {
           history.pushState({tree: true}, null, link.attr('href'));
-          navigateTo(link.attr('href'));
+          Drupal.navigateTo(link.attr('href'));
           $('.edoweb-tree li.active', context).removeClass('active');
           link.closest('li').addClass('active');
           refreshInsert();
