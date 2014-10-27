@@ -51,6 +51,20 @@
     };
   }
 
+  var findTargetBundles = function(bundle, callback, processed) {
+    if (!processed) processed = [];
+    var fields = Drupal.settings.edoweb.fields[bundle];
+    if (fields && 'field_edoweb_struct_child' in fields) {
+      for (target_bundle in fields['field_edoweb_struct_child']['instance']['settings']['handler_settings']['target_bundles']) {
+        if (processed.indexOf(target_bundle) == -1) {
+          callback(target_bundle);
+          processed.push(target_bundle);
+          findTargetBundles(target_bundle, callback, processed);
+        }
+      }
+    }
+  }
+
   Drupal.behaviors.edoweb_tree = {
     attached: false,
     attach: function (context, settings) {
@@ -59,23 +73,16 @@
       var clipboard = $('<div id="edoweb-tree-clipboard" />');
       $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
 
-      // Find possible add actions
-      var target_bundles = {};
-      $('.edoweb-tree a[data-target-bundle]', context).each(function() {
-        var target_bundle = $(this).attr('data-target-bundle');
-        if (!(target_bundle in target_bundles)) {
-          var link = $(this).clone().attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle);
-          link.bind('click', function() {
-            history.pushState({tree: true}, null, link.attr('href'));
-            Drupal.navigateTo(link.attr('href'));
+      findTargetBundles($('.edoweb-tree>li>a', context).attr('data-bundle'), function(bundle) {
+        var link = $('<a />')
+          .attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle)
+          .text(Drupal.settings.basePath + 'resource/add/' + target_bundle)
+          .bind('click', function() {
+            history.pushState({tree: true}, null, $(this).attr('href'));
+            Drupal.navigateTo($(this).attr('href'));
             return false;
           });
-          target_bundles[target_bundle] = link;
-        }
-        $(this).remove();
-      });
-      $.each(target_bundles, function() {
-        clipboard.before(this);
+        clipboard.before(link);
       });
 
       $('.edoweb-tree li', context).each(function() {

@@ -96,7 +96,7 @@
             Drupal.navigateTo(href);
             entity_load_json('edoweb_basic', resource_uri).onload = function() {
               localStorage.setItem('cut_entity', this.responseText);
-              Drupal.refreshInsert(context);
+              Drupal.refreshTree(context);
             };
           });
           return false;
