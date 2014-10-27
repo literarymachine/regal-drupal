@@ -84,6 +84,7 @@
           $.post(url, post_data, function(data, textStatus, jqXHR) {
             var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
             button.trigger('insert', resource_uri);
+            Drupal.navigateTo(Drupal.settings.basePath + 'resource/' + resource_uri);
           });
           return false;
         });
