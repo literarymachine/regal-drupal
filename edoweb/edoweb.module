@@ -1361,21 +1361,22 @@ function _edoweb_build_tree($entity) {
       );
       $child_entity = end($child_entity);
       // Append download links for file children
-      if ('file' == $child_entity->bundle_type) {
-        $datastreams = field_get_items(
-          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-        );
-        if (FALSE !== $datastreams) {
-          foreach ($datastreams as $datastream) {
-            if (drupal_valid_path('resource/' .  $datastream['value'])) {
-              $download_link = field_view_value(
-                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-              );
-              $tree_item['data'] .= ' ' . drupal_render($download_link);
-            }
-          }
-        }
-      }
+      // FIXME: Wrap img to not conflict with parts extraction by JS
+      //if ('file' == $child_entity->bundle_type) {
+      //  $datastreams = field_get_items(
+      //    'edoweb_basic', $child_entity, 'field_edoweb_datastream'
+      //  );
+      //  if (FALSE !== $datastreams) {
+      //    foreach ($datastreams as $datastream) {
+      //      if (drupal_valid_path('resource/' .  $datastream['value'])) {
+      //        $download_link = field_view_value(
+      //          EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
+      //        );
+      //        $tree_item['data'] .= ' ' . drupal_render($download_link);
+      //      }
+      //    }
+      //  }
+      //}
       $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
       $entity_url = entity_class_uri($child_entity);
       $entity_bundle = $child_entity->bundle();
@@ -1466,19 +1467,24 @@ function edoweb_basic_structure($entity) {
   // TODO: check edit access for POST
   if ('POST' == $_SERVER['REQUEST_METHOD']) {
     $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
-    if (!$new_parent_id) die('Missing new parent ID');
+    $parts = isset($_POST['parts']) ? $_POST['parts'] : FALSE;
+
     $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
     $prev_parent_id = $wrapper->field_edoweb_struct_parent->value();
     $wrapper->field_edoweb_struct_parent = $new_parent_id;
+
     $api = new EdowebAPIClient();
-    if ($api->saveResource($entity)) {
-      entity_get_controller('edoweb_basic')->clearCache($prev_parent_id);
-      entity_get_controller('edoweb_basic')->clearCache($new_parent_id);
-      entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
-      die("Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
-    } else {
-      die("Failed moving {$entity->remote_id} from $prev_parent_id to $new_parent_id");
+    if ($new_parent_id && $api->saveResource($entity)) {
+      echo "Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
+    } else if ($new_parent_id) {
+      echo "Failed moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
     }
+    if ($parts && $api->setParts($entity, $parts)) {
+      echo "Settings parts for {$entity->remote_id}\n";
+    } else if ($parts) {
+      echo "Failed settings parts for {$entity->remote_id}\n";
+    }
+    die;
   } else {
     $subtree = _edoweb_build_tree($entity);
     die(theme_item_list(array(

@@ -203,6 +203,31 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return $http_url;
   }
 
+  public function setParts($entity, $parts) {
+    if (isset($entity->remote_id)) {
+      // Update resource parts
+      $http_url = sprintf(
+        'http://%s:%s@%s/resource/%s/parts',
+        $this->__edoweb_api_user,
+        $this->__edoweb_api_pass,
+        $this->__edoweb_api_host,
+        $entity->remote_id
+      );
+      $http_response = $this->_http_put($http_url, json_encode($parts), 'application/json');
+      if (200 != $http_response->code) {
+        watchdog('edoweb_storage', 'Unable to save parts for @id to @api.',
+          array(
+            '@id' => $entity->remote_id,
+            '@api' => variable_get('edoweb_api_host'),
+          )
+        );
+        return FALSE;
+      }
+      return TRUE;
+    }
+    return FALSE;
+  }
+
   public function saveResource($entity, $transformers = null) {
     $data = array();
     $data['type'] = $entity->bundle_type;
