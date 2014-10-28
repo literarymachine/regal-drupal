@@ -440,15 +440,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $primary_topics = $rdf_model->findStatements(
       null, $foaf_primary_topic, null
     );
-
+    $remote_ids = array();
     foreach ($primary_topics as $primary_topic) {
-      $remote_id = $primary_topic->getObject()->getValue();
-      $entity = entity_get_controller('edoweb_basic')->createFromRdf(
-        $remote_id, $rdf_model
-      );
-      $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
+      $remote_ids[] = $primary_topic->getObject()->getValue();
     }
+
+    // Load RDF into entities
+    $results[EDOWEB_ENTITY_TYPE] = entity_get_controller('edoweb_basic')->load(
+      $remote_ids, array(), $rdf_model
+    );
+
     return $results;
+
   }
 
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
@@ -485,23 +488,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       'facets' => $facets,
       EDOWEB_ENTITY_TYPE => array(),
     );
-    $rdf_parser = new LibRDF_Parser('ntriples');
-    foreach ($hits->hits as $hit) {
-      // Parse results
-      $options = array(
-        'format' => 'application/ntriples',
-      );
 
+    // Parse results
+    $options = array(
+      'format' => 'application/ntriples',
+    );
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+
+    foreach ($hits->hits as $hit) {
       try {
-        $context_url = $hit->_source->{'@context'};
-        // Cache context file for performance
-        if (!file_exists('/tmp/' . basename($context_url))) {
-          file_put_contents(
-            '/tmp/' . basename($context_url),
-            file_get_contents($context_url)
-          );
-        }
-        $hit->_source->{'@context'} = 'file:///tmp/' . basename($context_url);
         $rdf_ntriples = _edoweb_escape_utf8(
           jsonld_to_rdf($hit->_source, $options)
         );
@@ -509,29 +505,32 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         watchdog('edoweb_storage', 'Unable to parse JSON LD');
         return FALSE;
       }
-      $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
         $rdf_ntriples
       );
-      // Identify primary resource
-      $ore_describes = $rdf_model->findStatements(
-        null,
-        new LibRDF_URINode(
-          "http://www.openarchives.org/ore/terms/describes"
-        ),
-        null
-      )->current();
-      // Create entity
-      if ($ore_describes) {
-        $remote_id = $ore_describes->getObject()->getValue();
-        $entity = entity_get_controller('edoweb_basic')->createFromRdf(
-          $remote_id, $rdf_model
-        );
-        $results[EDOWEB_ENTITY_TYPE][$remote_id] = $entity;
-      }
     }
+
+    // Identify primary resources
+    $ore_describes = $rdf_model->findStatements(
+      null,
+      new LibRDF_URINode(
+        "http://xmlns.com/foaf/0.1/primaryTopic"
+      ),
+      null
+    );
+    $remote_ids = array();
+    foreach ($ore_describes as $stmt) {
+      $remote_ids[] = $stmt->getObject()->getValue();
+    }
+
+    // Load RDF into entities
+    $results[EDOWEB_ENTITY_TYPE] = entity_get_controller('edoweb_basic')->load(
+      $remote_ids, array(), $rdf_model
+    );
+
     return $results;
+
   }
 
   protected function _efq_to_es(EntityFieldQuery $efq, $page = 0) {
@@ -554,7 +553,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       if (!is_array($target_bundles)) {
         $target_bundles = array($target_bundles);
       }
-      $query['query']['filtered']['filter']['bool']['must'][]['terms']["@graph.contentType.@value"]
+      $query['query']['filtered']['filter']['bool']['must'][]['terms']["contentType"]
         = array_values($target_bundles);
     }
 
@@ -567,7 +566,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
             $uids = array($uids);
           }
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
-            ["@graph.creator.@value"] = $uids;
+            ["creator"] = $uids;
           break;
       }
     }
@@ -579,9 +578,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
-        $query['query']['filtered']['filter']['bool']['must'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['must'][]['term'][$json_ld_property] = "$field_value";
       } else if ($bool_op == 'or') {
-        $query['query']['filtered']['filter']['bool']['should'][]['term']["@graph.$json_ld_property.@value"] = "$field_value";
+        $query['query']['filtered']['filter']['bool']['should'][]['term'][$json_ld_property] = "$field_value";
       }
     }
 
@@ -607,7 +606,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
       $order = $sort['direction'];
       if ($jsonld_property) {
-        $query['sort'][]["@graph.$jsonld_property.@value"] = array(
+        $query['sort'][][$jsonld_property] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,
         );
@@ -615,13 +614,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     $query['facets']['creator']['terms']['field']
-      = '@graph.creator.@value';
+      = 'creator';
     $query['facets']['contentType']['terms']['field']
-      = '@graph.contentType.@value';
+      = 'contentType';
     $query['facets']['subject']['terms']['field']
-      = '@graph.subject.@value';
+      = 'subject';
     $query['facets']['issued']['terms']['field']
-      = '@graph.issued.@value';
+      = 'issued';
     return json_encode($query);
   }
 
