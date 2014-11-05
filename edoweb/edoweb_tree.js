@@ -19,38 +19,6 @@
 
 (function($) {
 
-  // AJAX navigation
-  if (window.history && history.pushState) {
-    Drupal.navigateTo = function(href) {
-      var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-      $('#content').html(throbber);
-      $.get(href, function(data, textStatus, jqXHR) {
-        throbber.remove();
-        var html = $(data);
-        Drupal.attachBehaviors(html);
-        $('#content').replaceWith(html.find('#content'));
-        $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
-        document.title = html.filter('title').text();
-        $('.edoweb-tree li.active').removeClass('active');
-        $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
-      });
-    };
-    if (!this.attached) {
-      history.replaceState({tree: true}, null, document.location);
-      window.addEventListener("popstate", function(e) {
-        if (e.state && e.state.tree) {
-          Drupal.navigateTo(location.pathname);
-          Drupal.refreshTree();
-        }
-      });
-      this.attached = true;
-    }
-  } else {
-    Drupal.navigateTo = function(href) {
-      window.location = href;
-    };
-  }
-
   var findTargetBundles = function(bundle, callback, processed) {
     if (!processed) processed = [];
     var fields = Drupal.settings.edoweb.fields[bundle];
@@ -79,7 +47,7 @@
           .text(Drupal.settings.basePath + 'resource/add/' + target_bundle)
           .bind('click', function() {
             history.pushState({tree: true}, null, $(this).attr('href'));
-            Drupal.navigateTo($(this).attr('href'));
+            Drupal.edoweb.navigateTo($(this).attr('href'));
             return false;
           });
         clipboard.before(link);
@@ -119,10 +87,10 @@
         // Navigate via AJAX
         link.click(function() {
           history.pushState({tree: true}, null, link.attr('href'));
-          Drupal.navigateTo(link.attr('href'));
+          Drupal.edoweb.navigateTo(link.attr('href'));
           $('.edoweb-tree li.active', context).removeClass('active');
           link.closest('li').addClass('active');
-          Drupal.refreshTree();
+          Drupal.edoweb.refreshTree();
           return false;
         });
 
@@ -134,7 +102,7 @@
           cut_button.bind('click', function() {
             entity_load_json('edoweb_basic', entity_id).onload = function() {
               localStorage.setItem('cut_entity', this.responseText);
-              Drupal.refreshTree();
+              Drupal.edoweb.refreshTree();
             };
             return false;
           });
@@ -161,7 +129,7 @@
       });
 
       // Init insert positions
-      Drupal.refreshTree();
+      Drupal.edoweb.refreshTree();
 
     }
   };
@@ -173,7 +141,7 @@
       Drupal.attachBehaviors(data);
       var replacement = data.children('ul').children('li');
       target.replaceWith(replacement);
-      Drupal.refreshTree();
+      Drupal.edoweb.refreshTree();
       if (callback) callback();
     };
   };
@@ -188,7 +156,7 @@
     tree.children('div').children('ul').show();
   }
 
-  Drupal.refreshTree = function () {
+  Drupal.edoweb.refreshTree = function () {
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
     $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
     $('#edoweb-tree-clipboard').empty();
@@ -205,7 +173,7 @@
       var clipboard_item = $('<div class="edoweb-tree-clipboard-item"><p>' + entity_label + '</p></div>');
       var clipboard_cancel = $('<span class="octicon octicon-diff-modified"></span>').click(function() {
         localStorage.removeItem('cut_entity');
-        Drupal.refreshTree();
+        Drupal.edoweb.refreshTree();
       });
       $('#edoweb-tree-clipboard').html(clipboard_item.find('p').append(clipboard_cancel));
       $('.edoweb-tree a[href="/resource/' + encodeURIComponent(entity_id) + '"]')

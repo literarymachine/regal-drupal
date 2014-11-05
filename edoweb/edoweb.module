@@ -59,6 +59,14 @@ function edoweb_init() {
     'namespaces' => edoweb_rdf_namespaces(),
   );
   drupal_add_js(array('edoweb' => $settings), 'setting');
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb.js'
+  );
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+  );
+  drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
+  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
 }
 
 /**
@@ -429,9 +437,6 @@ function edoweb_menu() {
  */
 function edoweb_info_page() {
   drupal_set_title('');
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb.js'
-  );
   $query = new EntityFieldQuery();
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
@@ -1154,19 +1159,12 @@ function edoweb_basic_bundle_name($bundle) {
  * @see hook_entity_view_alter()
  */
 function edoweb_basic_view($entity, $view_mode = 'default') {
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb_view.js'
+  );
   global $base_url;
   $page_url = $base_url . '/' . current_path();
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
-  );
-  drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
-  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
-  );
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb.js'
-  );
+
   $postdata = file_get_contents("php://input");
   if ($postdata != '') {
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
@@ -1444,6 +1442,9 @@ function edoweb_field_extra_fields() {
  * Provides a wrapper on the edit form to add a new entity.
  */
 function edoweb_basic_add($bundle_type, $parent = NULL) {
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb_edit.js'
+  );
   // Create a basic entity structure to be used and passed to the validation
   // and submission functions.
   $entity = entity_get_controller('edoweb_basic')->create(
@@ -1501,11 +1502,6 @@ function edoweb_basic_structure($entity) {
  * Provides a form to administrate entities.
  */
 function edoweb_basic_admin($form, &$form_state, $entity) {
-
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb.js'
-  );
-
 
   $form['basic_entity'] = array(
     '#type' => 'value',
@@ -1787,14 +1783,6 @@ function edoweb_basic_data($entity) {
  *   for fields attached to the entity.
  */
 function edoweb_basic_form($form, &$form_state, $entity) {
-
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
-  );
-
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb.js'
-  );
 
   if (isset($_GET['source'])) {
     $api = new LinkedDataClient();
@@ -2108,9 +2096,9 @@ function edoweb_block_list_alter(&$blocks) {
  * This hook generates the contents of the blocks themselves.
  */
 function edoweb_block_view($delta = '') {
-  //drupal_add_js(
-  //  drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
-  //);
+  drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
+  );
   $block = array();
   // The $delta parameter tells us which block is being requested.
   switch ($delta) {
