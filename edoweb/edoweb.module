@@ -1954,6 +1954,9 @@ function edoweb_block_list_alter(&$blocks) {
  */
 function edoweb_block_view($delta = '') {
   drupal_add_js(
+    drupal_get_path('module', 'edoweb') . '/edoweb_edit.js'
+  );
+  drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
   );
   $block = array();

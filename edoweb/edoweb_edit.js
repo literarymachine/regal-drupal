@@ -32,7 +32,7 @@
         return confirm('Möchten Sie den Eintrag unwideruflich löschen?');
       });
 
-      $('.tabs a').bind('click', function() {
+      $('.tabs a', context).bind('click', function() {
         var href = $(this).attr('href');
         history.pushState({tree: true}, null, href);
         Drupal.edoweb.navigateTo(href);
@@ -74,17 +74,31 @@
         var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
           var button = $(this);
           var rdf = entity.rdf();
-          var url = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0).s.value.toString();
+          var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
+          var url = topic.s.value.toString();
+          var subject = topic.o;
           var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
           $.post(url, post_data, function(data, textStatus, jqXHR) {
             var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
             button.trigger('insert', resource_uri);
             var href = Drupal.settings.basePath + 'resource/' + resource_uri;
-            history.pushState({tree: true}, null, href);
-            entity_load_json('edoweb_basic', resource_uri).onload = function() {
-              localStorage.setItem('cut_entity', this.responseText);
+            // Newly created resources are placed into the clipboard
+            // and a real redirect is triggered.
+            if (subject.type == 'bnode') {
+              entity_load_json('edoweb_basic', resource_uri).onload = function() {
+                if (bundle == 'monograph' || bundle == 'journal') {
+                  window.location = href;
+                } else {
+                  localStorage.setItem('cut_entity', this.responseText);
+                  history.pushState({tree: true}, null, href);
+                  Drupal.edoweb.navigateTo(href);
+                }
+              };
+            } else {
+              history.pushState({tree: true}, null, href);
+              Drupal.edoweb.navigateTo(href);
               Drupal.edoweb.refreshTree(context);
-            };
+            }
           });
           return false;
         });
