@@ -1195,63 +1195,46 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     entity_prepare_view($entity_type, array($entity->remote_id => $entity));
     // Now field_attach_view() generates the content for the fields.
     $entity->content += field_attach_view($entity_type, $entity, $view_mode);
-  }
 
-  // Remove any structural fields from the form because they will be
-  // displayed separately
-  $instances_info = field_info_instances(
-    'edoweb_basic', $entity->bundle_type
-  );
-  foreach ($instances_info as $field_name => $instance_info) {
-    $field_info = field_info_field($field_name);
-    $is_structural_field =
-      isset($field_info['settings']['metadata_type'])
-      && $field_info['settings']['metadata_type'] == 'structural';
-    if ($is_structural_field) {
-      //unset($entity->content[$field_name]);
+    // OK, Field API done, now we can set up some of our own data.
+
+    // Find fields linking to this entity
+    $inverse_query = new EntityFieldQuery();
+    $inverse_query->addTag('elasticsearch');
+    $inverse_query->entityCondition(
+      'entity_type', 'edoweb_basic'
+    );
+    $fields_info = field_info_fields();
+    $has_inverse = FALSE;
+    foreach ($fields_info as $field_name => $field_info) {
+      if (isset($field_info['settings']['inverse'])
+          && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
+        $has_inverse = TRUE;
+        $inverse_query->fieldCondition(
+          $field_name, 'value', $entity->identifier(), null, 'or'
+        );
+      }
     }
-  }
-
-  // OK, Field API done, now we can set up some of our own data.
-
-  // Find fields linking to this entity
-  $inverse_query = new EntityFieldQuery();
-  $inverse_query->addTag('elasticsearch');
-  $inverse_query->entityCondition(
-    'entity_type', 'edoweb_basic'
-  );
-  $fields_info = field_info_fields();
-  $has_inverse = FALSE;
-  foreach ($fields_info as $field_name => $field_info) {
-    if (isset($field_info['settings']['inverse'])
-        && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
-      $has_inverse = TRUE;
-      $inverse_query->fieldCondition(
-        $field_name, 'value', $entity->identifier(), null, 'or'
+    if ($has_inverse) {
+      $inverse_query->entityCondition('bundle', array(
+        'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+      ));
+      $entity->content['related'] = edoweb_basic_search_entities(
+        $inverse_query
+      );
+      $entity->content['related'] += array(
+        '#weight' => 900,
+        '#type' => 'fieldset',
+        '#title' => 'Related resources',
       );
     }
-  }
-  if ($has_inverse) {
-    $inverse_query->entityCondition('bundle', array(
-      'monograph', 'journal', 'volume', 'issue', 'article', 'file'
-    ));
-    $entity->content['related'] = edoweb_basic_search_entities(
-      $inverse_query
-    );
-    $entity->content['related'] += array(
-      '#weight' => 900,
-      '#type' => 'fieldset',
-      '#title' => 'Related resources',
-    );
-  }
 
-  $entity->content['_updated'] = array(
-    '#type' => 'item',
-    '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . '</small>',
-    '#weight' => 1000,
-  );
+    $entity->content['_updated'] = array(
+      '#type' => 'item',
+      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . '</small>',
+      '#weight' => 1000,
+    );
 
-  if (isset($entity->remote_id)) {
     $entity->content['remote_id'] = array(
       '#type' => 'item',
       '#markup' => '<small>' . l(
