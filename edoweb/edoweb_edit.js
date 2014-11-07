@@ -41,14 +41,13 @@
 
       // Attach lookup overlay to page
       var modal_overlay = $('<div />').dialog({
-        position: [($(window).width() / 2) - (760 / 2), 15],
-        autoOpen: false,
+        position: 'top',
         modal: true,
-        //resizable: false,
+        autoOpen: false,
         width: '80%'
       });
 
-      $('.edoweb.entity', context).each(function() {
+      $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
         var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
@@ -82,10 +81,9 @@
             button.trigger('insert', resource_uri);
             var href = Drupal.settings.basePath + 'resource/' + resource_uri;
             history.pushState({tree: true}, null, href);
-            Drupal.edoweb.navigateTo(href);
             entity_load_json('edoweb_basic', resource_uri).onload = function() {
               localStorage.setItem('cut_entity', this.responseText);
-              Drupal.refreshTree(context);
+              Drupal.edoweb.refreshTree(context);
             };
           });
           return false;
@@ -146,6 +144,7 @@
           .css('border', '1px solid grey')
           .css('margin-top', '0.3em')
           .css('padding', '0.1em')
+          .css('min-height', '1.5em')
           .keydown(function(e) {
             var target = $(e.target);
             if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
@@ -296,7 +295,7 @@
           $(this).bind('click', function(e) {
             var url = Drupal.settings.basePath + 'resource/add/' + this.getAttribute('data-bundle');
             $.get(url, function(data) {
-              var form = $(data).find('.edoweb.entity');
+              var form = $(data).find('.edoweb.entity.edit');
               container.html(form);
               Drupal.attachBehaviors(container);
               container.find('#save-entity').bind('insert', function(event, uri) {

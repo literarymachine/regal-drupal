@@ -174,7 +174,7 @@
       window.addEventListener("popstate", function(e) {
         if (e.state && e.state.tree) {
           Drupal.edoweb.navigateTo(location.pathname);
-          Drupal.refreshTree();
+          Drupal.edoweb.refreshTree();
         }
       });
       this.attached = true;
