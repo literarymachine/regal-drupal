@@ -300,22 +300,24 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
       break;
 
     case 'edoweb_datastream_format':
-      $mime_type = explode(
-        '/', $entity->field_edoweb_filetype[LANGUAGE_NONE][0]['value']
-      );
-      $extension = next($mime_type);
-      if (!file_exists(__DIR__ . "/$extension.svg")) {
-        $extension = 'unknown';
+      foreach ($items as $i => $item) {
+        $mime_type = explode(
+          '/', $entity->field_edoweb_filetype[LANGUAGE_NONE][$i]['value']
+        );
+        $extension = next($mime_type);
+        if (!file_exists(__DIR__ . "/$extension.svg")) {
+          $extension = 'unknown';
+        }
+        $icon_url = file_create_url(
+          drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
+        );
+        $curie = _edoweb_compact_uri($item['value']);
+        $link = base_path() . 'resource/' . $item['value'];
+        $title = t('Download @extension', array('@extension' => strtoupper($extension)));
+        $elements[] = array(
+          '#markup' => "<a data-curie=\"$curie\" title=\"$title\" href=\"$link\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
+        );
       }
-      $icon_url = file_create_url(
-        drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
-      );
-      $curie = _edoweb_compact_uri($items[0]['value']);
-      $link = base_path() . 'resource/' . $items[0]['value'];
-      $title = t('Download @extension', array('@extension' => strtoupper($extension)));
-      $elements[] = array(
-        '#markup' => "<a data-curie=\"$curie\" title=\"$title\" href=\"$link\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
-      );
       break;
 
   }
