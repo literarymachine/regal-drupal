@@ -2027,7 +2027,7 @@ function _edoweb_generate_available_languages($input_file, $output_file) {
       {
         ?lang a mads:Language .
         ?lang mads:authoritativeLabel ?label .
-        FILTER(langMatches(lang(?label), 'EN')) .
+        FILTER(langMatches(lang(?label), 'DE')) .
       }
     ORDER BY ?label
   ", null, 'sparql');

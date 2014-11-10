@@ -68,11 +68,10 @@ function edoweb_field_menu() {
     'access arguments' => array(1, 'read'),
     'type' => MENU_CALLBACK,
   );
-  $items['edoweb_entity_add'] = array(
-    'page callback' => 'edoweb_entity_add',
-    'page arguments' => array(1, 2, 3),
-    'access callback' => 'entity_js_access',
-    'access arguments' => array(1, 'create'),
+  $items['edoweb_options_list'] = array(
+    'page callback' => 'edoweb_options_list',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -104,20 +103,25 @@ function edoweb_entity_list($entity_type) {
 }
 
 /**
- * Raw edit form for JavaScript callbacks.
+ * List allowed values for an options_select field.
  */
-function edoweb_entity_add($entity_type, $bundle_type, $entity_id = null) {
-  // Create a basic entity structure to be used and passed to the validation
-  // and submission functions.
-  $entity = entity_get_controller($entity_type)->create(
-    array('bundle_type' => $bundle_type)
+function edoweb_options_list($field_name) {
+  $field_info = field_info_field($field_name);
+  $allowed_values_function =
+    $field_info['settings']['allowed_values_function'];
+  $options = $allowed_values_function();
+  die(theme('select', array('element' => array(
+    '#options' => $options, '#attributes' => $attributes)))
   );
-  $form = drupal_get_form('edoweb_basic_form', $entity);
+}
 
-  unset($form['submit']);
-  unset($form['cancel']);
-  $form['#action'] = url("resource/add/{$bundle_type}");
-  die(drupal_render($form));
+function edoweb_field_preprocess_field(&$variables) {
+  if ($variables['element']['#field_type'] == 'list_text') {
+    foreach ($variables['element']['#items'] as $i => $item) {
+      $variables['items'][$i]['#markup'] =
+        '<span resource="' . $item['value'] . '">' . $variables['items'][$i]['#markup'] . '</span>';
+    }
+  }
 }
 
 /**

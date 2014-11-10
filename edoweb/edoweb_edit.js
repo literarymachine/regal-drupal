@@ -202,6 +202,25 @@
         target.append(input);
       }
 
+      function createOptionsInput(instance, target) {
+        var input = $.get(
+          Drupal.settings.basePath + 'edoweb_options_list/' + instance['field_name'],
+          function(data) {
+            var select = $(data);
+            select.prepend('<option selected="selected">Sprache auswählen</option>');
+            select.change(function() {
+              var input = $('<div class="field-item" />')
+                .attr('rel', instance['settings']['predicates'].join(' '))
+                .attr('resource', $(this).find('option:selected').val())
+                .text($(this).find('option:selected').text());
+              target.append(input);
+              $(this).remove();
+            });
+            target.append(select);
+          }
+        );
+      }
+
       function activateFields(fields, bundle) {
         $.each(fields, function() {
           var field = $(this);
@@ -232,7 +251,6 @@
               field.find('.field-items').each(function() {
                 if ((instance['settings']['cardinality'] == -1)
                     || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
-                  var items = $(this);
                   var add_button = $('<a href="#">+</a>')
                     .bind('click', function() {
                       createLinkInput(instance, $(this).siblings('.field-items'));
@@ -246,13 +264,20 @@
               field.find('.field-items').each(function() {
                 if ((instance['settings']['cardinality'] == -1)
                     || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
-                  var items = $(this);
                   var add_button = $('<a href="#">+</a>')
                     .bind('click', function() {
                       createUploadInput(instance, $(this).siblings('.field-items'));
                       return false;
                     }).css('float', 'right');
                   $(this).after(add_button);
+                }
+              });
+              break;
+            case 'options_select':
+              field.find('.field-items').each(function() {
+                if ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                  createOptionsInput(instance, $(this));
                 }
               });
               break;

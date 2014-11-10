@@ -1809,7 +1809,7 @@ function edoweb_rdf_mapping() {
       if (isset($field_info['settings']['predicates'])) {
         $rdf_mapping['mapping'][$field_name]['predicates'] =
           $field_info['settings']['predicates'];
-        if ($field_info['type'] == 'edoweb_ld_reference') {
+        if ($field_info['type'] == 'edoweb_ld_reference' || $field_info['type'] == 'list_text') {
           $rdf_mapping['mapping'][$field_name]['type'] = 'rel';
         }
       }
@@ -2917,4 +2917,15 @@ function edoweb_update_7133() {
  */
 function edoweb_update_7134() {
   menu_rebuild();
+}
+
+/**
+ * Regenerate list of available languages
+ */
+function edoweb_update_7135() {
+  module_load_install('edoweb');
+  _edoweb_generate_available_languages(
+    dirname(__FILE__) . '/iso639-2.nt',
+    drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc'
+  );
 }
