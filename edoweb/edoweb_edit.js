@@ -126,6 +126,7 @@
           });
           submit_button.after(import_button);
         }
+
         activateFields(entity.find('.field'), bundle);
 
       });
@@ -268,15 +269,7 @@
               break;
             case 'edoweb_upload_widget':
               field.find('.field-items').each(function() {
-                if ((instance['settings']['cardinality'] == -1)
-                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
-                  var add_button = $('<a href="#">+</a>')
-                    .bind('click', function() {
-                      createUploadInput(instance, $(this).siblings('.field-items'));
-                      return false;
-                    }).css('float', 'right');
-                  $(this).after(add_button);
-                }
+                createUploadInput(instance, $(this));
               });
               break;
             case 'options_select':
