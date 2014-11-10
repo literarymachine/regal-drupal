@@ -38,19 +38,25 @@
     attach: function (context, settings) {
 
       // Attach clipboard
-      var clipboard = $('<div id="edoweb-tree-clipboard" />');
+      var clipboard = $('<div id="edoweb-tree-clipboard" />')
+        .css('clear', 'both');
       $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
+
+      var menu = $('<div id="edoweb-tree-menu" />');
+      clipboard.before(menu);
 
       findTargetBundles($('.edoweb-tree>li>a', context).attr('data-bundle'), function(bundle) {
         var link = $('<a />')
           .attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle)
-          .text(Drupal.settings.basePath + 'resource/add/' + target_bundle)
+          .attr('data-bundle', target_bundle)
+          .css('float', 'right')
+          .text(Drupal.t('Add ' + target_bundle))
           .bind('click', function() {
             history.pushState({tree: true}, null, $(this).attr('href'));
             Drupal.edoweb.navigateTo($(this).attr('href'));
             return false;
           });
-        clipboard.before(link);
+        menu.append(link);
       });
 
       $('.edoweb-tree li', context).each(function() {
