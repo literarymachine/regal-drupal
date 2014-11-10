@@ -64,7 +64,10 @@
           if (! existing_items.length && instance['required']) {
             var field = createField(instance);
             entity.find('.content').prepend(field);
-          } else if (! existing_items.length) {
+          } else if (! existing_items.length &&
+                     ! instance['settings']['read_only'] &&
+                     instance['settings']['metadata_type'] == 'descriptive')
+          {
             var option = $('<option />').text(instance['label']).val(index);
             additional_fields.append(option);
           }
@@ -102,26 +105,29 @@
           });
           return false;
         });
-        entity.before(submit_button);
+        entity.find('div.field').last().after(submit_button);
 
-        var import_button = $('<button>Importieren</button>').bind('click', function() {
-          instance = {'bundle': bundle, 'field_name': ''}
-          modal_overlay.html('<div />');
-          refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
-            entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
-              var entity_content = $(this.responseText).find('.content');
-              var page_title = $(this.responseText).find('h2').text();
-              Drupal.attachBehaviors(entity_content);
-              activateFields(entity_content.find('.field'), bundle);
-              entity.find('.content').replaceWith(entity_content);
-              $('#page-title', context).text(page_title);
-            };
+        if (bundle == 'journal' || bundle == 'monograph') {
+          var import_button = $('<button>Importieren</button>').bind('click', function() {
+            instance = {'bundle': bundle, 'field_name': ''}
+            modal_overlay.html('<div />');
+            refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
+              entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
+                var entity_content = $(this.responseText).find('.content');
+                var page_title = $(this.responseText).find('h2').text();
+                Drupal.attachBehaviors(entity_content);
+                activateFields(entity_content.find('.field'), bundle);
+                entity.find('.content').replaceWith(entity_content);
+                $('#page-title', context).text(page_title);
+              };
+            });
+            modal_overlay.dialog('open');
+            return false;
           });
-          modal_overlay.dialog('open');
-          return false;
-        });
-        entity.before(import_button);
+          submit_button.after(import_button);
+        }
         activateFields(entity.find('.field'), bundle);
+
       });
 
       function getFieldName(field) {
