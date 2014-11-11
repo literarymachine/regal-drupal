@@ -220,9 +220,6 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#title' => t('Disable caching'),
   );
 
-  // Additional submit handler to reset caches
-  $form['#submit'][] = 'edoweb_storage_configuration_form_submit';
-
   return system_settings_form($form);
 }
 
