@@ -1962,13 +1962,15 @@ function edoweb_block_view($delta = '') {
     case 'edoweb_tree_navigation':
       if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
         $top_level_parent = _edoweb_find_top_level_parent($entity);
-        $subtree = _edoweb_build_tree($top_level_parent);
-        $block['content'] = theme_item_list(array(
-          'items' => array($subtree),
-          'title' => null,
-          'type' => 'ul',
-          'attributes' => array('class' => array('edoweb-tree')),
-        ));
+        if (in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
+          $subtree = _edoweb_build_tree($top_level_parent);
+          $block['content'] = theme_item_list(array(
+            'items' => array($subtree),
+            'title' => null,
+            'type' => 'ul',
+            'attributes' => array('class' => array('edoweb-tree')),
+          ));
+        }
       }
       break;
   }
