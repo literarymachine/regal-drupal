@@ -2008,8 +2008,6 @@ function _edoweb_format_date($timestamp) {
 
 function _edoweb_http_request($request_url, $http_options) {
 
-file_put_contents('php://stderr', "$request_url\n");
-
   $http_options += array(
     'timeout' => 60,
   );
@@ -2026,6 +2024,10 @@ file_put_contents('php://stderr', "$request_url\n");
     }
     $request_url = $redirect_url;
     $http_response = drupal_http_request($request_url, $http_options);
+  }
+
+  if ($http_response->code[0] != 2) {
+    print_r($http_response);
   }
 
   // Display response in UI
