@@ -66,7 +66,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function load($remote_id, $rdf_model = null) {
     $linkedDataClient = new LinkedDataClient();
-    return $linkedDataClient->load($remote_id, $rdf_model);
+    $entity = $linkedDataClient->load($remote_id, $rdf_model);
+    $this->sortParts($entity);
+    return $entity;
   }
 
   public function getTransformers($entity) {
@@ -226,6 +228,34 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return TRUE;
     }
     return FALSE;
+  }
+
+  public function sortParts($entity) {
+    // Get order of resource parts
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource/%s/parts?style=short',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to get parts for @id from @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
+    try {
+      $wrapper->field_edoweb_struct_child = json_decode($http_response->data);
+    } catch (EntityMetadataWrapperException $e) {
+      // No child field available, ignore
+    }
+    return TRUE;
   }
 
   public function saveResource($entity, $transformers = null) {
