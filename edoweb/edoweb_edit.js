@@ -105,7 +105,7 @@
           });
           return false;
         });
-        entity.find('div.field').last().after(submit_button);
+        entity.after(submit_button);
 
         if (bundle == 'journal' || bundle == 'monograph') {
           var import_button = $('<button>Importieren</button>').bind('click', function() {
