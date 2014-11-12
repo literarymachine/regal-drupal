@@ -67,7 +67,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function load($remote_id, $rdf_model = null) {
     $linkedDataClient = new LinkedDataClient();
     $entity = $linkedDataClient->load($remote_id, $rdf_model);
-    $this->sortParts($entity);
+    $namespace = variable_get('edoweb_api_namespace');
+    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1) ||
+        "local:" === substr($remote_idcurie, 0, 6)) {
+      $this->sortParts($entity);
+    }
     return $entity;
   }
 
