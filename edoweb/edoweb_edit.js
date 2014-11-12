@@ -269,7 +269,9 @@
               break;
             case 'edoweb_upload_widget':
               field.find('.field-items').each(function() {
-                createUploadInput(instance, $(this));
+                if ($(this).find('.field-item').length < 1) {
+                  createUploadInput(instance, $(this));
+                }
               });
               break;
             case 'options_select':
