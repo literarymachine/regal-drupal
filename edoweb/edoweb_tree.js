@@ -37,9 +37,10 @@
     attached: false,
     attach: function (context, settings) {
 
+      // $('#block-edoweb-edoweb-tree-navigation', context).find('ul').sortable({items:'li'});
+
       // Attach clipboard
-      var clipboard = $('<div id="edoweb-tree-clipboard" />')
-        .css('clear', 'both');
+      var clipboard = $('<div id="edoweb-tree-clipboard" />');
       $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
 
       var menu = $('<div id="edoweb-tree-menu" />');
@@ -49,7 +50,6 @@
         var link = $('<a />')
           .attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle)
           .attr('data-bundle', target_bundle)
-          .css('float', 'right')
           .text(Drupal.t('Add ' + target_bundle))
           .bind('click', function() {
             history.pushState({tree: true}, null, $(this).attr('href'));
@@ -71,7 +71,11 @@
         $(this).click(function(e) {
           if (e.target != this) return true;
           if ($(this).hasClass('collapsed')) {
-            loadTree(entity_id, list_element);
+            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+            $(this).find('div.edoweb-tree-toolbox').after(throbber);
+            loadTree(entity_id, list_element, function() {
+              throbber.remove();
+            });
           } else {
             $(this).children('div.item-list').remove();
           }
@@ -203,12 +207,13 @@
       var entity_id = cut_entity.remote_id;
       var entity_bundle = cut_entity.bundle_type;
       var entity_label = cut_entity.remote_id;
-      var clipboard_item = $('<div class="edoweb-tree-clipboard-item"><p>' + entity_label + '</p></div>');
+      var clipboard_item = $('<div class="edoweb-tree-clipboard-item"><span data-curie="' + entity_id + '">' + entity_label + '</span></div>');
       var clipboard_cancel = $('<span class="octicon octicon-diff-modified"></span>').click(function() {
         localStorage.removeItem('cut_entity');
         Drupal.edoweb.refreshTree();
       });
-      $('#edoweb-tree-clipboard').html(clipboard_item.find('p').append(clipboard_cancel));
+      Drupal.edoweb.entity_label(clipboard_item.find('span[data-curie]'));
+      $('#edoweb-tree-clipboard').html(clipboard_item.append(clipboard_cancel));
       $('.edoweb-tree a[href="/resource/' + encodeURIComponent(entity_id) + '"]')
         .addClass('edoweb-tree-cut-item')
         .closest('li').find('a[data-bundle]').addClass('edoweb-tree-cut-item');

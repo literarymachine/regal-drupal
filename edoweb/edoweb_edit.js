@@ -238,9 +238,9 @@
             case 'text_textfield':
             case 'number':
               field.find('.field-items').each(function() {
-                if ($(this).find('.field-item').length) {
+                if ($(this).find('.field-item').length && ! instance['settings']['read_only']) {
                   enableTextInput($(this).find('.field-item'));
-                } else {
+                } else if ($(this).find('.field-item').length < 1) {
                   createTextInput(instance, $(this));
                 }
                 if ((instance['settings']['cardinality'] == -1)
