@@ -97,9 +97,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     $json = json_decode($http_response->data);
     if (isset($json->transformer)) {
-      return array_map(function($transformer) {
-        return $transformer->id;
-      }, $json->transformer);
+      return $json->transformer;
     }
     return array();
   }
@@ -264,7 +262,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function saveResource($entity, $transformers = null) {
     $data = array();
-    $data['type'] = $entity->bundle_type;
+    $data['contentType'] = $entity->bundle_type;
     if ($transformers) $data['transformer'] = $transformers;
     $data['accessScheme'] = isset($entity->access_data)
       ? $entity->access_data : 'private';
