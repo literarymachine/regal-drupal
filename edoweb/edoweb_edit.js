@@ -57,6 +57,9 @@
           activateFields(field, bundle);
           entity.find('.content').prepend(field);
           $(this).find('option:selected').remove();
+          if ($(this).find('option').length == 1) {
+            $(this).remove();
+          }
         });
         $.each(Drupal.settings.edoweb.fields[bundle], function(index, value) {
           var instance = value['instance'];
@@ -73,7 +76,9 @@
             additional_fields.append(option);
           }
         });
-        entity.before(additional_fields);
+        if (additional_fields.find('option').length > 1) {
+          entity.before(additional_fields);
+        }
 
         var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
           var button = $(this);
