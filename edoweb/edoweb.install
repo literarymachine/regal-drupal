@@ -1071,7 +1071,7 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'read_only' => TRUE,
+        'read_only' => FALSE,
         'predicates' => array('dc:subject'),
         'parameter' => 'name',
         'endpoint' => 'subject',

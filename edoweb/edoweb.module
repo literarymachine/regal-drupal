@@ -2919,6 +2919,9 @@ function edoweb_update_7135() {
   );
 }
 
+/**
+ * Set default fields for JS forms
+ */
 function edoweb_update_7136() {
   $updated_instances = array(
     'file' => array('field_edoweb_datastream'),
@@ -2937,4 +2940,12 @@ function edoweb_update_7136() {
     'authority_resource' => array('field_gnd_name'),
   );
   _update_edoweb_installed_instances($updated_instances);
+}
+
+/*
+ * Set subject field to writeable
+ */
+function edoweb_update_7137() {
+  $updated_fields = array('field_edoweb_subject');
+  _update_edoweb_installed_fields($updated_fields);
 }
