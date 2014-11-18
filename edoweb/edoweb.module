@@ -1691,6 +1691,8 @@ function edoweb_basic_access_form($form, &$form_state, $entity) {
         'public' => t('Public'),
         'private' => t('Private'),
         'restricted' => t('Restricted'),
+        'remote' => t('Remote'),
+        'single' => t('Single'),
       ),
     );
   }
