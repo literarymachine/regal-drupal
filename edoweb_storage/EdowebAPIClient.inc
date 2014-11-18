@@ -646,11 +646,11 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     $query['facets']['creator']['terms']['field']
-      = 'creator';
+      = 'creator.@id';
     $query['facets']['contentType']['terms']['field']
       = 'contentType';
     $query['facets']['subject']['terms']['field']
-      = 'subject';
+      = 'subject.@id';
     $query['facets']['issued']['terms']['field']
       = 'issued';
     return json_encode($query);
