@@ -50,6 +50,7 @@
       $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
+        entity.css('margin-bottom', '2em');
         var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
           var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
@@ -245,12 +246,12 @@
                 }
                 if ((instance['settings']['cardinality'] == -1)
                     || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
-                  var add_button = $('<a href="#">+</a>')
+                  var add_button = $('<a href="#"><span class="octicon octicon-plus" /></a>')
                     .bind('click', function() {
-                      createTextInput(instance, $(this).siblings('.field-items'));
+                      createTextInput(instance, field.find('.field-items'));
                       return false;
-                    }).css('float', 'right');
-                  $(this).after(add_button);
+                    }).css('float', 'right').css('margin-right', '0.3em');
+                  field.find('.field-label').append(add_button);
                 }
               });
               break;
@@ -258,12 +259,12 @@
               field.find('.field-items').each(function() {
                 if ((instance['settings']['cardinality'] == -1)
                     || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
-                  var add_button = $('<a href="#">+</a>')
+                  var add_button = $('<a href="#"><span class="octicon octicon-link" /></a>')
                     .bind('click', function() {
-                      createLinkInput(instance, $(this).siblings('.field-items'));
+                      createLinkInput(instance, field.find('.field-items'));
                       return false;
-                    }).css('float', 'right');
-                  $(this).after(add_button);
+                    }).css('float', 'right').css('margin-right', '0.3em');
+                  field.find('.field-label').append(add_button);
                 }
               });
               break;
