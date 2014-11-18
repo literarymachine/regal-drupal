@@ -50,21 +50,7 @@ function edoweb_install() {
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
       $defaults = _edoweb_field_instance_defaults($field_name);
-      $field_instance['label'] = array_key_exists('label', $defaults)
-        ? $defaults['label']
-        : null;
-      $field_instance['description'] = array_key_exists('description', $defaults)
-        ? $defaults['description']
-        : null;
-      $field_instance['default_value'] = array_key_exists('default_value', $defaults)
-        ? $defaults['default_value']
-        : null;
-      $field_instance['required'] = array_key_exists('required', $defaults)
-        ? $defaults['required']
-        : FALSE;
-      $field_instance['widget'] = array_key_exists('widget', $defaults)
-        ? $defaults['widget']
-        : array();
+      $field_instance += $defaults;
       $field_instance['widget']['weight'] = $i;
       $field_instance['display']['default']['weight'] = $i;
       field_create_instance($field_instance);
@@ -1579,7 +1565,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_filesize' => array(),
       'field_edoweb_filetype' => array(),
       'field_edoweb_urn' => array(),
-      'field_edoweb_datastream' => array(),
+      'field_edoweb_datastream' => array('required' => TRUE),
       'field_edoweb_struct_parent' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
@@ -1734,6 +1720,9 @@ function _edoweb_field_instance_defaults($field_name) {
     'field_edoweb_creator' => array(
       'label' => $t('Autor'),
       'description' => $t('Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat; Auswahl aus GND'),
+      'settings' => array(
+        'default' => TRUE,
+      ),
     ),
     'field_edoweb_contributor' => array(
       'label' => $t('[Bearb.]'),
@@ -1857,6 +1846,9 @@ function _edoweb_field_instance_defaults($field_name) {
     'field_edoweb_issued' => array(
       'label' => $t('Erscheinungsdatum'),
       'description' => $t('Datum der formellen Herausgabe, Veröffentlichung; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein'),
+      'settings' => array(
+        'default' => TRUE,
+      ),
     ),
     'field_edoweb_issued_since' => array(
       'label' => $t('erscheint seit'),
@@ -1943,6 +1935,7 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_gnd_name' => array(
       'label' => $t('Name'),
+      'required' => TRUE,
     ),
     'field_gnd_identifier' => array(
       'label' => $t('Identifikator'),

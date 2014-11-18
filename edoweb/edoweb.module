@@ -2245,21 +2245,7 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $field_instance['entity_type'] = 'edoweb_basic';
       $field_instance['bundle'] = $bundle_type;
       $defaults = _edoweb_field_instance_defaults($field_name);
-      $field_instance['label'] = array_key_exists('label', $defaults)
-        ? $defaults['label']
-        : null;
-      $field_instance['description'] = array_key_exists('description', $defaults)
-        ? $defaults['description']
-        : null;
-      $field_instance['default_value'] = array_key_exists('default_value', $defaults)
-        ? $defaults['default_value']
-        : null;
-      $field_instance['required'] = array_key_exists('required', $defaults)
-        ? $defaults['required']
-        : FALSE;
-      $field_instance['widget'] = array_key_exists('widget', $defaults)
-        ? $defaults['widget']
-        : array();
+      $field_instance += $defaults;
       $widget_weight = array_search(
         $field_name, array_keys($installed_instances[$bundle_type])
       );
@@ -2931,4 +2917,24 @@ function edoweb_update_7135() {
     dirname(__FILE__) . '/iso639-2.nt',
     drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc'
   );
+}
+
+function edoweb_update_7136() {
+  $updated_instances = array(
+    'file' => array('field_edoweb_datastream'),
+    'monograph' => array('field_edoweb_creator', 'field_edoweb_issued'),
+    'journal' => array('field_edoweb_creator'),
+    'article' => array('field_edoweb_creator', 'field_edoweb_issued'),
+    'volume' => array('field_edoweb_issued'),
+    'issue' => array('field_edoweb_issued'),
+    'person' => array('field_gnd_name'),
+    'subject' => array('field_gnd_name'),
+    'corporate_body' => array('field_gnd_name'),
+    'event' => array('field_gnd_name'),
+    'family' => array('field_gnd_name'),
+    'work' => array('field_gnd_name'),
+    'place' => array('field_gnd_name'),
+    'authority_resource' => array('field_gnd_name'),
+  );
+  _update_edoweb_installed_instances($updated_instances);
 }

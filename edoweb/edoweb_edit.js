@@ -61,7 +61,7 @@
           var instance = value['instance'];
           var field_class = getFieldClassName(instance);
           var existing_items = entity.find('.' + field_class);
-          if (! existing_items.length && instance['required']) {
+          if (! existing_items.length && (instance['required'] || instance['settings']['default'])) {
             var field = createField(instance);
             entity.find('.content').prepend(field);
           } else if (! existing_items.length &&
