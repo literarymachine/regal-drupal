@@ -31,11 +31,20 @@
       var namespaces = Drupal.settings.edoweb.namespaces;
       for (prefix in namespaces) {
         if (uri.indexOf(namespaces[prefix]) == 0) {
-          break;
+          var local_part = uri.substring(namespaces[prefix].length);
+          return prefix + ':' + local_part;
         }
       }
-      var local_part = uri.substring(namespaces[prefix].length);
-      return prefix + ':' + local_part;
+    },
+
+    expand_curie: function(curie) {
+      var namespaces = Drupal.settings.edoweb.namespaces;
+      var curie_parts = curie.split(':');
+      for (prefix in namespaces) {
+        if (prefix == curie_parts[0]) {
+          return namespaces[prefix] + curie_parts[1];
+        }
+      }
     },
 
     /**

@@ -373,10 +373,27 @@
               var form = $(data).find('.edoweb.entity.edit');
               container.html(form);
               Drupal.attachBehaviors(container);
-              container.find('#save-entity').bind('insert', function(event, uri) {
-                container.dialog('close');
-                callback('http://api.localhost/resource/' + uri);
+              container.find('#save-entity').remove();
+              var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
+                var button = $(this);
+                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+                $(this).replaceWith(throbber);
+                container.find('[contenteditable]').each(function() {
+                  $(this).text($(this).text());
+                });
+                var rdf = container.rdf();
+                var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
+                var url = topic.s.value.toString();
+                var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
+                $.post(url, post_data, function(data, textStatus, jqXHR) {
+                  var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
+                  callback(Drupal.edoweb.expand_curie(resource_uri));
+                  container.dialog('close');
+                  throbber.remove();
+                });
+                return false;
               });
+              container.append(submit_button);
             });
             return false;
           });
