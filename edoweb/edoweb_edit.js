@@ -84,6 +84,9 @@
           var button = $(this);
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
           $(this).replaceWith(throbber);
+          entity.find('[contenteditable]').each(function() {
+            $(this).text($(this).text());
+          });
           var rdf = entity.rdf();
           var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
           var url = topic.s.value.toString();
