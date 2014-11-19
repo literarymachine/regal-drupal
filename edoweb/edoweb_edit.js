@@ -82,6 +82,8 @@
 
         var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
           var button = $(this);
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+          $(this).replaceWith(throbber);
           var rdf = entity.rdf();
           var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
           var url = topic.s.value.toString();
@@ -108,6 +110,7 @@
               Drupal.edoweb.navigateTo(href);
               Drupal.edoweb.refreshTree(context);
             }
+            throbber.remove();
           });
           return false;
         });
