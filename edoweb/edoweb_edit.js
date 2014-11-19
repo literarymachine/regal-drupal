@@ -173,6 +173,7 @@
       }
 
       function enableTextInput(field) {
+
         field.attr('contenteditable', true)
           .css('border', '1px solid grey')
           .css('margin-top', '0.3em')
@@ -181,11 +182,33 @@
           .keydown(function(e) {
             var target = $(e.target);
             if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
+              placeCaretAtEnd(target.prev('.field-item').get(0));
               $(this).remove();
               return false;
             }
           });
+
+        // Source: http://stackoverflow.com/a/4238971
+        function placeCaretAtEnd(el) {
+          el.focus();
+          if (typeof window.getSelection != "undefined"
+              && typeof document.createRange != "undefined") {
+            var range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          } else if (typeof document.body.createTextRange != "undefined") {
+            var textRange = document.body.createTextRange();
+            textRange.moveToElementText(el);
+            textRange.collapse(false);
+            textRange.select();
+          }
+        }
+
       }
+
 
       function createLinkInput(instance, target) {
         modal_overlay.html('<div />');
