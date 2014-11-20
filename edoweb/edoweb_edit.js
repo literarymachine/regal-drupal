@@ -83,7 +83,8 @@
         var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
           var button = $(this);
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          $(this).replaceWith(throbber);
+          $(this).after(throbber);
+          $(this).hide();
           entity.find('[contenteditable]').each(function() {
             $(this).text($(this).text());
           });
