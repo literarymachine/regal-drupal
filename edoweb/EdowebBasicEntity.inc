@@ -45,18 +45,54 @@ class EdowebBasicEntity extends Entity {
   }
 
   public function internalIdentifier() {
-    return isset($this->local_id)
-      ? $this->local_id
+    return isset($this->remote_id)
+      ? $this->remote_id
       : null;
   }
 
-  public function getSource() {
-    return $this->__source;
-  }
+  public function label() {
+    $label_fields = array();
 
-  public function setSource($source) {
-    $this->__source = $source;
+    switch ($this->bundle_type) {
+      case 'monograph':
+      case 'journal':
+      case 'issue':
+      case 'article':
+      case 'collection':
+      case 'volume':
+      case 'file':
+        $label_fields[] = 'field_edoweb_title';
+        break;
+      case 'person':
+      case 'corporate_body':
+      case 'subject':
+      case 'event':
+      case 'family':
+      case 'work':
+      case 'place':
+      case 'authority_resource':
+        $label_fields[] = 'field_gnd_name';
+        break;
+      default:
+        $label_fields[] = 'field_edoweb_title';
+        $label_fields[] = 'field_edoweb_label';
+        break;
+    }
+
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $this);
+    $title_values = array();
+    foreach ($label_fields as $label_field) {
+      try {
+        $title_value = $wrapper->$label_field->value();
+        if ($title_value) $title_values[] = $title_value;
+      } catch (EntityMetadataWrapperException $e) {
+        // Field not available, ignore
+      }
+    }
+
+    return (empty($title_values) && isset($this->remote_id))
+      ? _edoweb_expand_curie($this->remote_id)
+      : implode(' | ', $title_values);
   }
 
 }
-

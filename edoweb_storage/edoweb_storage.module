@@ -60,29 +60,119 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  // Text field for api user.
-  $form['edoweb_api_user'] = array(
+  // Fieldset for api accounts
+  $form['edoweb_api_accounts'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('API account settings'),
+  );
+
+  // Text field for api admin user.
+  $form['edoweb_api_accounts']['edoweb_admin_user'] = array(
     '#type' => 'textfield',
     '#default_value' => variable_get(
-      'edoweb_api_user',
-      'admin'
+      'edoweb_admin_user',
+      'edoweb-admin'
     ),
-    '#title' => t('API user'),
-    '#description' => t('The username to authorize with.'),
+    '#title' => t('API admin user'),
+    '#description' => t('The username to authorize with for the admin role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
   );
 
-  // Password field for api password.
-  $form['edoweb_api_password'] = array(
+  // Password field for api admin password.
+  $form['edoweb_api_accounts']['edoweb_admin_password'] = array(
     '#type' => 'password',
     '#default_value' => variable_get(
-      'edoweb_api_password',
+      'edoweb_admin_password',
       'admin'
     ),
-    '#title' => t('API password'),
-    '#description' => t('The password to authorize with.'),
+    '#title' => t('API admin password'),
+    '#description' => t('The password to authorize with for the admin role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api editor user.
+  $form['edoweb_api_accounts']['edoweb_editor_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_editor_user',
+      'edoweb-editor'
+    ),
+    '#title' => t('API editor user'),
+    '#description' => t('The username to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api editor password.
+  $form['edoweb_api_accounts']['edoweb_editor_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_editor_password',
+      'editor'
+    ),
+    '#title' => t('API editor password'),
+    '#description' => t('The password to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api reader user.
+  $form['edoweb_api_accounts']['edoweb_reader_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_reader_user',
+      'edoweb-reader'
+    ),
+    '#title' => t('API reader user'),
+    '#description' => t('The username to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api reader password.
+  $form['edoweb_api_accounts']['edoweb_reader_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_reader_password',
+      'reader'
+    ),
+    '#title' => t('API reader password'),
+    '#description' => t('The password to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api anonymous user.
+  $form['edoweb_api_accounts']['edoweb_anonymous_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_anonymous_user',
+      'edoweb-anonymous'
+    ),
+    '#title' => t('API anonymous user'),
+    '#description' => t('The username to authorize with for the anonymous role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api anonymous password.
+  $form['edoweb_api_accounts']['edoweb_anonymous_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_anonymous_password',
+      'anonymous'
+    ),
+    '#title' => t('API anonymous password'),
+    '#description' => t('The password to authorize with for the anonymous role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -130,22 +220,7 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#title' => t('Disable caching'),
   );
 
-  // Additional submit handler to reset caches
-  $form['#submit'][] = 'edoweb_storage_configuration_form_submit';
-
   return system_settings_form($form);
-}
-
-function edoweb_storage_configuration_form_submit($form, &$form_state) {
-  $api_host_changed = !(variable_get('edoweb_api_host')
-    == $form_state['values']['edoweb_api_host']);
-  $namespace_changed = !(variable_get('edoweb_api_namespace')
-    == $form_state['values']['edoweb_api_namespace']);
-  if ($api_host_changed || $namespace_changed) {
-    cache_clear_all('*', 'cache_field', TRUE);
-    db_truncate('edoweb_basic')->execute();
-    drupal_set_message('Entity caches cleared');
-  }
 }
 
 /**
@@ -200,10 +275,6 @@ function edoweb_storage_field_storage_delete_field($field) {
  * Implements hook_field_storage_load().
  */
 function edoweb_storage_field_storage_load($entity_type, $entities, $age, $fields, $options) {
-  $api = new EdowebAPIClient();
-  foreach ($entities as $entity) {
-    $api->load($entity);
-  }
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -213,8 +284,6 @@ function edoweb_storage_field_storage_load($entity_type, $entities, $age, $field
  * Implements hook_field_storage_write().
  */
 function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields, $entity_write = FALSE) {
-  $api = new EdowebAPIClient();
-  $api->save($entity);
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -226,8 +295,6 @@ function edoweb_storage_field_storage_write($entity_type, $entity, $op, $fields,
  *
  */
 function edoweb_storage_field_storage_delete($entity_type, $entity, $fields) {
-  $api = new EdowebAPIClient();
-  $api->delete($entity);
   __devnulldb_log(__FUNCTION__ . " called\n");
   __devnulldb_log("arguments: " . print_r(func_get_args(), TRUE) . "\n");
   return;
@@ -430,6 +497,7 @@ function _edoweb_storage_entity_serialize_rdf(
         $items = array($items);
       }
       foreach ($items as $item) {
+        if ('' == $item) continue;
         if (isset($field_mapping['type'])
             and $field_mapping['type'] == 'rel') {
           if (is_object($item)) {
@@ -479,24 +547,16 @@ function _edoweb_storage_entity_serialize_rdf(
   }
 }
 
-function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser) {
+function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
-  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-  try {
-    $rdf_model->loadStatementsFromString($rdf_parser, $rdf_data);
-  } catch (LibRDF_Error $e) {
-    // TODO: log errors
-    // drupal_set_message($e->getMessage(), 'error');
-  }
-
-  $entity->setSource($rdf_model);
 
   // Skip first element, these are the rdf:type definitions
   unset($rdf_mapping['rdftype']);
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
   foreach ($rdf_mapping as $field_name => $mapping) {
+    $entity->{$field_name} = null;
     $field_info = field_info_field($field_name);
     foreach($mapping['predicates'] as $predicate_curie) {
       $rdf_predicate = new LibRDF_URINode(
@@ -505,6 +565,10 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
       // Modify subject URI for datastream metadata
       $rdf_subject = _get_rdf_subject($entity, $field_name);
       foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
+        // FIXME: wrong datatype of child relations
+        if ('field_edoweb_struct_child' == $field_name && !$value instanceof LibRDF_URINode) {
+          $value = new LibRDF_URINode($value->getValue());
+        }
         // External datasources may provide incompatible data, filter that out
         if (($field_info['type'] == 'edoweb_ld_reference')
             && (!$value instanceof LibRDF_URINode))
@@ -534,6 +598,24 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
   }
 
   // Add non-field properties
+  $rdf_subject = new LibRDF_URINode($entity->identifier());
+  try {
+    $entity->access_data = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:accessScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No accessScheme available, default to private
+    $entity->access_data = 'private';
+  }
+  try {
+    $entity->access_md = $rdf_model->getTarget($rdf_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:publishScheme'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    // No publishScheme available, default to private
+    $entity->access_md = 'private';
+  }
+
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
   try {
     $entity->updated = strtotime($rdf_model->getTarget(
@@ -541,7 +623,15 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_data, $rdf_parser)
         new LibRDF_URINode(_edoweb_expand_curie('dc:modified'))
     )->getValue());
   } catch (LibRDF_LookupError $e) {
-    // No update time available, ignore
+    $entity->updated = time();
+  }
+  try {
+    $entity->created = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('dc:created'))
+    )->getValue());
+  } catch (LibRDF_LookupError $e) {
+    $entity->created = time();
   }
 
 }
@@ -559,6 +649,8 @@ function _get_rdf_subject($entity, $field_name) {
       && in_array($field_name, $datastream_properties)
   ) {
     return new LibRDF_URINode("$rdf_subject/data");
+  } else if ('_:' == substr($rdf_subject, 0, 2)) {
+    return new LibRDF_BlankNode(substr($rdf_subject, 2));
   } else {
     return new LibRDF_URINode($rdf_subject);
   }
@@ -600,7 +692,9 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
    */
   $rdf_ntriples = _edoweb_escape_utf8($rdf_ntriples);
   $rdf_parser = new LibRDF_Parser('ntriples');
-  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_ntriples, $rdf_parser);
+  $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+  $rdf_model->loadStatementsFromString($rdf_parser, $rdf_ntriples);
+  return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
 }
 
 function _edoweb_escape_utf8($string) {
@@ -697,32 +791,19 @@ function _edoweb_expand_curie($curie) {
   if ($curie_prefix == 'ddc' && '/' != substr($curie, -1)) {
     $curie_local .= '/';
   }
-  return $rdf_namespaces[$curie_prefix] . $curie_local;
+  return isset($rdf_namespaces[$curie_prefix])
+    ? $rdf_namespaces[$curie_prefix] . $curie_local
+    : $curie;
 }
 
 function _edoweb_compact_uri($uri) {
   $rdf_namespaces = rdf_get_namespaces();
-  $split = strrpos($uri, '#');
-  if (!$split) {
-    $split = strrpos($uri, '/');
+  foreach ($rdf_namespaces as $prefix => $rdf_namespace) {
+    if (0 === strpos($uri, $rdf_namespace)) {
+      return $prefix . ':' . substr($uri, strlen($rdf_namespace));
+    }
   }
-  if (!$split) {
-    return $uri;
-  }
-  // Trailing slash
-  if ($split == strlen($uri) - 1) {
-    $split = strrpos($uri, '/', $split - strlen($uri) - 1);
-  }
-
-  $curie_prefix = array_search(
-    substr($uri, 0, $split + 1), $rdf_namespaces
-  );
-  $curie_local = substr($uri, $split + 1);
-  if (!$curie_prefix || $curie_prefix == '') {
-    return $uri;
-  } else {
-    return "$curie_prefix:$curie_local";
-  }
+  return $uri;
 }
 
 function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
@@ -766,7 +847,7 @@ function _field_name_to_jsonld_key($field_name) {
   $rdf_namespaces = rdf_get_namespaces();
   $field_property_uri = $rdf_namespaces[$prefix] . $local;
   $context_url = sprintf(
-    'http://%s/%s-resources.json',
+    'http://%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
@@ -784,7 +865,7 @@ function _field_name_to_jsonld_key($field_name) {
 
 function _jsonld_key_to_field_name($jsonld_key) {
   $context_url = sprintf(
-    'http://%s/%s-resources.json',
+    'http://%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );

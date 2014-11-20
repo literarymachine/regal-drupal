@@ -28,14 +28,20 @@ class LinkedDataClient {
    * @param $entity
    *   The drupal entity to load data into
    */
-  public function load($entity) {
-    if (is_null(self::$__triple_store)) {
-      $rdf_model = $this->getRDF(_edoweb_expand_curie($entity->remote_id));
+  public function load($remote_id, $rdf_model = null) {
+    if (is_null($rdf_model)) {
+      $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
     } else {
-      $rdf_model = self::$__triple_store;
+      file_put_contents('php://stderr', "Loading $remote_id from data\n");
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
-    _edoweb_storage_entity_deserialize_rdf($entity, "$rdf_model", $rdf_parser);
+    $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
+    $entity = entity_create(EDOWEB_ENTITY_TYPE, array(
+      'remote_id' => $remote_id,
+      'bundle_type' => $bundle,
+    ));
+    _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
+    return $entity;
   }
 
   /*
@@ -43,9 +49,9 @@ class LinkedDataClient {
    */
   public function getRDF($resource_uri, $loaded_uris = 0) {
 
-    if ('rpb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)
-        || 'nwbib:' == substr(_edoweb_compact_uri($resource_uri), 0, 6))
-    {
+    $curie = _edoweb_compact_uri($resource_uri);
+
+    if ('rpb:' == substr($curie, 0, 4) || 'nwbib:' == substr($curie, 0, 6)) {
       $rdf_parser = new LibRDF_Parser('turtle');
     } else {
       $rdf_parser = new LibRDF_Parser('rdfxml');
@@ -61,9 +67,35 @@ class LinkedDataClient {
       'method' => 'GET',
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
+
+    // Add credentials if loading from API
+    $namespace = variable_get('edoweb_api_namespace');
+    if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
+          || 'local:' === substr($curie, 0, 6)) {
+      $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
+        variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
+      );
+    }
+
     $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
-      $rdf_data = $http_response->data;
+      if ($http_response->headers['content-type'] == 'application/json') {
+        $json_ld = json_decode($http_response->data);
+        $options = array(
+          'format' => 'application/ntriples',
+        );
+        try {
+          $rdf_data = _edoweb_escape_utf8(
+            jsonld_to_rdf($json_ld, $options)
+          );
+          $rdf_parser = new LibRDF_Parser('ntriples');
+        } catch(JsonLdException $e) {
+          watchdog('edoweb', 'Unable to parse JSON LD');
+          return FALSE;
+        }
+      } else {
+        $rdf_data = $http_response->data;
+      }
     } else {
       $rdf_data = '';
     }
@@ -124,14 +156,6 @@ class LinkedDataClient {
 
     return $rdf_model;
 
-  }
-
-  public static function setTripleStore($triple_store) {
-    self::$__triple_store = $triple_store;
-  }
-
-  public static function getTripleStore() {
-    return self::$__triple_store;
   }
 
 }
