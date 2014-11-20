@@ -96,13 +96,13 @@
     entity_label: function(element) {
       var entity_type = 'edoweb_basic';
       var entity_id = element.attr('data-curie');
-      if (cached_label = localStorage.getItem(entity_id)) {
+      if (cached_label = sessionStorage.getItem(entity_id)) {
         element.text(cached_label);
       } else {
         $.get(Drupal.settings.basePath + 'edoweb_entity_label/' + entity_type + '/' + entity_id).onload = function() {
           var label = this.status == 200 ? this.responseText : entity_id;
           if (this.status == 200) {
-            localStorage.setItem(entity_id, label);
+            sessionStorage.setItem(entity_id, label);
           }
           element.text(label);
         };
