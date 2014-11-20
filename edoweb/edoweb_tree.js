@@ -104,51 +104,8 @@
           return false;
         });
 
-        // Find possible actions
-        var actions = $(this).children('a[data-target-bundle]');
         if (Drupal.settings.actionAccess) {
-          // Cut button
-          var cut_button = $('<a href="#" title="[Ausschneiden]"><span class="octicon octicon-diff-removed" /></a>');
-          cut_button.bind('click', function() {
-            entity_load_json('edoweb_basic', entity_id).onload = function() {
-              localStorage.setItem('cut_entity', this.responseText);
-              Drupal.edoweb.refreshTree();
-            };
-            return false;
-          });
-          actions = actions.add(cut_button);
-
-          // Move down button
-          var up_button = $('<a href="#" title="[Runter]"><span class="octicon octicon-chevron-down" /></a>');
-          up_button.bind('click', function() {
-            var item = $(this).closest('li');
-            var next = item.next('li');
-            if (next.length > 0) {
-              next.after(item);
-              saveStructure(item.parent().closest('li'));
-            }
-            return false;
-          });
-          actions = actions.add(up_button);
-
-          // Move up button
-          var down_button = $('<a href="#" title="[Hoch]"><span class="octicon octicon-chevron-up" /></a>');
-          down_button.bind('click', function() {
-            var item = $(this).closest('li');
-            var prev = item.prev('li');
-            if (prev.length > 0) {
-              prev.before(item);
-              saveStructure(item.parent().closest('li'));
-            }
-            return false;
-          });
-          actions = actions.add(down_button);
-
-        }
-
-        if (actions.length > 0) {
           // Group actions in toolbox
-          actions.hide();
           var toolbox = $('<div class="edoweb-tree-toolbox octicon octicon-gear"></div>')
             .css('cursor', 'pointer')
             .css('padding-left', '0.3em')
@@ -160,7 +117,6 @@
                 $(this).children().hide();
               }
             );
-          toolbox.append(actions);
           $(this).children('a').last().after(toolbox);
         }
       });
@@ -263,7 +219,82 @@
           $(this).children('.edoweb-tree-toolbox').addClass('edoweb-tree-insert');
         }
       });
+    } else {
+      $('.edoweb-tree li').each(function() {
+        var list_element = $(this);
+        var link = list_element.children('a:eq(0)');
+        if (link.length == 0) return true;
+        var entity_id = decodeURIComponent(
+          link.attr('href').split('/').pop()
+        );
+        if ($(this).parent().closest('li').length > 0) {
+          // Cut button
+          var cut_button = $('<a href="#" title="[Ausschneiden]"><span class="octicon octicon-diff-removed" /></a>');
+          cut_button.hide();
+          UIButtons.push(cut_button);
+          $(this).children('.edoweb-tree-toolbox').append(cut_button);
+          cut_button.bind('click', function() {
+            entity_load_json('edoweb_basic', entity_id).onload = function() {
+              localStorage.setItem('cut_entity', this.responseText);
+              Drupal.edoweb.refreshTree();
+            };
+            return false;
+          });
+        }
+      });
     }
+
+    if (Drupal.settings.actionAccess) {
+
+      $('.edoweb-tree li').each(function() {
+
+        // Move down button
+        if ($(this).next('li').length > 0) {
+          var up_button = $('<a href="#" title="[Runter]"><span class="octicon octicon-chevron-down" /></a>');
+          up_button.hide();
+          UIButtons.push(up_button);
+          $(this).children('.edoweb-tree-toolbox').append(up_button);
+          up_button.bind('click', function() {
+            var item = $(this).closest('li');
+            var next = item.next('li');
+            if (next.length > 0) {
+              next.after(item);
+              saveStructure(item.parent().closest('li'));
+              Drupal.edoweb.refreshTree();
+            }
+            return false;
+          });
+        }
+
+        // Move up button
+        if ($(this).prev('li').length > 0) {
+          var down_button = $('<a href="#" title="[Hoch]"><span class="octicon octicon-chevron-up" /></a>');
+          down_button.hide();
+          UIButtons.push(down_button);
+          $(this).children('.edoweb-tree-toolbox').append(down_button);
+          down_button.bind('click', function() {
+            var item = $(this).closest('li');
+            var prev = item.prev('li');
+            if (prev.length > 0) {
+              prev.before(item);
+              saveStructure(item.parent().closest('li'));
+              Drupal.edoweb.refreshTree();
+            }
+            return false;
+          });
+        }
+
+        // Hide toolbox if empty
+        if ($(this).children('.edoweb-tree-toolbox').children().length == 0) {
+          $(this).children('.edoweb-tree-toolbox').hide();
+        } else {
+          $(this).children('.edoweb-tree-toolbox').show();
+        }
+
+      });
+
+    }
+
   }
 
   var saveStructure = function(list_item) {
