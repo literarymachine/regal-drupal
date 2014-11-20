@@ -270,7 +270,7 @@
     var ordered_children = [];
     var list = list_item.children('div.item-list');
     var target_parent_url = list_item.find('a:eq(0)').attr('href');
-    list.children('ul').children('li').children('a').each(function() {
+    list.children('ul').children('li').children('a[data-bundle]').each(function() {
       ordered_children.push(decodeURIComponent($(this).attr('href').split('/').pop()));
     });
     $.post(target_parent_url + '/structure', {'parts': ordered_children}, function(data, textStatus, jqXHR) {

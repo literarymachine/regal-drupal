@@ -1353,23 +1353,6 @@ function _edoweb_build_tree($entity) {
         array($child['value']), array(), $ld_data
       );
       $child_entity = end($child_entity);
-      // Append download links for file children
-      // FIXME: Wrap img to not conflict with parts extraction by JS
-      //if ('file' == $child_entity->bundle_type) {
-      //  $datastreams = field_get_items(
-      //    'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-      //  );
-      //  if (FALSE !== $datastreams) {
-      //    foreach ($datastreams as $datastream) {
-      //      if (drupal_valid_path('resource/' .  $datastream['value'])) {
-      //        $download_link = field_view_value(
-      //          EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-      //        );
-      //        $tree_item['data'] .= ' ' . drupal_render($download_link);
-      //      }
-      //    }
-      //  }
-      //}
       $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
       $entity_url = entity_class_uri($child_entity);
       $entity_bundle = $child_entity->bundle();
@@ -1378,6 +1361,22 @@ function _edoweb_build_tree($entity) {
         'data' => l($title, $entity_url['path'], $options),
         'class' => array('collapsed'),
       );
+      // Append download links when applicable
+      if ('file' == $child_entity->bundle_type) {
+        $datastreams = field_get_items(
+          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
+        );
+        if (FALSE !== $datastreams) {
+          foreach ($datastreams as $datastream) {
+            if (drupal_valid_path('resource/' .  $datastream['value'])) {
+              $download_link = field_view_value(
+                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
+              );
+              $tree_child['data'] .= ' ' . drupal_render($download_link);
+            }
+          }
+        }
+      }
       $tree_item['children'][] = $tree_child;
     }
   }
