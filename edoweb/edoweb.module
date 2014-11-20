@@ -2022,6 +2022,10 @@ function _edoweb_http_request($request_url, $http_options) {
     if ("/" == substr($redirect_url, 0, 1)) {
       $parsed_url = parse_url($request_url);
       $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}$redirect_url";
+    } else if ("http" != substr($redirect_url, 0, 4)) {
+      $parsed_url = parse_url($request_url);
+      $path = substr($parsed_url['path'], 0, strrpos($parsed_url['path'], '/'));
+      $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}{$path}/$redirect_url";
     }
     $request_url = $redirect_url;
     $http_response = drupal_http_request($request_url, $http_options);
