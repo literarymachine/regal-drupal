@@ -292,8 +292,9 @@
               break;
             case 'edoweb_autocomplete_widget':
               field.find('.field-items').each(function() {
-                if ((instance['settings']['cardinality'] == -1)
-                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                if (instance['settings']['metadata_type'] == 'descriptive'
+                    && ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality']))) {
                   var add_button = $('<a href="#"><span class="octicon octicon-link" /></a>')
                     .bind('click', function() {
                       createLinkInput(instance, field.find('.field-items'));

@@ -2947,7 +2947,7 @@ function edoweb_update_7136() {
   _update_edoweb_installed_instances($updated_instances);
 }
 
-/*
+/**
  * Set subject field to writeable
  */
 function edoweb_update_7137() {
