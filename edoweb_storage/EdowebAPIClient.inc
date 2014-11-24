@@ -268,6 +268,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       ? $entity->access_data : 'private';
     $data['publishScheme'] = isset($entity->access_md)
       ? $entity->access_md : 'private';
+    $data['isDescribedBy']['createdBy']
+      = url("user/{$entity->uid}", array('absolute' => TRUE));
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {

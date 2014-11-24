@@ -1230,7 +1230,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
     $entity->content['_updated'] = array(
       '#type' => 'item',
-      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . '</small>',
+      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
       '#weight' => 1000,
     );
 
