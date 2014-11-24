@@ -54,7 +54,7 @@
         var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
           var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
-          activateFields(field, bundle);
+          activateFields(field, bundle, context);
           entity.find('.content').prepend(field);
           $(this).find('option:selected').remove();
           if ($(this).find('option').length == 1) {
@@ -129,7 +129,7 @@
                 var entity_content = $(this.responseText).find('.content');
                 var page_title = $(this.responseText).find('h2').text();
                 Drupal.attachBehaviors(entity_content);
-                activateFields(entity_content.find('.field'), bundle);
+                activateFields(entity_content.find('.field'), bundle, context);
                 entity.find('.content').replaceWith(entity_content);
                 $('#page-title', context).text(page_title);
               };
@@ -140,7 +140,7 @@
           submit_button.after(import_button);
         }
 
-        activateFields(entity.find('.field'), bundle);
+        activateFields(entity.find('.field'), bundle, context);
 
       });
 
@@ -231,7 +231,7 @@
 
       function createUploadInput(instance, target) {
         var input = $('<input id="file" type="file" />');
-        $('#save-entity').bind('insert', function(event, uri) {
+        $('#save-entity', context).bind('insert', function(event, uri) {
           var files = $('#file').get(0).files;
           formData = new FormData();
           for (var i = 0; i < files.length; i++) {
@@ -264,7 +264,7 @@
         );
       }
 
-      function activateFields(fields, bundle) {
+      function activateFields(fields, bundle, context) {
         $.each(fields, function() {
           var field = $(this);
           var field_name = getFieldName(field);
