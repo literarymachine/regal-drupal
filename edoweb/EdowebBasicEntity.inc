@@ -22,6 +22,13 @@ class EdowebBasicEntity extends Entity {
 
   private $__source = null;
 
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, $entityType);
+    // Workaround for entity_js module which expects
+    // bundle name in type property
+    $this->type = $this->bundle();
+  }
+
   protected function defaultUri() {
     if (isset($this->remote_id)) {
       return array(
