@@ -68,8 +68,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $linkedDataClient = new LinkedDataClient();
     $entity = $linkedDataClient->load($remote_id, $rdf_model);
     $namespace = variable_get('edoweb_api_namespace');
-    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1) ||
-        "local:" === substr($entity->remote_id, 0, 6)) {
+    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)
+        || "template:" === substr($entity->remote_id, 0, 9)
+        || "local:" === substr($entity->remote_id, 0, 6)) {
       $this->sortParts($entity);
     }
     return $entity;
@@ -100,6 +101,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return $json->transformer;
     }
     return array();
+  }
+
+  public function getTemplates($bundle) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource?namespace=template&contentType=%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $bundle
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+    die($http_response->data);
   }
 
   public function addURN($entity) {
@@ -287,10 +300,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
     } else {
+
       $entity_info = (entity_get_info(EDOWEB_ENTITY_TYPE));
-      $namespace = isset($entity_info['bundles'][$entity->bundle()]['namespace'])
-        ? $entity_info['bundles'][$entity->bundle()]['namespace']
-        : variable_get('edoweb_api_namespace');
+      if (isset($entity->namespace)) {
+        $namespace = $entity->namespace;
+      } else if (isset($entity_info['bundles'][$entity->bundle()]['namespace'])) {
+        $namespace = $entity_info['bundles'][$entity->bundle()]['namespace'];
+      } else {
+        $namespace = variable_get('edoweb_api_namespace');
+      }
+
       // Create resource
       $http_url = sprintf(
         'http://%s:%s@%s/resource/%s',

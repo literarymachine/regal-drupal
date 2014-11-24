@@ -333,6 +333,13 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK
   );
 
+  // List of templates
+  $items['edoweb/templates'] = array(
+    'page callback' => '_edoweb_templates',
+    'access arguments' => array('view any edoweb_basic entity'),
+    'type' => MENU_CALLBACK
+  );
+
   // Add new resources
   $items['resource/add/%'] = array(
     'title callback' => 'edoweb_basic_bundle_name',
@@ -477,6 +484,11 @@ function edoweb_permission() {
     ),
   );
   return $permissions;
+}
+
+function _edoweb_templates($bundle_name = null) {
+  $api = new EdowebAPIClient();
+  return $api->getTemplates($bundle_name);
 }
 
 function _edoweb_search($bundle_name = null, $field_name = null) {
@@ -1297,6 +1309,9 @@ function edoweb_basic_edit($entity, $view_mode = 'edit') {
 
   $postdata = file_get_contents("php://input");
   if ($postdata != '') {
+    $entity->namespace = isset($_GET['namespace'])
+      ? $_GET['namespace'] : null;
+
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
     $rdf_parser = new LibRDF_Parser('rdfxml');
 
@@ -1867,6 +1882,7 @@ function edoweb_rdf_namespaces() {
   return array(
     $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
     'local' => "http://$edoweb_api_host/resource/local:",
+    'template' => "http://$edoweb_api_host/resource/template:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',

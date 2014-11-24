@@ -71,7 +71,8 @@ class LinkedDataClient {
     // Add credentials if loading from API
     $namespace = variable_get('edoweb_api_namespace');
     if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
-          || 'local:' === substr($curie, 0, 6)) {
+          || 'local:' === substr($curie, 0, 6)
+          || 'template:' === substr($curie, 0, 9)) {
       $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
         variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
       );

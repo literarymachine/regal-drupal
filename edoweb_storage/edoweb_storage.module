@@ -499,6 +499,7 @@ function _edoweb_storage_entity_serialize_rdf(
           } else {
             $namespace = variable_get('edoweb_api_namespace');
             if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
+                  || 'template:' == substr($item, 0, 9)
                   || 'local:' == substr($item, 0, 6)) {
               $rdf_object = new LibRDF_URINode($item);
             } else {

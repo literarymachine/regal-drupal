@@ -80,45 +80,33 @@
           entity.before(additional_fields);
         }
 
-        var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
-          var button = $(this);
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+        var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
+          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
           $(this).after(throbber);
-          $(this).hide();
-          entity.find('[contenteditable]').each(function() {
-            $(this).text($(this).text());
-          });
-          var rdf = entity.rdf();
-          var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
-          var url = topic.s.value.toString();
-          var subject = topic.o;
-          var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
-          $.post(url, post_data, function(data, textStatus, jqXHR) {
-            var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
-            button.trigger('insert', resource_uri);
-            var href = Drupal.settings.basePath + 'resource/' + resource_uri;
-            // Newly created resources are placed into the clipboard
-            // and a real redirect is triggered.
-            if (subject.type == 'bnode') {
-              entity_load_json('edoweb_basic', resource_uri).onload = function() {
-                if (bundle == 'monograph' || bundle == 'journal') {
-                  window.location = href;
-                } else {
-                  localStorage.setItem('cut_entity', this.responseText);
-                  history.pushState({tree: true}, null, href);
-                  Drupal.edoweb.navigateTo(href);
-                }
-              };
-            } else {
-              history.pushState({tree: true}, null, href);
-              Drupal.edoweb.navigateTo(href);
-              Drupal.edoweb.refreshTree(context);
-            }
+          entity_render_view('edoweb_basic', $(this).val()).onload = function() {
+            template_select[0].selectedIndex = 0;
             throbber.remove();
-          });
-          return false;
+            var entity_content = $(this.responseText).find('.content');
+            var page_title = $(this.responseText).find('h2').text();
+            Drupal.attachBehaviors(entity_content);
+            activateFields(entity_content.find('.field'), bundle, context);
+            entity.find('.content').replaceWith(entity_content);
+            $('#page-title', context).text(page_title);
+          };
         });
+        $.get(Drupal.settings.basePath + 'edoweb/templates/' + bundle,
+          function(data) {
+            $.each(JSON.parse(data), function(i, entity) {
+              $('<option />').text(entity['@id']).val(entity['@id']).appendTo(template_select);
+            });
+          }
+        );
+        additional_fields.after(template_select);
+
+        var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
         entity.after(submit_button);
+        var template_button = $('<button id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
+        submit_button.after(template_button);
 
         if (bundle == 'journal' || bundle == 'monograph') {
           var import_button = $('<button>Importieren</button>').bind('click', function() {
@@ -143,6 +131,50 @@
         activateFields(entity.find('.field'), bundle, context);
 
       });
+
+      function saveEntity(e) {
+        var entity = e.data.entity;
+        var bundle = e.data.bundle;
+        var button = $(this);
+        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+        $(this).after(throbber);
+        $(this).hide();
+        entity.find('[contenteditable]').each(function() {
+          $(this).text($(this).text());
+        });
+        var rdf = entity.rdf();
+        var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
+        var url = topic.s.value.toString();
+        if ('save-entity-template' == button.attr('id')) {
+          url += '?namespace=template';
+        }
+        var subject = topic.o;
+        var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
+        $.post(url, post_data, function(data, textStatus, jqXHR) {
+          var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
+          button.trigger('insert', resource_uri);
+          var href = Drupal.settings.basePath + 'resource/' + resource_uri;
+          // Newly created resources are placed into the clipboard
+          // and a real redirect is triggered.
+          if (subject.type == 'bnode') {
+            entity_load_json('edoweb_basic', resource_uri).onload = function() {
+              if (bundle == 'monograph' || bundle == 'journal') {
+                window.location = href;
+              } else {
+                localStorage.setItem('cut_entity', this.responseText);
+                history.pushState({tree: true}, null, href);
+                Drupal.edoweb.navigateTo(href);
+              }
+            };
+          } else {
+            history.pushState({tree: true}, null, href);
+            Drupal.edoweb.navigateTo(href);
+            Drupal.edoweb.refreshTree(context);
+          }
+          throbber.remove();
+        });
+        return false;
+      }
 
       function getFieldName(field) {
         var cls = field.attr('class').split(' ');
