@@ -163,6 +163,7 @@ function edoweb_entity_info() {
       ),
       'person' => array(
         'label' => t('Person'),
+        'namespace' => 'local',
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/person/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -177,6 +178,7 @@ function edoweb_entity_info() {
       ),
       'corporate_body' => array(
         'label' => t('Körperschaft'),
+        'namespace' => 'local',
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
           'access arguments' => array('administer edoweb_basic entities'),

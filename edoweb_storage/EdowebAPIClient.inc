@@ -287,13 +287,17 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
     } else {
+      $entity_info = (entity_get_info(EDOWEB_ENTITY_TYPE));
+      $namespace = isset($entity_info['bundles'][$entity->bundle()]['namespace'])
+        ? $entity_info['bundles'][$entity->bundle()]['namespace']
+        : variable_get('edoweb_api_namespace');
       // Create resource
       $http_url = sprintf(
         'http://%s:%s@%s/resource/%s',
         $this->__edoweb_api_user,
         $this->__edoweb_api_pass,
         $this->__edoweb_api_host,
-        variable_get('edoweb_api_namespace')
+        $namespace
       );
       $http_response = $this->_http_post($http_url, json_encode($data), 'application/json');
       $entity->remote_id = _edoweb_compact_uri($http_response->headers['location']);
