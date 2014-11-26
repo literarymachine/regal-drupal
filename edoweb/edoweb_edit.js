@@ -117,6 +117,21 @@
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
               entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
                 var entity_content = $(this.responseText).find('.content');
+                var entity_parallel = entity_content.find('.field-name-field-edoweb-parallel');
+                if (0 == entity_parallel.length) {
+                  var instance = Drupal.settings.edoweb.fields[bundle]['field_edoweb_parallel'].instance;
+                  entity_parallel = createField(instance);
+                  entity_content.prepend(entity_parallel);
+                }
+                entity_content.find('.field-name-field-edoweb-identifier-ht').each(function() {
+                  var hbzURI = 'lr:' + $(this).find('.field-item').text();
+                  var field_item = $('<div class="field-item" rel="umbel:isLike">'
+                    + '<a href="/resource/' + hbzURI + '" data-curie="' + hbzURI + '" resource="' + hbzURI + '" data-target-bundle="' + bundle + '">'
+                    + Drupal.edoweb.expand_curie(hbzURI)
+                    + '</a></div>');
+                  entity_parallel.find('.field-items').append(field_item);
+                  $(this).remove();
+                });
                 var page_title = $(this.responseText).find('h2').text();
                 Drupal.attachBehaviors(entity_content);
                 activateFields(entity_content.find('.field'), bundle, context);
@@ -196,6 +211,7 @@
 
       function createField(instance) {
         var cls = 'field-name-' + instance['field_name'].replace(/_/g, '-');
+        cls += ' field-type-' + instance['settings']['field_type'].replace(/_/g, '-');
         var field = $('<div class="field ' + cls + '"><div class="field-label">' + instance['label'] + ':&nbsp;</div><div class="field-items" /></div>');
         return field;
       }

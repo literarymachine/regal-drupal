@@ -49,6 +49,7 @@ function edoweb_init() {
         $instance['settings']['cardinality'] = $field['cardinality'];
       }
       $instance['settings'] += $field['settings'];
+      $instance['settings']['field_type'] = $field['type'];
       $instances[$bundle][$field_name] = array(
         'instance' => $instance,
       );
