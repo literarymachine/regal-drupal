@@ -430,6 +430,9 @@ function _edoweb_storage_entity_serialize_rdf(
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
+  if (empty($rdf_mapping)) {
+    return $rdf_model;
+  }
   // First element contains the rdf:type definitions
   $rdf_type_predicate = new LibRDF_URINode(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
