@@ -2975,3 +2975,13 @@ function edoweb_update_7137() {
   $updated_fields = array('field_edoweb_subject');
   _update_edoweb_installed_fields($updated_fields);
 }
+
+/**
+ * Remove field_edoweb_is_like, map umbel:isLike to
+ * field_edoweb_parallel
+ */
+function edoweb_update_7138() {
+  field_delete_field('field_edoweb_is_like');
+  _update_edoweb_installed_fields(array('field_edoweb_parallel'));
+  _update_rdf_mapping();
+}

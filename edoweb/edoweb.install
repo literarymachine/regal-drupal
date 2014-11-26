@@ -991,14 +991,6 @@ function _edoweb_installed_fields() {
         //'predicates' => array(''),
       ),
     ),
-    'field_edoweb_is_like' => array(
-      'cardinality' => 1,
-      'type'        => 'text',
-      'settings'    => array(
-        'metadata_type' => 'descriptive',
-        'predicates' => array('umbel:isLike'),
-      ),
-    ),
     'field_edoweb_urn' => array(
       'cardinality' => 1,
       'type'        => 'text',
@@ -1121,7 +1113,7 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('dc:hasFormat'),
+        'predicates' => array('umbel:isLike'),
         'parameter' => 'name',
         'endpoint' => 'resource',
       ),
@@ -1308,7 +1300,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_publication_place' => array(),
       'field_edoweb_publisher' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1394,7 +1385,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_issued_since' => array(),
       'field_edoweb_issued_until' => array(),
       'field_edoweb_publication_freq' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1448,7 +1438,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_title' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1485,7 +1474,6 @@ function _edoweb_installed_instances() {
     'issue' => array(
       'field_edoweb_title' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_doi' => array(),
       'field_edoweb_extent' => array(),
@@ -1523,7 +1511,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_contributor' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_doi' => array(),
       'field_edoweb_language' => array(),
@@ -1861,10 +1848,6 @@ function _edoweb_field_instance_defaults($field_name) {
     'field_edoweb_publication_freq' => array(
       'label' => $t('Erscheinungsweise'),
       'description' => $t('In welchem zeitlichen Abstand erscheinen die einzelnen Ausgaben dieser Veröffentlichung ? Z.B. "erscheint wöchentlich"'),
-    ),
-    'field_edoweb_is_like' => array(
-      'label' => $t('URL'),
-      'description' => $t('Ein "Uniform Ressource Identifier", z.B.  "http://lobid.org/resource/TT001152974"'),
     ),
     'field_edoweb_urn' => array(
       'label' => $t('URN'),
