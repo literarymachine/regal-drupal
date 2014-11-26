@@ -80,33 +80,35 @@
           entity.before(additional_fields);
         }
 
-        var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-          $(this).after(throbber);
-          entity_render_view('edoweb_basic', $(this).val()).onload = function() {
-            template_select[0].selectedIndex = 0;
-            throbber.remove();
-            var entity_content = $(this.responseText).find('.content');
-            var page_title = $(this.responseText).find('h2').text();
-            Drupal.attachBehaviors(entity_content);
-            activateFields(entity_content.find('.field'), bundle, context);
-            entity.find('.content').replaceWith(entity_content);
-            $('#page-title', context).text(page_title);
-          };
-        });
-        $.get(Drupal.settings.basePath + 'edoweb/templates/' + bundle,
-          function(data) {
-            $.each(JSON.parse(data), function(i, entity) {
-              $('<option />').text(entity['@id']).val(entity['@id']).appendTo(template_select);
-            });
-          }
-        );
-        additional_fields.after(template_select);
-
         var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
         entity.after(submit_button);
-        var template_button = $('<button id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
-        submit_button.after(template_button);
+
+        if (Drupal.settings.edoweb.primary_bundles.indexOf(entity.attr('data-entity-bundle')) != -1) {
+          var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
+            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+            $(this).after(throbber);
+            entity_render_view('edoweb_basic', $(this).val()).onload = function() {
+              template_select[0].selectedIndex = 0;
+              throbber.remove();
+              var entity_content = $(this.responseText).find('.content');
+              var page_title = $(this.responseText).find('h2').text();
+              Drupal.attachBehaviors(entity_content);
+              activateFields(entity_content.find('.field'), bundle, context);
+              entity.find('.content').replaceWith(entity_content);
+              $('#page-title', context).text(page_title);
+            };
+          });
+          $.get(Drupal.settings.basePath + 'edoweb/templates/' + bundle,
+            function(data) {
+              $.each(JSON.parse(data), function(i, entity) {
+                $('<option />').text(entity['@id']).val(entity['@id']).appendTo(template_select);
+              });
+            }
+          );
+          additional_fields.after(template_select);
+          var template_button = $('<button id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
+          submit_button.after(template_button);
+        }
 
         if (bundle == 'journal' || bundle == 'monograph') {
           var import_button = $('<button>Importieren</button>').bind('click', function() {

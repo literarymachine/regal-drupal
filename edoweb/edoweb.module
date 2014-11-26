@@ -57,6 +57,9 @@ function edoweb_init() {
   $settings = array(
     'fields' => $instances,
     'namespaces' => edoweb_rdf_namespaces(),
+    'primary_bundles' => array(
+      'monograph', 'journal', 'volume', 'issue', 'article'
+    ),
   );
   drupal_add_js(array('edoweb' => $settings), 'setting');
   drupal_add_js(
