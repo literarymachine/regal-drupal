@@ -127,6 +127,16 @@
     }
   };
 
+  Drupal.edoweb.cut_item = function(e) {
+    entity_id = e.data.entity_id;
+    console.log(entity_id);
+    entity_load_json('edoweb_basic', entity_id).onload = function() {
+      localStorage.setItem('cut_entity', this.responseText);
+      Drupal.edoweb.refreshTree();
+    };
+    return false;
+  }
+
   var loadTree = function(entity_id, target, callback) {
     var url = Drupal.settings.basePath + 'resource/' + entity_id + '/structure';
     $.get(url).onload = function() {
@@ -233,13 +243,7 @@
           cut_button.hide();
           UIButtons.push(cut_button);
           $(this).children('.edoweb-tree-toolbox').append(cut_button);
-          cut_button.bind('click', function() {
-            entity_load_json('edoweb_basic', entity_id).onload = function() {
-              localStorage.setItem('cut_entity', this.responseText);
-              Drupal.edoweb.refreshTree();
-            };
-            return false;
-          });
+          cut_button.bind('click', {entity_id: entity_id}, Drupal.edoweb.cut_item);
         }
       });
     }

@@ -47,6 +47,11 @@
         width: '80%'
       });
 
+      $('fieldset#edit-actions').children('div.fieldset-wrapper').append(
+        $('<input type="submit" id="edit-cut" value="Ausschneiden" class="form-submit" />')
+        .bind('click', {entity_id: Drupal.settings.edoweb.entity}, Drupal.edoweb.cut_item)
+      );
+
       $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
