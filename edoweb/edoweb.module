@@ -213,7 +213,7 @@ function edoweb_entity_info() {
         ),
       ),
       'place' => array(
-        'label' => t('Ort'),
+        'label' => t('Geographikum'),
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/place/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -774,12 +774,18 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'GND-ID',
+          'data' => 'ID / Notation',
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_gnd_identifier',
             'column' => 'value',
           ),
+        ),
+        array(
+          'data' => 'Objektart',
+          'type' => 'property',
+          'specifier' => 'remote_id',
+          'format' => '_edoweb_format_subject',
         ),
         array(
           'data' => 'Geburtsdatum',
@@ -1181,6 +1187,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
 
+  $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   $attr_bundle = 'data-entity-bundle="' .  $entity->bundle_type . '"';
   $attr_rdf_typeof = 'typeof="' . implode(' ', edoweb_rdf_types($entity->bundle_type)) . '"';
   $attr_rdf_resource = isset($entity->remote_id)
@@ -1259,6 +1266,27 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       ) . '</small>',
       '#weight' => 1001,
     );
+
+    try {
+      $origin = $wrapper->field_edoweb_parallel->value();
+      if (! empty($origin)) {
+        $entity->content['mab_source'] = array(
+          '#type' => 'item',
+          '#markup' => '<small>' . l(
+            'View MAB source',
+            $origin[0] . '?format=source',
+            array('attributes' => array(
+              'target'=>'_blank',
+              'class' => array('entity-id'),
+            ))
+          ) . '</small>',
+          '#weight' => 1002,
+        );
+      }
+    } catch (EntityMetadataWrapperException $e) {
+      // Field not present, ignore
+    }
+
   }
 
   if (1 == variable_get('edoweb_api_debug')) {
@@ -2022,6 +2050,10 @@ function edoweb_file_insert($files) {
 
 function _edoweb_format_date($timestamp) {
   return format_date($timestamp, 'custom', 'D, d.m.Y - H:i:s');
+}
+
+function _edoweb_format_subject($remote_id) {
+  return strtoupper(substr($remote_id, 0, strpos($remote_id, ':')));
 }
 
 function _edoweb_http_request($request_url, $http_options) {
@@ -2980,4 +3012,11 @@ function edoweb_update_7138() {
   field_delete_field('field_edoweb_is_like');
   _update_edoweb_installed_fields(array('field_edoweb_parallel'));
   _update_rdf_mapping();
+}
+
+/**
+ * Update field instances, removing descriptions and updating labels
+ */
+function edoweb_update_7139() {
+  _update_edoweb_installed_instances();
 }
