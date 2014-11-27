@@ -80,7 +80,7 @@
           entity.before(additional_fields);
         }
 
-        var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
+        var submit_button = $('<button class="edoweb edit action" id="save-entity">Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
         entity.after(submit_button);
 
         if (Drupal.settings.edoweb.primary_bundles.indexOf(entity.attr('data-entity-bundle')) != -1) {
@@ -106,12 +106,12 @@
             }
           );
           additional_fields.after(template_select);
-          var template_button = $('<button id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
+          var template_button = $('<button class="edoweb edit action" id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
           submit_button.after(template_button);
         }
 
         if (bundle == 'journal' || bundle == 'monograph') {
-          var import_button = $('<button>Importieren</button>').bind('click', function() {
+          var import_button = $('<button class="edoweb edit action">Importieren</button>').bind('click', function() {
             instance = {'bundle': bundle, 'field_name': ''}
             modal_overlay.html('<div />');
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
@@ -155,7 +155,7 @@
         var button = $(this);
         var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
         $(this).after(throbber);
-        $(this).hide();
+        $('button.edoweb.edit.action').hide();
         entity.find('[contenteditable]').each(function() {
           $(this).text($(this).text());
         });
