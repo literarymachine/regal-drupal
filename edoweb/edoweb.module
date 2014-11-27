@@ -745,14 +745,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => t('Byte'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_filesize',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => t('File type'),
           'type' => 'field',
           'specifier' => array(
