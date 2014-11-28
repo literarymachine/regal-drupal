@@ -30,53 +30,55 @@ require_once dirname(__FILE__) . '/lib/php-json-ld/jsonld.php';
  * Implements hook_init().
  */
 function edoweb_init() {
-  drupal_add_library('system', 'ui.dialog');
-  drupal_add_library('system', 'ui.sortable');
-  drupal_add_library('system', 'ui.datepicker');
-  drupal_add_library('system', 'drupal.collapse');
-  global $user;
-  $action_access = ((in_array('edoweb_backend_admin', $user->roles)
-                    || in_array('edoweb_backend_user', $user->roles)));
-  drupal_add_js(array('actionAccess' => $action_access), 'setting');
+  if (drupal_match_path(current_path(), 'resource' . PHP_EOL . 'resource/*')) {
+    drupal_add_library('system', 'ui.dialog');
+    drupal_add_library('system', 'ui.sortable');
+    drupal_add_library('system', 'ui.datepicker');
+    drupal_add_library('system', 'drupal.collapse');
+    global $user;
+    $action_access = ((in_array('edoweb_backend_admin', $user->roles)
+                      || in_array('edoweb_backend_user', $user->roles)));
+    drupal_add_js(array('actionAccess' => $action_access), 'setting');
 
-  $bundle_infos = field_info_instances(EDOWEB_ENTITY_TYPE);
-  $instances = array();
-  foreach ($bundle_infos as $bundle => $bundle_info) {
-    foreach ($bundle_info as $field_name => $instance) {
-      // Load field settings.
-      $field = field_info_field($field_name);
-      if (isset($field['cardinality'])) {
-        $instance['settings']['cardinality'] = $field['cardinality'];
+    $bundle_infos = field_info_instances(EDOWEB_ENTITY_TYPE);
+    $instances = array();
+    foreach ($bundle_infos as $bundle => $bundle_info) {
+      foreach ($bundle_info as $field_name => $instance) {
+        // Load field settings.
+        $field = field_info_field($field_name);
+        if (isset($field['cardinality'])) {
+          $instance['settings']['cardinality'] = $field['cardinality'];
+        }
+        $instance['settings'] += $field['settings'];
+        $instance['settings']['field_type'] = $field['type'];
+        $instances[$bundle][$field_name] = array(
+          'instance' => $instance,
+        );
       }
-      $instance['settings'] += $field['settings'];
-      $instance['settings']['field_type'] = $field['type'];
-      $instances[$bundle][$field_name] = array(
-        'instance' => $instance,
-      );
     }
+    $settings = array(
+      'fields' => $instances,
+      'namespaces' => edoweb_rdf_namespaces(),
+      'primary_bundles' => array(
+        'monograph', 'journal', 'volume', 'issue', 'article'
+      ),
+    );
+    if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
+      $settings['entity'] = $entity->remote_id;
+    }
+    drupal_add_js(array('edoweb' => $settings), 'setting');
+    drupal_add_js(
+      drupal_get_path('module', 'edoweb') . '/edoweb.js'
+    );
+    drupal_add_js(
+      drupal_get_path('module', 'edoweb') . '/edoweb_view.js'
+    );
+    drupal_add_js(
+      drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
+    );
+    drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
+    drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
   }
-  $settings = array(
-    'fields' => $instances,
-    'namespaces' => edoweb_rdf_namespaces(),
-    'primary_bundles' => array(
-      'monograph', 'journal', 'volume', 'issue', 'article'
-    ),
-  );
-  if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
-    $settings['entity'] = $entity->remote_id;
-  }
-  drupal_add_js(array('edoweb' => $settings), 'setting');
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb.js'
-  );
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb_view.js'
-  );
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
-  );
-  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
-  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
 }
 
 /**
