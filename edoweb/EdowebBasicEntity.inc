@@ -22,6 +22,13 @@ class EdowebBasicEntity extends Entity {
 
   private $__source = null;
 
+  public function __construct(array $values = array(), $entityType = NULL) {
+    parent::__construct($values, $entityType);
+    // Workaround for entity_js module which expects
+    // bundle name in type property
+    $this->type = $this->bundle();
+  }
+
   protected function defaultUri() {
     if (isset($this->remote_id)) {
       return array(
@@ -34,6 +41,7 @@ class EdowebBasicEntity extends Entity {
     $namespace = variable_get('edoweb_api_namespace');
     if (isset($this->remote_id)
         && ("$namespace:" === substr($this->remote_id, 0, strlen($namespace) + 1)
+          || 'template:' == substr($this->remote_id, 0, 9)
           || 'local:' == substr($this->remote_id, 0, 6))) {
       $remote_id = $this->remote_id;
     } else if (isset($this->remote_id)) {

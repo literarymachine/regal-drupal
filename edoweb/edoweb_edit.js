@@ -47,6 +47,11 @@
         width: '80%'
       });
 
+      $('fieldset#edit-actions').children('div.fieldset-wrapper').append(
+        $('<input type="submit" id="edit-cut" value="Ausschneiden" class="form-submit" />')
+        .bind('click', {entity_id: Drupal.settings.edoweb.entity}, Drupal.edoweb.cut_item)
+      );
+
       $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
@@ -54,7 +59,7 @@
         var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
           var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
-          activateFields(field, bundle);
+          activateFields(field, bundle, context);
           entity.find('.content').prepend(field);
           $(this).find('option:selected').remove();
           if ($(this).find('option').length == 1) {
@@ -80,55 +85,61 @@
           entity.before(additional_fields);
         }
 
-        var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
-          var button = $(this);
-          var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-          $(this).replaceWith(throbber);
-          entity.find('[contenteditable]').each(function() {
-            $(this).text($(this).text());
-          });
-          var rdf = entity.rdf();
-          var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
-          var url = topic.s.value.toString();
-          var subject = topic.o;
-          var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
-          $.post(url, post_data, function(data, textStatus, jqXHR) {
-            var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
-            button.trigger('insert', resource_uri);
-            var href = Drupal.settings.basePath + 'resource/' + resource_uri;
-            // Newly created resources are placed into the clipboard
-            // and a real redirect is triggered.
-            if (subject.type == 'bnode') {
-              entity_load_json('edoweb_basic', resource_uri).onload = function() {
-                if (bundle == 'monograph' || bundle == 'journal') {
-                  window.location = href;
-                } else {
-                  localStorage.setItem('cut_entity', this.responseText);
-                  history.pushState({tree: true}, null, href);
-                  Drupal.edoweb.navigateTo(href);
-                }
-              };
-            } else {
-              history.pushState({tree: true}, null, href);
-              Drupal.edoweb.navigateTo(href);
-              Drupal.edoweb.refreshTree(context);
-            }
-            throbber.remove();
-          });
-          return false;
-        });
+        var submit_button = $('<button class="edoweb edit action" id="save-entity">Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
         entity.after(submit_button);
 
+        if (Drupal.settings.edoweb.primary_bundles.indexOf(entity.attr('data-entity-bundle')) != -1) {
+          var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
+            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+            $(this).after(throbber);
+            entity_render_view('edoweb_basic', $(this).val()).onload = function() {
+              template_select[0].selectedIndex = 0;
+              throbber.remove();
+              var entity_content = $(this.responseText).find('.content');
+              var page_title = $(this.responseText).find('h2').text();
+              Drupal.attachBehaviors(entity_content);
+              activateFields(entity_content.find('.field'), bundle, context);
+              entity.find('.content').replaceWith(entity_content);
+              $('#page-title', context).text(page_title);
+            };
+          });
+          $.get(Drupal.settings.basePath + 'edoweb/templates/' + bundle,
+            function(data) {
+              $.each(JSON.parse(data), function(i, entity) {
+                $('<option />').text(entity['@id']).val(entity['@id']).appendTo(template_select);
+              });
+            }
+          );
+          additional_fields.after(template_select);
+          var template_button = $('<button class="edoweb edit action" id="save-entity-template">Als Satzschablone Speichern</button>').bind('click', {entity: entity, bundle: bundle}, saveEntity);
+          submit_button.after(template_button);
+        }
+
         if (bundle == 'journal' || bundle == 'monograph') {
-          var import_button = $('<button>Importieren</button>').bind('click', function() {
+          var import_button = $('<button class="edoweb edit action">Importieren</button>').bind('click', function() {
             instance = {'bundle': bundle, 'field_name': ''}
             modal_overlay.html('<div />');
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
               entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
                 var entity_content = $(this.responseText).find('.content');
+                var entity_parallel = entity_content.find('.field-name-field-edoweb-parallel');
+                if (0 == entity_parallel.length) {
+                  var instance = Drupal.settings.edoweb.fields[bundle]['field_edoweb_parallel'].instance;
+                  entity_parallel = createField(instance);
+                  entity_content.prepend(entity_parallel);
+                }
+                entity_content.find('.field-name-field-edoweb-identifier-ht').each(function() {
+                  var hbzURI = 'lr:' + $(this).find('.field-item').text();
+                  var field_item = $('<div class="field-item" rel="umbel:isLike">'
+                    + '<a href="/resource/' + hbzURI + '" data-curie="' + hbzURI + '" resource="' + hbzURI + '" data-target-bundle="' + bundle + '">'
+                    + Drupal.edoweb.expand_curie(hbzURI)
+                    + '</a></div>');
+                  entity_parallel.find('.field-items').append(field_item);
+                  $(this).remove();
+                });
                 var page_title = $(this.responseText).find('h2').text();
                 Drupal.attachBehaviors(entity_content);
-                activateFields(entity_content.find('.field'), bundle);
+                activateFields(entity_content.find('.field'), bundle, context);
                 entity.find('.content').replaceWith(entity_content);
                 $('#page-title', context).text(page_title);
               };
@@ -139,9 +150,53 @@
           submit_button.after(import_button);
         }
 
-        activateFields(entity.find('.field'), bundle);
+        activateFields(entity.find('.field'), bundle, context);
 
       });
+
+      function saveEntity(e) {
+        var entity = e.data.entity;
+        var bundle = e.data.bundle;
+        var button = $(this);
+        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+        $(this).after(throbber);
+        $('button.edoweb.edit.action').hide();
+        entity.find('[contenteditable]').each(function() {
+          $(this).text($(this).text());
+        });
+        var rdf = entity.rdf();
+        var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
+        var url = topic.s.value.toString();
+        if ('save-entity-template' == button.attr('id')) {
+          url += '?namespace=template';
+        }
+        var subject = topic.o;
+        var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
+        $.post(url, post_data, function(data, textStatus, jqXHR) {
+          var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
+          button.trigger('insert', resource_uri);
+          var href = Drupal.settings.basePath + 'resource/' + resource_uri;
+          // Newly created resources are placed into the clipboard
+          // and a real redirect is triggered.
+          if (subject.type == 'bnode') {
+            entity_load_json('edoweb_basic', resource_uri).onload = function() {
+              if (bundle == 'monograph' || bundle == 'journal') {
+                window.location = href;
+              } else {
+                localStorage.setItem('cut_entity', this.responseText);
+                history.pushState({tree: true}, null, href);
+                Drupal.edoweb.navigateTo(href);
+              }
+            };
+          } else {
+            history.pushState({tree: true}, null, href);
+            Drupal.edoweb.navigateTo(href);
+            Drupal.edoweb.refreshTree(context);
+          }
+          throbber.remove();
+        });
+        return false;
+      }
 
       function getFieldName(field) {
         var cls = field.attr('class').split(' ');
@@ -161,6 +216,7 @@
 
       function createField(instance) {
         var cls = 'field-name-' + instance['field_name'].replace(/_/g, '-');
+        cls += ' field-type-' + instance['settings']['field_type'].replace(/_/g, '-');
         var field = $('<div class="field ' + cls + '"><div class="field-label">' + instance['label'] + ':&nbsp;</div><div class="field-items" /></div>');
         return field;
       }
@@ -230,7 +286,7 @@
 
       function createUploadInput(instance, target) {
         var input = $('<input id="file" type="file" />');
-        $('#save-entity').bind('insert', function(event, uri) {
+        $('#save-entity', context).bind('insert', function(event, uri) {
           var files = $('#file').get(0).files;
           formData = new FormData();
           for (var i = 0; i < files.length; i++) {
@@ -263,7 +319,7 @@
         );
       }
 
-      function activateFields(fields, bundle) {
+      function activateFields(fields, bundle, context) {
         $.each(fields, function() {
           var field = $(this);
           var field_name = getFieldName(field);
@@ -291,8 +347,9 @@
               break;
             case 'edoweb_autocomplete_widget':
               field.find('.field-items').each(function() {
-                if ((instance['settings']['cardinality'] == -1)
-                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                if (instance['settings']['metadata_type'] == 'descriptive'
+                    && ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality']))) {
                   var add_button = $('<a href="#"><span class="octicon octicon-link" /></a>')
                     .bind('click', function() {
                       createLinkInput(instance, field.find('.field-items'));

@@ -68,8 +68,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $linkedDataClient = new LinkedDataClient();
     $entity = $linkedDataClient->load($remote_id, $rdf_model);
     $namespace = variable_get('edoweb_api_namespace');
-    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1) ||
-        "local:" === substr($entity->remote_id, 0, 6)) {
+    if ("$namespace:" === substr($entity->remote_id, 0, strlen($namespace) + 1)
+        || "template:" === substr($entity->remote_id, 0, 9)
+        || "local:" === substr($entity->remote_id, 0, 6)) {
       $this->sortParts($entity);
     }
     return $entity;
@@ -100,6 +101,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return $json->transformer;
     }
     return array();
+  }
+
+  public function getTemplates($bundle) {
+    $http_url = sprintf(
+      'http://%s:%s@%s/resource?namespace=template&contentType=%s',
+      $this->__edoweb_api_user,
+      $this->__edoweb_api_pass,
+      $this->__edoweb_api_host,
+      $bundle
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+    die($http_response->data);
   }
 
   public function addURN($entity) {
@@ -268,6 +281,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       ? $entity->access_data : 'private';
     $data['publishScheme'] = isset($entity->access_md)
       ? $entity->access_md : 'private';
+    $data['isDescribedBy']['createdBy']
+      = url("user/{$entity->uid}", array('absolute' => TRUE));
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {
@@ -285,13 +300,23 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       );
       $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
     } else {
+
+      $entity_info = (entity_get_info(EDOWEB_ENTITY_TYPE));
+      if (isset($entity->namespace)) {
+        $namespace = $entity->namespace;
+      } else if (isset($entity_info['bundles'][$entity->bundle()]['namespace'])) {
+        $namespace = $entity_info['bundles'][$entity->bundle()]['namespace'];
+      } else {
+        $namespace = variable_get('edoweb_api_namespace');
+      }
+
       // Create resource
       $http_url = sprintf(
         'http://%s:%s@%s/resource/%s',
         $this->__edoweb_api_user,
         $this->__edoweb_api_pass,
         $this->__edoweb_api_host,
-        variable_get('edoweb_api_namespace')
+        $namespace
       );
       $http_response = $this->_http_post($http_url, json_encode($data), 'application/json');
       $entity->remote_id = _edoweb_compact_uri($http_response->headers['location']);
@@ -607,7 +632,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $bool_op = empty($field_condition['delta_group'])
         ? 'and' : $field_condition['delta_group'];
       $field_name = $field_condition['field']['field_name'];
-      $json_ld_property = _field_name_to_jsonld_key($field_name);
+      $field_info = field_info_field($field_name);
+      if ('edoweb_ld_reference' == $field_info['type']) {
+        $json_ld_property = _field_name_to_jsonld_key($field_name) .  '.@id';
+      } else {
+        $json_ld_property = _field_name_to_jsonld_key($field_name);
+      }
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
         $query['query']['filtered']['filter']['bool']['must'][]['term'][$json_ld_property] = "$field_value";

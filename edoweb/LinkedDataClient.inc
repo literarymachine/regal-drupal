@@ -71,7 +71,8 @@ class LinkedDataClient {
     // Add credentials if loading from API
     $namespace = variable_get('edoweb_api_namespace');
     if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
-          || 'local:' === substr($curie, 0, 6)) {
+          || 'local:' === substr($curie, 0, 6)
+          || 'template:' === substr($curie, 0, 9)) {
       $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
         variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
       );
@@ -135,14 +136,28 @@ class LinkedDataClient {
     }
 
     $OWL = new LibRDF_NS('http://www.w3.org/2002/07/owl#');
-    $equivalent_resources = $rdf_model->getTargets(
+    $equivalent_resource_uris = $rdf_model->getTargets(
       new LibRDF_URINode($resource_uri), $OWL->sameAs
     );
-    foreach ($equivalent_resources as $equivalent_resource) {
+    foreach ($equivalent_resource_uris as $equivalent_resource_uri) {
+      // For now, only follow lobid-internal redirects to prevent
+      // performance issues and non-conformant RDF.
+      $equivalent_resource_uri_ns
+        = $equivalent_resource_uri->getNamespace()->getValue();
+      if ('http://lobid.org/resource/' != $equivalent_resource_uri_ns) {
+        continue;
+      }
       $same_as_rdf = $this->getRDF(
-        $equivalent_resource->getValue(), ++$loaded_uris
+        $equivalent_resource_uri->getValue(), ++$loaded_uris
       );
-      foreach ($same_as_rdf as $stmt) {
+      $equivalent_resource = $this->load(
+        _edoweb_compact_uri($equivalent_resource_uri->getValue()),
+        $same_as_rdf
+      );
+      $equivalent_resource_rdf = _edoweb_storage_entity_serialize_rdf(
+        $equivalent_resource, false, array('descriptive')
+      );
+      foreach ($equivalent_resource_rdf as $stmt) {
         if ($stmt->getSubject()->isEqual($equivalent_resource)) {
           $subject = new LibRDF_URINode($resource_uri);
         } else {

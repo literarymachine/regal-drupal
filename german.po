@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Edoweb\n"
 "POT-Creation-Date: 2014-09-29 17:47+0200\n"
-"PO-Revision-Date: 2014-09-29 17:49+0100\n"
+"PO-Revision-Date: 2014-11-27 13:10+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -54,7 +54,7 @@ msgstr ""
 
 #: (duplicate) edoweb/edoweb.module:141 edoweb/edoweb.install:1940
 msgid "Schlagwort"
-msgstr "Sacherschließung"
+msgstr ""
 
 #: edoweb/edoweb.module:148
 msgid "Körperschaft"

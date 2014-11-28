@@ -49,6 +49,7 @@ function edoweb_init() {
         $instance['settings']['cardinality'] = $field['cardinality'];
       }
       $instance['settings'] += $field['settings'];
+      $instance['settings']['field_type'] = $field['type'];
       $instances[$bundle][$field_name] = array(
         'instance' => $instance,
       );
@@ -57,7 +58,13 @@ function edoweb_init() {
   $settings = array(
     'fields' => $instances,
     'namespaces' => edoweb_rdf_namespaces(),
+    'primary_bundles' => array(
+      'monograph', 'journal', 'volume', 'issue', 'article'
+    ),
   );
+  if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
+    $settings['entity'] = $entity->remote_id;
+  }
   drupal_add_js(array('edoweb' => $settings), 'setting');
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/edoweb.js'
@@ -68,7 +75,7 @@ function edoweb_init() {
   drupal_add_js(
     drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
   );
-  drupal_add_js('https://rdfquery.googlecode.com/files/jquery.rdfquery.rdfa.min-1.0.js', 'external');
+  drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
   drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
 }
 
@@ -163,6 +170,7 @@ function edoweb_entity_info() {
       ),
       'person' => array(
         'label' => t('Person'),
+        'namespace' => 'local',
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/person/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -177,6 +185,7 @@ function edoweb_entity_info() {
       ),
       'corporate_body' => array(
         'label' => t('Körperschaft'),
+        'namespace' => 'local',
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -204,7 +213,7 @@ function edoweb_entity_info() {
         ),
       ),
       'place' => array(
-        'label' => t('Ort'),
+        'label' => t('Geographikum'),
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/place/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -327,6 +336,13 @@ function edoweb_menu() {
   // Paged search result listing for AJAX retrieval
   $items['edoweb/search'] = array(
     'page callback' => '_edoweb_search',
+    'access arguments' => array('view any edoweb_basic entity'),
+    'type' => MENU_CALLBACK
+  );
+
+  // List of templates
+  $items['edoweb/templates'] = array(
+    'page callback' => '_edoweb_templates',
     'access arguments' => array('view any edoweb_basic entity'),
     'type' => MENU_CALLBACK
   );
@@ -475,6 +491,11 @@ function edoweb_permission() {
     ),
   );
   return $permissions;
+}
+
+function _edoweb_templates($bundle_name = null) {
+  $api = new EdowebAPIClient();
+  return $api->getTemplates($bundle_name);
 }
 
 function _edoweb_search($bundle_name = null, $field_name = null) {
@@ -727,14 +748,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => t('Byte'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_filesize',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => t('File type'),
           'type' => 'field',
           'specifier' => array(
@@ -761,12 +774,18 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'GND-ID',
+          'data' => 'ID / Notation',
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_gnd_identifier',
             'column' => 'value',
           ),
+        ),
+        array(
+          'data' => 'Objektart',
+          'type' => 'property',
+          'specifier' => 'remote_id',
+          'format' => '_edoweb_format_subject',
         ),
         array(
           'data' => 'Geburtsdatum',
@@ -1168,6 +1187,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   // Our entity type, for convenience.
   $entity_type = 'edoweb_basic';
 
+  $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
   $attr_bundle = 'data-entity-bundle="' .  $entity->bundle_type . '"';
   $attr_rdf_typeof = 'typeof="' . implode(' ', edoweb_rdf_types($entity->bundle_type)) . '"';
   $attr_rdf_resource = isset($entity->remote_id)
@@ -1230,7 +1250,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
     $entity->content['_updated'] = array(
       '#type' => 'item',
-      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . '</small>',
+      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
       '#weight' => 1000,
     );
 
@@ -1246,6 +1266,27 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       ) . '</small>',
       '#weight' => 1001,
     );
+
+    try {
+      $origin = $wrapper->field_edoweb_parallel->value();
+      if (! empty($origin)) {
+        $entity->content['mab_source'] = array(
+          '#type' => 'item',
+          '#markup' => '<small>' . l(
+            'View MAB source',
+            $origin[0] . '?format=source',
+            array('attributes' => array(
+              'target'=>'_blank',
+              'class' => array('entity-id'),
+            ))
+          ) . '</small>',
+          '#weight' => 1002,
+        );
+      }
+    } catch (EntityMetadataWrapperException $e) {
+      // Field not present, ignore
+    }
+
   }
 
   if (1 == variable_get('edoweb_api_debug')) {
@@ -1295,6 +1336,9 @@ function edoweb_basic_edit($entity, $view_mode = 'edit') {
 
   $postdata = file_get_contents("php://input");
   if ($postdata != '') {
+    $entity->namespace = isset($_GET['namespace'])
+      ? $_GET['namespace'] : null;
+
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
     $rdf_parser = new LibRDF_Parser('rdfxml');
 
@@ -1353,23 +1397,6 @@ function _edoweb_build_tree($entity) {
         array($child['value']), array(), $ld_data
       );
       $child_entity = end($child_entity);
-      // Append download links for file children
-      // FIXME: Wrap img to not conflict with parts extraction by JS
-      //if ('file' == $child_entity->bundle_type) {
-      //  $datastreams = field_get_items(
-      //    'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-      //  );
-      //  if (FALSE !== $datastreams) {
-      //    foreach ($datastreams as $datastream) {
-      //      if (drupal_valid_path('resource/' .  $datastream['value'])) {
-      //        $download_link = field_view_value(
-      //          EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-      //        );
-      //        $tree_item['data'] .= ' ' . drupal_render($download_link);
-      //      }
-      //    }
-      //  }
-      //}
       $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
       $entity_url = entity_class_uri($child_entity);
       $entity_bundle = $child_entity->bundle();
@@ -1378,6 +1405,22 @@ function _edoweb_build_tree($entity) {
         'data' => l($title, $entity_url['path'], $options),
         'class' => array('collapsed'),
       );
+      // Append download links when applicable
+      if ('file' == $child_entity->bundle_type) {
+        $datastreams = field_get_items(
+          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
+        );
+        if (FALSE !== $datastreams) {
+          foreach ($datastreams as $datastream) {
+            if (drupal_valid_path('resource/' .  $datastream['value'])) {
+              $download_link = field_view_value(
+                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
+              );
+              $tree_child['data'] .= ' ' . drupal_render($download_link);
+            }
+          }
+        }
+      }
       $tree_item['children'][] = $tree_child;
     }
   }
@@ -1866,6 +1909,7 @@ function edoweb_rdf_namespaces() {
   return array(
     $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
     'local' => "http://$edoweb_api_host/resource/local:",
+    'template' => "http://$edoweb_api_host/resource/template:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
@@ -2008,6 +2052,10 @@ function _edoweb_format_date($timestamp) {
   return format_date($timestamp, 'custom', 'D, d.m.Y - H:i:s');
 }
 
+function _edoweb_format_subject($remote_id) {
+  return strtoupper(substr($remote_id, 0, strpos($remote_id, ':')));
+}
+
 function _edoweb_http_request($request_url, $http_options) {
 
   $http_options += array(
@@ -2023,6 +2071,10 @@ function _edoweb_http_request($request_url, $http_options) {
     if ("/" == substr($redirect_url, 0, 1)) {
       $parsed_url = parse_url($request_url);
       $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}$redirect_url";
+    } else if ("http" != substr($redirect_url, 0, 4)) {
+      $parsed_url = parse_url($request_url);
+      $path = substr($parsed_url['path'], 0, strrpos($parsed_url['path'], '/'));
+      $redirect_url = "{$parsed_url['scheme']}://{$parsed_url['host']}{$path}/$redirect_url";
     }
     $request_url = $redirect_url;
     $http_response = drupal_http_request($request_url, $http_options);
@@ -2944,10 +2996,27 @@ function edoweb_update_7136() {
   _update_edoweb_installed_instances($updated_instances);
 }
 
-/*
+/**
  * Set subject field to writeable
  */
 function edoweb_update_7137() {
   $updated_fields = array('field_edoweb_subject');
   _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Remove field_edoweb_is_like, map umbel:isLike to
+ * field_edoweb_parallel
+ */
+function edoweb_update_7138() {
+  field_delete_field('field_edoweb_is_like');
+  _update_edoweb_installed_fields(array('field_edoweb_parallel'));
+  _update_rdf_mapping();
+}
+
+/**
+ * Update field instances, removing descriptions and updating labels
+ */
+function edoweb_update_7139() {
+  _update_edoweb_installed_instances();
 }

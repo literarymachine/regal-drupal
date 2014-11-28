@@ -991,14 +991,6 @@ function _edoweb_installed_fields() {
         //'predicates' => array(''),
       ),
     ),
-    'field_edoweb_is_like' => array(
-      'cardinality' => 1,
-      'type'        => 'text',
-      'settings'    => array(
-        'metadata_type' => 'descriptive',
-        'predicates' => array('umbel:isLike'),
-      ),
-    ),
     'field_edoweb_urn' => array(
       'cardinality' => 1,
       'type'        => 'text',
@@ -1121,7 +1113,7 @@ function _edoweb_installed_fields() {
       'type'        => 'edoweb_ld_reference',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('dc:hasFormat'),
+        'predicates' => array('umbel:isLike'),
         'parameter' => 'name',
         'endpoint' => 'resource',
       ),
@@ -1271,7 +1263,6 @@ function _edoweb_installed_instances() {
      */
     'monograph' => array(
       'field_edoweb_identifier_ht' => array(),
-      'field_edoweb_volume' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_title_alternative' => array(),
@@ -1308,7 +1299,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_publication_place' => array(),
       'field_edoweb_publisher' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1329,6 +1319,7 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_volume' => array(),
       'field_edoweb_struct_child' => array(
         'settings'    => array(
           'target_type' => 'edoweb_basic',
@@ -1394,7 +1385,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_issued_since' => array(),
       'field_edoweb_issued_until' => array(),
       'field_edoweb_publication_freq' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1448,7 +1438,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_title' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_isbn10' => array(),
       'field_edoweb_isbn13' => array(),
@@ -1485,7 +1474,6 @@ function _edoweb_installed_instances() {
     'issue' => array(
       'field_edoweb_title' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_doi' => array(),
       'field_edoweb_extent' => array(),
@@ -1523,7 +1511,6 @@ function _edoweb_installed_instances() {
       'field_edoweb_contributor' => array(),
       'field_edoweb_title_other' => array(),
       'field_edoweb_issued' => array(),
-      'field_edoweb_is_like' => array(),
       'field_edoweb_urn' => array(),
       'field_edoweb_doi' => array(),
       'field_edoweb_language' => array(),
@@ -1683,11 +1670,9 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_parent' => array(
       'label' => $t('Überordnung'),
-      'description' => $t('Übergeordnetes Werk; z.B. Zeitschrift bei einem Zeitschriftenband; Angabe eines Identifikators, z.B. einer URI: "http://lobid.org/resource/HT015490187"'),
     ),
     'field_edoweb_volume' => array(
       'label' => $t('Band'),
-      'description' => $t('Die Bandbezeichnung einer Zeitschrift oder eines Gesamtwerkes; bei Zeitschriften eine Zusammenfassung mehrere Hefte; z.B. "2012"'),
     ),
     'field_edoweb_title' => array(
       'label' => $t('Titel'),
@@ -1719,156 +1704,117 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_creator' => array(
       'label' => $t('Autor'),
-      'description' => $t('Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der das Dokument hauptsächlich verfasst hat; Auswahl aus GND'),
       'settings' => array(
         'default' => TRUE,
       ),
     ),
     'field_edoweb_contributor' => array(
       'label' => $t('[Bearb.]'),
-      'description' => $t('Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat; Auswahl aus GND'),
     ),
     'field_edoweb_editor' => array(
       'label' => $t('[Hrsg.]'),
-      'description' => $t('Editor, Herausgeber oder Redakteur'),
     ),
     'field_edoweb_edt' => array(
       'label' => $t('[Red.]'),
-      'description' => '',
     ),
     'field_edoweb_translator' => array(
       'label' => $t('[Übers.]'),
-      'description' => '',
     ),
     'field_edoweb_ill' => array(
       'label' => $t('[Ill.]'),
-      'description' => '',
     ),
     'field_edoweb_act' => array(
       'label' => $t('[Darst.]'),
-      'description' => '',
     ),
     'field_edoweb_drt' => array(
       'label' => $t('[Regie]'),
-      'description' => '',
     ),
     'field_edoweb_clb' => array(
       'label' => $t('[Mitarb.]'),
-      'description' => '',
     ),
     'field_edoweb_pht' => array(
       'label' => $t('[Fotogr.]'),
-      'description' => '',
     ),
     'field_edoweb_cnd' => array(
       'label' => $t('[Dir.]'),
-      'description' => '',
     ),
     'field_edoweb_cmp' => array(
       'label' => $t('[Komp.]'),
-      'description' => '',
     ),
     'field_edoweb_aui' => array(
       'label' => $t('[Vorr.]'),
-      'description' => '',
     ),
     'field_edoweb_aus' => array(
       'label' => $t('[Drehbuch]'),
-      'description' => '',
     ),
     'field_edoweb_col' => array(
       'label' => $t('[Sammler]'),
-      'description' => '',
     ),
     'field_edoweb_ctb' => array(
       'label' => $t('[Beitr.]'),
-      'description' => '',
     ),
     'field_edoweb_prf' => array(
       'label' => $t('[Interpr.]'),
-      'description' => '',
     ),
     'field_edoweb_cng' => array(
       'label' => $t('[Kamera]'),
-      'description' => '',
     ),
     'field_edoweb_ant' => array(
       'label' => $t('[Vorl.]'),
-      'description' => '',
     ),
     'field_edoweb_voc' => array(
       'label' => $t('[Gesang]'),
-      'description' => '',
     ),
     'field_edoweb_ivr' => array(
       'label' => $t('[Interviewer]'),
-      'description' => '',
     ),
     'field_edoweb_ive' => array(
       'label' => $t('[Interviewter]'),
-      'description' => '',
     ),
     'field_edoweb_ctg' => array(
       'label' => $t('[Kartograph]'),
-      'description' => '',
     ),
     'field_edoweb_mus' => array(
       'label' => $t('[Musik]'),
-      'description' => '',
     ),
     'field_edoweb_aft' => array(
       'label' => $t('[Nachr.]'),
-      'description' => '',
     ),
     'field_edoweb_pro' => array(
       'label' => $t('[Prod.]'),
-      'description' => '',
     ),
     'field_edoweb_egr' => array(
       'label' => $t('[Stecher]'),
-      'description' => '',
     ),
     'field_edoweb_dte' => array(
       'label' => $t('[Widmungsempfänger]'),
-      'description' => '',
     ),
     'field_edoweb_edition' => array(
       'label' => $t('Ausgabe'),
-      'description' => $t('Ausgabe oder Auflage, z.B. "2. Aufl. 2012"'),
     ),
     'field_edoweb_publication_place' => array(
       'label' => $t('Erscheinungsort'),
     ),
     'field_edoweb_publisher' => array(
       'label' => $t('Verlag'),
-      'description' => $t('Verleger, Drucker, Vertrieb, Auslieferer; eine Person, Organisation oder ein Dienst'),
     ),
     'field_edoweb_issued' => array(
-      'label' => $t('Erscheinungsdatum'),
-      'description' => $t('Datum der formellen Herausgabe, Veröffentlichung; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein'),
+      'label' => $t('Erscheinungsjahr'),
       'settings' => array(
         'default' => TRUE,
       ),
     ),
     'field_edoweb_issued_since' => array(
       'label' => $t('erscheint seit'),
-      'description' => $t('Datum des ersten Erscheinens / des ersten Bandes; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein'),
     ),
     'field_edoweb_issued_until' => array(
       'label' => $t('eingestellt am/in'),
-      'description' => $t('Datum des letzten Erscheinens bei eingestellter Ausgabe; kann eine Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein'),
     ),
     'field_edoweb_publication_freq' => array(
       'label' => $t('Erscheinungsweise'),
-      'description' => $t('In welchem zeitlichen Abstand erscheinen die einzelnen Ausgaben dieser Veröffentlichung ? Z.B. "erscheint wöchentlich"'),
-    ),
-    'field_edoweb_is_like' => array(
-      'label' => $t('URL'),
-      'description' => $t('Ein "Uniform Ressource Identifier", z.B.  "http://lobid.org/resource/TT001152974"'),
     ),
     'field_edoweb_urn' => array(
       'label' => $t('URN'),
-      'description' => $t('Ein "Uniform Ressource Name", z.B.  "urn:nbn:de:hbz:929:02-1058"'),
     ),
     'field_edoweb_isbn10' => array(
       'label' => $t('ISBN-10'),
@@ -1881,7 +1827,6 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_doi' => array(
       'label' => $t('DOI'),
-      'description' => $t('Ein "Digital Object Identifier", z.B.  "10.4126/38m-002470993"'),
     ),
     'field_edoweb_language' => array(
       'label' => $t('Sprache'),
@@ -1889,26 +1834,21 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_extent' => array(
       'label' => $t('Umfang'),
-      'description' => $t('z.B. "103 S. : Ill., graph. Darst."'),
     ),
     'field_edoweb_description' => array(
       'label' => $t('Beschreibung'),
     ),
     'field_edoweb_subject' => array(
-      'label' => $t('Schlagwort'),
-      'description' => $t('Stichwörter oder Schlagwörter in einem kontrollierten Vokabular (GND, DDC, rheinland-pfälzische Bibliographie)'),
+      'label' => $t('Sacherschließung'),
     ),
     'field_edoweb_tag' => array(
       'label' => $t('Tag'),
-      'description' => $t('Freie Verschlagwortung'),
     ),
     'field_edoweb_abstract' => array(
-      'label' => $t('Abriss'),
-      'description' => $t('Abstract'),
+      'label' => $t('Abstract'),
     ),
     'field_edoweb_parallel' => array(
       'label' => $t('Parallele Ausgabe'),
-      'description' => $t('Angabe eines Identifikators, z.B. URI'),
     ),
     'field_edoweb_homepage' => array(
       'field_name'  => 'field_edoweb_homepage',
@@ -1916,7 +1856,6 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_label' => array(
       'label' => $t('Label'),
-      'description' => $t('A generic label'),
     ),
     'field_edoweb_filesize' => array(
       'label' => $t('Größe (Byte)'),

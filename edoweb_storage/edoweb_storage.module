@@ -430,6 +430,9 @@ function _edoweb_storage_entity_serialize_rdf(
   $rdf_mapping = rdf_mapping_load(
     EDOWEB_ENTITY_TYPE, $entity->bundle_type
   );
+  if (empty($rdf_mapping)) {
+    return $rdf_model;
+  }
   // First element contains the rdf:type definitions
   $rdf_type_predicate = new LibRDF_URINode(
     'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
@@ -441,20 +444,6 @@ function _edoweb_storage_entity_serialize_rdf(
       new LibRDF_URINode(_edoweb_expand_curie($rdf_type_mapping))
     );
     $rdf_model->addStatement($rdf_type_statement);
-  }
-
-  // Link metadata record to drupal user URI
-  $namespace = variable_get('edoweb_api_namespace');
-  if ("$namespace:" === substr($rdf_subject->getValue(), 0, strlen($namespace) + 1)
-        || 'local:' == substr($rdf_subject->getValue(), 0, 6)) {
-    $user_uri = url("user/{$entity->uid}", array('absolute' => TRUE));
-    $rdf_model->addStatement(
-      new LibRDF_Statement(
-        new LibRDF_URINode($rdf_subject->getValue() . '.rdf'),
-        new LibRDF_URINode(_edoweb_expand_curie('dc:creator')),
-        new LibRDF_URINode($user_uri)
-      )
-    );
   }
 
   $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
@@ -513,6 +502,7 @@ function _edoweb_storage_entity_serialize_rdf(
           } else {
             $namespace = variable_get('edoweb_api_namespace');
             if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
+                  || 'template:' == substr($item, 0, 9)
                   || 'local:' == substr($item, 0, 6)) {
               $rdf_object = new LibRDF_URINode($item);
             } else {
@@ -632,6 +622,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     )->getValue());
   } catch (LibRDF_LookupError $e) {
     $entity->created = time();
+  }
+  try {
+    $entity->uid = $rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:createdBy'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    $entity->uid = 0;
   }
 
 }
