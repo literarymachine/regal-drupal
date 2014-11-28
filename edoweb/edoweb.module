@@ -1801,14 +1801,14 @@ function edoweb_basic_data($entity) {
       form_set_error('field_edoweb_datastream', t('File is required.'));
     }
   } else {
-    $file = @file_get_contents($api->getFileUrl($entity));
-    if ($file === FALSE) {
+    $http_response = $api->getFile($entity);
+    if (2 != $http_response->code[0]) {
       return drupal_access_denied();
     }
-    foreach ($http_response_header as $header) {
-      header($header);
+    foreach ($http_response->headers as $header => $value) {
+      header("{$header}:{$value}");
     }
-    die($file);
+    die($http_response->data);
   }
 }
 

@@ -209,7 +209,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return TRUE;
   }
 
-  public function getFileUrl($entity) {
+  public function getFile($entity) {
     $http_url = sprintf(
       'http://%s:%s@%s/resource/%s/data',
       $this->__edoweb_api_user,
@@ -217,7 +217,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-    return $http_url;
+    return $this->_http_get($http_url);
   }
 
   public function setParts($entity, $parts) {
