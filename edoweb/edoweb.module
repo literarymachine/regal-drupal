@@ -1909,9 +1909,9 @@ function edoweb_rdf_namespaces() {
   $edoweb_api_host = variable_get('edoweb_api_host');
   $edoweb_api_namespace = variable_get('edoweb_api_namespace');
   return array(
-    $edoweb_api_namespace => "http://$edoweb_api_host/resource/$edoweb_api_namespace:",
-    'local' => "http://$edoweb_api_host/resource/local:",
-    'template' => "http://$edoweb_api_host/resource/template:",
+    $edoweb_api_namespace => "$edoweb_api_host/resource/$edoweb_api_namespace:",
+    'local' => "$edoweb_api_host/resource/local:",
+    'template' => "$edoweb_api_host/resource/template:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
     'frbr' => 'http://purl.org/vocab/frbr/core#',
     'bibo' => 'http://purl.org/ontology/bibo/',
@@ -2059,6 +2059,33 @@ function _edoweb_format_subject($remote_id) {
 }
 
 function _edoweb_http_request($request_url, $http_options) {
+  // Fetch credentials from drupal settings
+  global $user;
+  if (in_array('edoweb_backend_admin', $user->roles)) {
+    $api_user = variable_get('edoweb_admin_user');
+    $api_pass = variable_get('edoweb_admin_password');
+  } else if (in_array('edoweb_backend_user', $user->roles)) {
+    $api_user = variable_get('edoweb_editor_user');
+    $api_pass = variable_get('edoweb_editor_password');
+  } else if (in_array('edoweb_backend_reader', $user->roles)) {
+    $api_user = variable_get('edoweb_reader_user');
+    $api_pass = variable_get('edoweb_reader_password');
+  } else {
+    $api_user = variable_get('edoweb_anonymous_user');
+    $api_pass = variable_get('edoweb_anonymous_password');
+  }
+
+  $curie = _edoweb_compact_uri($request_url);
+
+  // Add credentials if loading from API
+  $namespace = variable_get('edoweb_api_namespace');
+  if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
+        || 'local:' === substr($curie, 0, 6)
+        || 'template:' === substr($curie, 0, 9)) {
+    $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
+      $api_user . ':' . $api_pass
+    );
+  }
 
   $http_options += array(
     'timeout' => 60,

@@ -68,16 +68,6 @@ class LinkedDataClient {
       'headers' => array('Accept' => 'application/rdf+xml'),
     );
 
-    // Add credentials if loading from API
-    $namespace = variable_get('edoweb_api_namespace');
-    if ("$namespace:" === substr($curie, 0, strlen($namespace) + 1)
-          || 'local:' === substr($curie, 0, 6)
-          || 'template:' === substr($curie, 0, 9)) {
-      $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
-        variable_get('edoweb_admin_user') . ':' .  variable_get('edoweb_admin_password')
-      );
-    }
-
     $http_response = _edoweb_http_request($resource_uri, $http_options);
     if ((200 == $http_response->code) && isset($http_response->data)) {
       if ($http_response->headers['content-type'] == 'application/json') {

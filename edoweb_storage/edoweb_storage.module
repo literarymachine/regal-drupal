@@ -54,7 +54,7 @@ function edoweb_storage_configuration_form($form, &$form_state) {
       'api.localhost'
     ),
     '#title' => t('API host'),
-    '#description' => t('The hostname or IP address of the API, without leading http://'),
+    '#description' => t('The hostname or IP address of the API'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -779,11 +779,6 @@ function _edoweb_escape_utf8($string) {
 }
 
 function _edoweb_expand_curie($curie) {
-  if ('http://' == substr($curie, 0, 7)
-      || '_:' == substr($curie, 0, 2)
-  ) {
-    return $curie;
-  }
   $rdf_namespaces = rdf_get_namespaces();
   list($curie_prefix, $curie_local) = explode(':', $curie);
   if ($curie_prefix == 'ddc' && '/' != substr($curie, -1)) {

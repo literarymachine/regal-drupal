@@ -20,42 +20,8 @@
 
 class EdowebAPIClient implements EdowebAPIClientInterface {
 
-  /*
-   * The URL of the Edoweb API
-   */
-  private $__edoweb_api_host;
-
-  /**
-   * The username for the Edoweb API
-   *
-   */
-  private $__edoweb_api_user;
-
-  /**
-   * The password for the Edoweb API
-   *
-   */
-  private $__edoweb_api_pass;
-
   public function __construct() {
-    // Fetch credentials from drupal settings
-    global $user;
-    if (in_array('edoweb_backend_admin', $user->roles)) {
-      $api_user = variable_get('edoweb_admin_user');
-      $api_pass = variable_get('edoweb_admin_password');
-    } else if (in_array('edoweb_backend_user', $user->roles)) {
-      $api_user = variable_get('edoweb_editor_user');
-      $api_pass = variable_get('edoweb_editor_password');
-    } else if (in_array('edoweb_backend_reader', $user->roles)) {
-      $api_user = variable_get('edoweb_reader_user');
-      $api_pass = variable_get('edoweb_reader_password');
-    } else {
-      $api_user = variable_get('edoweb_anonymous_user');
-      $api_pass = variable_get('edoweb_anonymous_password');
-    }
     $this->__edoweb_api_host = variable_get('edoweb_api_host');
-    $this->__edoweb_api_user = $api_user;
-    $this->__edoweb_api_pass = $api_pass;
   }
 
   /*
@@ -78,9 +44,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function getTransformers($entity) {
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s.regal',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s.regal',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -105,9 +69,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function getTemplates($bundle) {
     $http_url = sprintf(
-      'http://%s:%s@%s/resource?namespace=template&contentType=%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource?namespace=template&contentType=%s',
       $this->__edoweb_api_host,
       $bundle
     );
@@ -119,9 +81,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     list($namespace, $id) = explode(':', $entity->remote_id);
     $snid = 'hbz:929:02';
     $http_url = sprintf(
-      'http://%s:%s@%s/utils/addUrn?namespace=%s&id=%s&snid=%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/utils/addUrn?namespace=%s&id=%s&snid=%s',
       $this->__edoweb_api_host,
       $namespace,
       $id,
@@ -163,9 +123,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
     header("Content-Type: text/plain");
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/metadata',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s/metadata',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -184,9 +142,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function saveFiles($entity) {
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/data',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s/data',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -211,9 +167,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function getFile($entity) {
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/data',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s/data',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -224,9 +178,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (isset($entity->remote_id)) {
       // Update resource parts
       $http_url = sprintf(
-        'http://%s:%s@%s/resource/%s/parts',
-        $this->__edoweb_api_user,
-        $this->__edoweb_api_pass,
+        '%s/resource/%s/parts',
         $this->__edoweb_api_host,
         $entity->remote_id
       );
@@ -248,9 +200,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function sortParts($entity) {
     // Get order of resource parts
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s/parts?style=short',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s/parts?style=short',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -292,9 +242,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (isset($entity->remote_id)) {
       // Update resource
       $http_url = sprintf(
-        'http://%s:%s@%s/resource/%s',
-        $this->__edoweb_api_user,
-        $this->__edoweb_api_pass,
+        '%s/resource/%s',
         $this->__edoweb_api_host,
         $entity->remote_id
       );
@@ -312,9 +260,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
       // Create resource
       $http_url = sprintf(
-        'http://%s:%s@%s/resource/%s',
-        $this->__edoweb_api_user,
-        $this->__edoweb_api_pass,
+        '%s/resource/%s',
         $this->__edoweb_api_host,
         $namespace
       );
@@ -346,9 +292,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function delete($entity) {
     // Delete resource
     $http_url = sprintf(
-      'http://%s:%s@%s/resource/%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/resource/%s',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
@@ -368,9 +312,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function index($entity) {
     // Index resource
     $http_url = sprintf(
-      'http://%s:%s@%s/utils/index/%s?type=%s',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/utils/index/%s?type=%s',
       $this->__edoweb_api_host,
       $entity->remote_id,
       $entity->bundle_type
@@ -517,9 +459,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       : 'public_' . variable_get('edoweb_api_namespace');
     // Search resources
     $http_url = sprintf(
-      'http://%s:%s@%s/search/%s/_search',
-      $this->__edoweb_api_user,
-      $this->__edoweb_api_pass,
+      '%s/search/%s/_search',
       $this->__edoweb_api_host,
       $index
     );
