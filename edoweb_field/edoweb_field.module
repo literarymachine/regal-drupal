@@ -82,10 +82,7 @@ function edoweb_field_menu() {
  */
 function edoweb_entity_label($entity_type, $entity_id) {
   if ($entity = entity_load_single($entity_type, $entity_id)) {
-    if (isset($entity->type) && !user_access($entity_type . ' entity js read ' . $entity->type)) {
-      return drupal_access_denied();
-    }
-    print entity_label(EDOWEB_ENTITY_TYPE, $entity);
+    die(entity_label(EDOWEB_ENTITY_TYPE, $entity));
   }
   exit();
 }

@@ -602,8 +602,8 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
         new LibRDF_URINode(_edoweb_expand_curie('regal:publishScheme'))
     )->getValue();
   } catch (LibRDF_LookupError $e) {
-    // No publishScheme available, default to private
-    $entity->access_md = 'private';
+    // No publishScheme available, default to public
+    $entity->access_md = 'public';
   }
 
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");

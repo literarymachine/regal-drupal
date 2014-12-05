@@ -313,8 +313,6 @@ function edoweb_basic_load($remote_id, $reset = FALSE) {
  * will in turn call the load() method of our entity controller class.
  */
 function edoweb_basic_load_multiple($remote_ids = FALSE, $conditions = array(), $reset = FALSE) {
-  // TODO: Determine whether to $reset by checking HTTP header
-  // of resource in Edoweb API
   return entity_load('edoweb_basic', $remote_ids, $conditions, $reset);
 }
 
@@ -428,7 +426,7 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/structure'] = array(
     'page callback' => 'edoweb_basic_structure',
     'page arguments' => array(1),
-    'access arguments' => array('edit any edoweb_basic entity'),
+    'access arguments' => array('view any edoweb_basic entity'),
     'type' => MENU_CALLBACK,
   );
 
@@ -1502,8 +1500,7 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity) {
-  // TODO: check edit access for POST
-  if ('POST' == $_SERVER['REQUEST_METHOD']) {
+  if ('POST' == $_SERVER['REQUEST_METHOD'] && user_access('edit any edoweb_basic entity')) {
     $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
     $parts = isset($_POST['parts']) ? $_POST['parts'] : FALSE;
 
@@ -1524,6 +1521,8 @@ function edoweb_basic_structure($entity) {
       echo "Failed settings parts for {$entity->remote_id}\n";
     }
     die;
+  } else if ('POST' == $_SERVER['REQUEST_METHOD']) {
+    return MENU_ACCESS_DENIED;
   } else {
     $subtree = _edoweb_build_tree($entity);
     die(theme_item_list(array(
@@ -2244,10 +2243,10 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
 function _edoweb_has_md_access($entity, $permissions = null) {
   global $user;
   $user_access = isset($permissions) ? user_access($permissions) : true;
-  return (($entity->access_md == 'public') && $user_access)
-          || ((in_array('edoweb_backend_admin', $user->roles)
-            || in_array('edoweb_backend_user', $user->roles))
-            && $user_access);
+  $public_access = ($entity->access_md == 'public') && $user_access;
+  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
+  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
+  return $public_access || $admin_access || $backend_access;
 }
 
 function _edoweb_available_languages() {
@@ -3046,4 +3045,11 @@ function edoweb_update_7138() {
  */
 function edoweb_update_7139() {
   _update_edoweb_installed_instances();
+}
+
+/**
+ * Update route permissions
+ */
+function edoweb_update_7140() {
+  variable_set('menu_rebuild_needed', TRUE);
 }
