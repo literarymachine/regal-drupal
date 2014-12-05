@@ -840,7 +840,7 @@ function _field_name_to_jsonld_key($field_name) {
   $rdf_namespaces = rdf_get_namespaces();
   $field_property_uri = $rdf_namespaces[$prefix] . $local;
   $context_url = sprintf(
-    'http://%s/public/%s-resources.json',
+    '%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
@@ -858,7 +858,7 @@ function _field_name_to_jsonld_key($field_name) {
 
 function _jsonld_key_to_field_name($jsonld_key) {
   $context_url = sprintf(
-    'http://%s/public/%s-resources.json',
+    '%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );

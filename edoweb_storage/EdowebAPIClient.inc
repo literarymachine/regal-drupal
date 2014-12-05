@@ -368,7 +368,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       : null;
 
     $http_url = sprintf(
-      'http://%s/%s?%s=%s&from=%s&size=%s',
+      '%s/%s?%s=%s&from=%s&size=%s',
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
 
