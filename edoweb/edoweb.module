@@ -1557,13 +1557,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     '#weight' => 100,
   );
 
-  $entity_is_managable = false;
-  $namespace = variable_get('edoweb_api_namespace');
-  if ("$namespace:" === substr($entity->identifier(), 0, strlen($namespace) + 1)) {
-    $entity_is_managable = true;
-  }
-
-  if ($entity_is_managable) {
+  if (_is_edoweb_entity($entity)) {
     $api = new EdowebAPIClient();
     $has_urn = field_get_items('edoweb_basic', $entity, 'field_edoweb_urn') ? TRUE : FALSE;
     if (!$has_urn) {
@@ -2105,7 +2099,7 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   if ($http_response->code[0] != 2) {
-    print_r($http_response);
+    console_log($http_response);
   }
 
   // Display response in UI
@@ -2227,16 +2221,10 @@ function _edoweb_field_access($entity, $fields = array(), $permissions = null) {
 }
 
 function _edoweb_is_editable_entity($entity, $permissions = null) {
-  $namespace = variable_get('edoweb_api_namespace');
-  if ("$namespace:" === substr($entity->identifier(), 0, strlen($namespace) + 1)) {
-    $entity_is_editable = TRUE;
-  } else {
-    $entity_is_editable = FALSE;
-  }
   if (isset($permissions)) {
-    return $entity_is_editable && user_access($permissions);
+    return _is_edoweb_entity($entity) && user_access($permissions);
   } else {
-    return $entity_is_editable;
+    return _is_edoweb_entity($entity);
   }
 }
 
