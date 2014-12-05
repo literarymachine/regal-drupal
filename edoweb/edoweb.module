@@ -2255,7 +2255,9 @@ function _edoweb_available_languages() {
   return $languages;
 }
 
-
+function console_log($obj) {
+  file_put_contents('php://stderr', print_r($obj, true) . "\n");
+}
 
 function _update_edoweb_installed_fields($updated_fields = null) {
 
