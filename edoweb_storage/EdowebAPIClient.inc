@@ -265,7 +265,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $namespace
       );
       $http_response = $this->_http_post($http_url, json_encode($data), 'application/json');
-      $entity->remote_id = _edoweb_compact_uri($http_response->headers['location']);
+      $resource_uri = $http_response->headers['location'];
+      $remote_id = substr($resource_uri, strrpos($resource_uri, '/') + 1);
+      $entity->remote_id = $remote_id;
     }
 
     if (200 != $http_response->code) {
