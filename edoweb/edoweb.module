@@ -417,8 +417,8 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/data'] = array(
     'page callback' => 'edoweb_basic_data',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_field_access',
-    'access arguments' => array(1, array('field_edoweb_datastream')),
+    'access callback' => '_edoweb_has_data_access',
+    'access arguments' => array(1, 'view any edoweb_basic entity'),
     'type' => MENU_CALLBACK,
   );
 
@@ -1247,6 +1247,15 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
         '#title' => 'Related resources',
       );
     }
+
+    $entity->content['access_rights'] = array(
+      '#type' => 'item',
+      '#markup' => '<div style="display: none;">'
+                  . '<span property="regal:publishScheme">' . $entity->access_md . '</span>'
+                  . '<span property="regal:accessScheme">' .  $entity->access_data . '</span>'
+                  . '</div>',
+      '#weight' => 1000,
+    );
 
     $entity->content['_updated'] = array(
       '#type' => 'item',
@@ -2232,6 +2241,15 @@ function _edoweb_has_md_access($entity, $permissions = null) {
   global $user;
   $user_access = isset($permissions) ? user_access($permissions) : true;
   $public_access = ($entity->access_md == 'public') && $user_access;
+  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
+  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
+  return $public_access || $admin_access || $backend_access;
+}
+
+function _edoweb_has_data_access($entity, $permissions = null) {
+  global $user;
+  $user_access = isset($permissions) ? user_access($permissions) : true;
+  $public_access = ($entity->access_data == 'public') && $user_access;
   $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
   $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
   return $public_access || $admin_access || $backend_access;

@@ -225,12 +225,9 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $data = array();
     $data['contentType'] = $entity->bundle_type;
     if ($transformers) $data['transformer'] = $transformers;
-    $data['accessScheme'] = isset($entity->access_data)
-      ? $entity->access_data : 'private';
-    $data['publishScheme'] = isset($entity->access_md)
-      ? $entity->access_md : 'private';
-    $data['isDescribedBy']['createdBy']
-      = url("user/{$entity->uid}", array('absolute' => TRUE));
+    if (isset($entity->access_data)) $data['accessScheme'] = $entity->access_data;
+    if (isset($entity->access_md)) $data['publishScheme'] = $entity->access_md;
+    if (isset($entity->uid)) $data['isDescribedBy']['createdBy'] = $entity->uid;
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {
