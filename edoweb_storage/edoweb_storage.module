@@ -889,3 +889,22 @@ function _is_edoweb_entity($entity) {
       || "template:" === substr($remote_id, 0, 9)
       || "local:" === substr($remote_id, 0, 6));
 }
+
+function _get_api_auth_header() {
+  // Fetch credentials from drupal settings
+  global $user;
+  if (in_array('edoweb_backend_admin', $user->roles)) {
+    $api_user = variable_get('edoweb_admin_user');
+    $api_pass = variable_get('edoweb_admin_password');
+  } else if (in_array('edoweb_backend_user', $user->roles)) {
+    $api_user = variable_get('edoweb_editor_user');
+    $api_pass = variable_get('edoweb_editor_password');
+  } else if (in_array('edoweb_backend_reader', $user->roles)) {
+    $api_user = variable_get('edoweb_reader_user');
+    $api_pass = variable_get('edoweb_reader_password');
+  } else {
+    $api_user = variable_get('edoweb_anonymous_user');
+    $api_pass = variable_get('edoweb_anonymous_password');
+  }
+  return 'Basic ' . base64_encode($api_user . ':' . $api_pass);
+}

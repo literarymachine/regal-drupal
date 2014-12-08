@@ -2061,28 +2061,11 @@ function _edoweb_format_subject($remote_id) {
 }
 
 function _edoweb_http_request($request_url, $http_options) {
-  // Fetch credentials from drupal settings
-  global $user;
-  if (in_array('edoweb_backend_admin', $user->roles)) {
-    $api_user = variable_get('edoweb_admin_user');
-    $api_pass = variable_get('edoweb_admin_password');
-  } else if (in_array('edoweb_backend_user', $user->roles)) {
-    $api_user = variable_get('edoweb_editor_user');
-    $api_pass = variable_get('edoweb_editor_password');
-  } else if (in_array('edoweb_backend_reader', $user->roles)) {
-    $api_user = variable_get('edoweb_reader_user');
-    $api_pass = variable_get('edoweb_reader_password');
-  } else {
-    $api_user = variable_get('edoweb_anonymous_user');
-    $api_pass = variable_get('edoweb_anonymous_password');
-  }
 
   // Add credentials if loading from API
   $api_host = variable_get('edoweb_api_host');
   if ("$api_host" === substr($request_url, 0, strlen($api_host))) {
-    $http_options['headers']['Authorization'] = 'Basic ' . base64_encode(
-      $api_user . ':' . $api_pass
-    );
+    $http_options['headers']['Authorization'] = _get_api_auth_header();
   }
 
   $http_options += array(

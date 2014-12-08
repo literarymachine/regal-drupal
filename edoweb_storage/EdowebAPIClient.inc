@@ -738,6 +738,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       CURLOPT_HTTPHEADER => array(
         "Expect: 100-continue",
         "Content-Type: multipart/form-data; boundary={$boundary}", // change Content-Type
+        "Authorization: " . _get_api_auth_header(),
       ),
     );
 
