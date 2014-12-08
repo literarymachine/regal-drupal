@@ -34,10 +34,17 @@
   }
 
   Drupal.behaviors.edoweb_tree = {
-    attached: false,
     attach: function (context, settings) {
 
-      // $('#block-edoweb-edoweb-tree-navigation', context).find('ul').sortable({items:'li'});
+      Drupal.settings.edoweb.entity = decodeURIComponent(
+        window.location.pathname.replace(Drupal.settings.basePath, '').split('/')[1]
+      );
+      console.log(Drupal.settings.edoweb.entity);
+
+      $('form#edoweb-basic-admin fieldset#edit-actions div.fieldset-wrapper', context).append(
+        $('<input type="submit" id="edit-cut" value="In die Ablage laden" class="form-submit" />')
+        .bind('click', {entity_id: Drupal.settings.edoweb.entity}, Drupal.edoweb.cut_item)
+      );
 
       // Attach clipboard
       var clipboard = $('<div id="edoweb-tree-clipboard" />');
@@ -131,7 +138,6 @@
 
   Drupal.edoweb.cut_item = function(e) {
     entity_id = e.data.entity_id;
-    console.log(entity_id);
     entity_load_json('edoweb_basic', entity_id).onload = function() {
       localStorage.setItem('cut_entity', this.responseText);
       Drupal.edoweb.refreshTree();

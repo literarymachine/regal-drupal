@@ -63,9 +63,6 @@ function edoweb_init() {
         'monograph', 'journal', 'volume', 'issue', 'article'
       ),
     );
-    if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
-      $settings['entity'] = $entity->remote_id;
-    }
     drupal_add_js(array('edoweb' => $settings), 'setting');
     drupal_add_js(
       drupal_get_path('module', 'edoweb') . '/edoweb.js'
