@@ -2343,6 +2343,29 @@ function _update_edoweb_installed_instances($updated_instances = null) {
 
 }
 
+function _update_edoweb_js_permissions() {
+
+  module_load_install('edoweb');
+
+  $entity_info = entity_get_info(EDOWEB_ENTITY_TYPE);
+  $permissions = array();
+  foreach (array_keys($entity_info['bundles']) as $bundle_type) {
+    $permissions[] = EDOWEB_ENTITY_TYPE . " entity js read $bundle_type";
+  }
+
+  $installed_permissions = _edoweb_installed_permissions();
+  $role_ids = array(DRUPAL_ANONYMOUS_RID, DRUPAL_AUTHENTICATED_RID);
+  foreach (array_keys($installed_permissions) as $role_name) {
+    $role = user_role_load_by_name($role_name);
+    $role_ids[] = $role->rid;
+  }
+
+  foreach ($role_ids as $role_id) {
+    user_role_grant_permissions($role_id, $permissions);
+  }
+
+}
+
 function _update_rdf_mapping($updated_mappings = null) {
 
   module_load_install('edoweb');
@@ -3041,4 +3064,11 @@ function edoweb_update_7139() {
  */
 function edoweb_update_7140() {
   variable_set('menu_rebuild_needed', TRUE);
+}
+
+/**
+ * Update permissions for JS access
+ */
+function edoweb_update_7141() {
+  _update_edoweb_js_permissions();
 }
