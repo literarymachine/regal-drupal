@@ -170,7 +170,12 @@
       button.remove();
     });
     UIButtons = [];
-    var cut_entity = JSON.parse(localStorage.getItem('cut_entity'));
+    var cut_entity;
+    try {
+      cut_entity = JSON.parse(localStorage.getItem('cut_entity'));
+    } catch(e) {
+      localStorage.removeItem('cut_entity');
+    }
     if (cut_entity) {
       var entity_id = cut_entity.remote_id;
       var entity_bundle = cut_entity.bundle_type;
