@@ -51,7 +51,7 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get(
       'edoweb_api_host',
-      'api.localhost'
+      'http://api.localhost'
     ),
     '#title' => t('API host'),
     '#description' => t('The hostname or IP address of the API'),
@@ -197,10 +197,10 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get(
       'edoweb_lobid_host',
-      'api.lobid.org'
+      'http://api.lobid.org'
     ),
     '#title' => t('lobid API host'),
-    '#description' => t('The hostname or IP address of the lobid API, without leading http://'),
+    '#description' => t('The hostname or IP address of the lobid API'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
