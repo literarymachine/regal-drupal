@@ -301,7 +301,7 @@
             formData.append('files[]', file, file.name);
           }
           var request = new XMLHttpRequest();
-          request.open("POST", Drupal.settings.basePath + 'resource/' + uri + '/data');
+          request.open("POST", Drupal.settings.basePath + 'resource/' + uri + '/data', false);
           request.send(formData);
         });
         target.append(input);
