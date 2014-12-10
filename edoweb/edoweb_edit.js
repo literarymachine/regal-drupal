@@ -29,7 +29,19 @@
         $('a[href="' + home_href + '"]').attr('href', home_href + search);
       }
       $('input#edit-delete', context).bind('click', function() {
-        return confirm('Möchten Sie den Eintrag unwideruflich löschen?');
+        var confirmed = confirm('Möchten Sie den Eintrag unwideruflich löschen?');
+        if (confirmed) {
+          try {
+            cut_entity = JSON.parse(localStorage.getItem('cut_entity'));
+            if (Drupal.settings.edoweb.entity == cut_entity.remote_id) {
+              localStorage.removeItem('cut_entity');
+            }
+          } catch(e) {
+            localStorage.removeItem('cut_entity');
+          }
+          Drupal.edoweb.refreshTree();
+        }
+        return confirmed;
       });
 
       $('.tabs a', context).bind('click', function() {
@@ -46,11 +58,6 @@
         autoOpen: false,
         width: '80%'
       });
-
-      $('fieldset#edit-actions').children('div.fieldset-wrapper').append(
-        $('<input type="submit" id="edit-cut" value="Ausschneiden" class="form-submit" />')
-        .bind('click', {entity_id: Drupal.settings.edoweb.entity}, Drupal.edoweb.cut_item)
-      );
 
       $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
@@ -294,7 +301,7 @@
             formData.append('files[]', file, file.name);
           }
           var request = new XMLHttpRequest();
-          request.open("POST", Drupal.settings.basePath + 'resource/' + uri + '/data');
+          request.open("POST", Drupal.settings.basePath + 'resource/' + uri + '/data', false);
           request.send(formData);
         });
         target.append(input);

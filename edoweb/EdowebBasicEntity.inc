@@ -38,11 +38,7 @@ class EdowebBasicEntity extends Entity {
   }
 
   public function identifier() {
-    $namespace = variable_get('edoweb_api_namespace');
-    if (isset($this->remote_id)
-        && ("$namespace:" === substr($this->remote_id, 0, strlen($namespace) + 1)
-          || 'template:' == substr($this->remote_id, 0, 9)
-          || 'local:' == substr($this->remote_id, 0, 6))) {
+    if (isset($this->remote_id) && _is_edoweb_entity($this)) {
       $remote_id = $this->remote_id;
     } else if (isset($this->remote_id)) {
       $remote_id = _edoweb_expand_curie($this->remote_id);

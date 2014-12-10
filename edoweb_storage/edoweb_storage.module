@@ -51,10 +51,10 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get(
       'edoweb_api_host',
-      'api.localhost'
+      'http://api.localhost'
     ),
     '#title' => t('API host'),
-    '#description' => t('The hostname or IP address of the API, without leading http://'),
+    '#description' => t('The hostname or IP address of the API'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -197,10 +197,10 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get(
       'edoweb_lobid_host',
-      'api.lobid.org'
+      'http://api.lobid.org'
     ),
     '#title' => t('lobid API host'),
-    '#description' => t('The hostname or IP address of the lobid API, without leading http://'),
+    '#description' => t('The hostname or IP address of the lobid API'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -500,10 +500,7 @@ function _edoweb_storage_entity_serialize_rdf(
               }
             }
           } else {
-            $namespace = variable_get('edoweb_api_namespace');
-            if ("$namespace:" === substr($item, 0, strlen($namespace) + 1)
-                  || 'template:' == substr($item, 0, 9)
-                  || 'local:' == substr($item, 0, 6)) {
+            if (_is_edoweb_entity($item)) {
               $rdf_object = new LibRDF_URINode($item);
             } else {
               $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
@@ -602,8 +599,9 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
         new LibRDF_URINode(_edoweb_expand_curie('regal:publishScheme'))
     )->getValue();
   } catch (LibRDF_LookupError $e) {
-    // No publishScheme available, default to private
-    $entity->access_md = 'private';
+    // No publishScheme available, default to public for external and
+    // private for edoweb entities
+    $entity->access_md = _is_edoweb_entity($entity) ? 'private' : 'public';
   }
 
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
@@ -779,11 +777,6 @@ function _edoweb_escape_utf8($string) {
 }
 
 function _edoweb_expand_curie($curie) {
-  if ('http://' == substr($curie, 0, 7)
-      || '_:' == substr($curie, 0, 2)
-  ) {
-    return $curie;
-  }
   $rdf_namespaces = rdf_get_namespaces();
   list($curie_prefix, $curie_local) = explode(':', $curie);
   if ($curie_prefix == 'ddc' && '/' != substr($curie, -1)) {
@@ -845,7 +838,7 @@ function _field_name_to_jsonld_key($field_name) {
   $rdf_namespaces = rdf_get_namespaces();
   $field_property_uri = $rdf_namespaces[$prefix] . $local;
   $context_url = sprintf(
-    'http://%s/public/%s-resources.json',
+    '%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
@@ -863,7 +856,7 @@ function _field_name_to_jsonld_key($field_name) {
 
 function _jsonld_key_to_field_name($jsonld_key) {
   $context_url = sprintf(
-    'http://%s/public/%s-resources.json',
+    '%s/public/%s-resources.json',
     variable_get('edoweb_api_host'),
     variable_get('edoweb_api_namespace')
   );
@@ -883,4 +876,35 @@ function _jsonld_key_to_field_name($jsonld_key) {
     if ($field_property_uri == $property_uri) return $field_name;
   }
   return $jsonld_key;
+}
+
+function _is_edoweb_entity($entity) {
+  if (is_object($entity)) {
+    $remote_id = $entity->remote_id;
+  } else {
+    $remote_id = $entity;
+  }
+  $namespace = variable_get('edoweb_api_namespace');
+  return ("$namespace:" === substr($remote_id, 0, strlen($namespace) + 1)
+      || "template:" === substr($remote_id, 0, 9)
+      || "local:" === substr($remote_id, 0, 6));
+}
+
+function _get_api_auth_header() {
+  // Fetch credentials from drupal settings
+  global $user;
+  if (in_array('edoweb_backend_admin', $user->roles)) {
+    $api_user = variable_get('edoweb_admin_user');
+    $api_pass = variable_get('edoweb_admin_password');
+  } else if (in_array('edoweb_backend_user', $user->roles)) {
+    $api_user = variable_get('edoweb_editor_user');
+    $api_pass = variable_get('edoweb_editor_password');
+  } else if (in_array('edoweb_backend_reader', $user->roles)) {
+    $api_user = variable_get('edoweb_reader_user');
+    $api_pass = variable_get('edoweb_reader_password');
+  } else {
+    $api_user = variable_get('edoweb_anonymous_user');
+    $api_pass = variable_get('edoweb_anonymous_password');
+  }
+  return 'Basic ' . base64_encode($api_user . ':' . $api_pass);
 }
