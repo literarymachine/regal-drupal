@@ -213,8 +213,10 @@
             ['handler_settings']['target_bundles']);
         }
 
+        // Possible insert positions are as a child of the current entry
+        // or as a sibling of the children of the current entry
         if (target_bundles.indexOf(entity_bundle) != -1) {
-          var insert_button = $('<a href="#" title="[Einfügen]"><span class="octicon octicon-diff-added" /></a>');
+          var insert_button = $('<a href="#" title="[Unterhalb dieser Ebene einfügen]"><span class="octicon octicon-diff-added" /></a>');
           insert_button.hide();
           $(this).children('.edoweb-tree-toolbox').append(insert_button);
           UIButtons.push(insert_button);
@@ -240,6 +242,43 @@
             return false;
           });
           $(this).children('.edoweb-tree-toolbox').addClass('edoweb-tree-insert');
+
+          $(this).children('div.item-list')
+            .children('ul')
+            .children('li')
+            .children('.edoweb-tree-toolbox')
+            .each(function() {
+              var list_item = $(this).closest('li');
+              var self_uri = decodeURIComponent(list_item.find('a:eq(0)').attr('href').split('/').pop());
+              if (self_uri == entity_id) {
+                return true;
+              }
+              var insert_button = $('<a href="#" title="[Auf gleicher Ebene einfügen]"><span class="octicon octicon-move-right" /></a>');
+              insert_button.hide();
+              $(this).append(insert_button);
+              $(this).addClass('edoweb-tree-insert');
+              UIButtons.push(insert_button);
+              insert_button.bind('click', function() {
+                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+                $('#edoweb-tree-clipboard p>span').replaceWith(throbber);
+                var target_struct_url = Drupal.settings.basePath + 'resource/' + entity_id + '/structure';
+                var target_parent_url = list_item.parent().closest('li').find('a:eq(0)').attr('href');
+                var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
+
+                localStorage.removeItem('cut_entity');
+                $('.edoweb-tree a.edoweb-tree-cut-item').closest('li').remove();
+                var inserted_item = $('<li />');
+                list_item.after(inserted_item);
+                loadTree(entity_id, inserted_item, function() {
+                  $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+                    console.log(data);
+                    saveStructure(list_item.parent().closest('li'));
+                    throbber.remove();
+                  });
+                });
+                return false;
+              });
+            });
         }
       });
     } else {
