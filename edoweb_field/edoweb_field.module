@@ -293,7 +293,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
             array('attributes' => array(
               'data-target-bundle' => implode(' ', $target_bundles),
               'data-curie' => $curie,
-              'resource' => $curie,
+              'resource' => $item['value'],
             ))
           ),
         );
