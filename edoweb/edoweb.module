@@ -176,7 +176,7 @@ function edoweb_entity_info() {
         ),
       ),
       'subject' => array(
-        'label' => t('Schlagwort'),
+        'label' => t('Sachschlagwort'),
         'admin' => array(
           'path' => 'admin/structure/edoweb_basic/subject/manage',
           'access arguments' => array('administer edoweb_basic entities'),
@@ -3068,4 +3068,11 @@ function edoweb_update_7140() {
  */
 function edoweb_update_7141() {
   _update_edoweb_js_permissions();
+}
+
+/**
+ * Clear entity info cache
+ */
+function edoweb_update_7142() {
+  entity_info_cache_clear();
 }
