@@ -154,7 +154,7 @@
             modal_overlay.dialog('open');
             return false;
           });
-          submit_button.after(import_button);
+          template_select.after(import_button);
         }
 
         activateFields(entity.find('.field'), bundle, context);
