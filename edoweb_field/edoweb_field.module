@@ -118,6 +118,13 @@ function edoweb_field_preprocess_field(&$variables) {
       $variables['items'][$i]['#markup'] =
         '<span resource="' . $item['value'] . '">' . $variables['items'][$i]['#markup'] . '</span>';
     }
+  } else if ($variables['element']['#field_name'] == 'field_edoweb_catalog_link') {
+    // FIXME: rdfQuery currently tries to fetch the link target for some
+    // reason, thus we need to keep this plain text for now
+    //foreach ($variables['element']['#items'] as $i => $item) {
+    //  $variables['items'][$i]['#markup'] =
+    //    '<a href="' . $item['value'] . '">' . $item['value'] . '</a>';
+    //}
   }
 }
 

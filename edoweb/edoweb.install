@@ -1249,6 +1249,35 @@ function _edoweb_installed_fields() {
         'predicates' => array('gnd:dateOfTermination'),
       ),
     ),
+    'field_edoweb_collected_by' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
+        'predicates' => array('holding:collectedBy'),
+        'parameter' => 'name',
+        'endpoint' => 'resource',
+      ),
+    ),
+    'field_edoweb_subject_chain' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
+        'predicates' => array('lv:subjectChain'),
+      ),
+    ),
+    'field_edoweb_catalog_link' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'read_only' => TRUE,
+        'predicates' => array('foaf:isPrimaryTopicOf'),
+      ),
+    ),
   );
 }
 
@@ -1307,6 +1336,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_subject_chain' => array(),
       'field_edoweb_tag' => array(),
       'field_edoweb_abstract' => array(),
       'field_edoweb_parallel' => array(
@@ -1340,6 +1370,17 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_collected_by' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'collection' => 'collection',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_catalog_link' => array(),
     ),
 
     /*
@@ -1394,6 +1435,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_subject_chain' => array(),
       'field_edoweb_tag' => array(),
       'field_edoweb_parallel' => array(
         'settings'    => array(
@@ -1429,6 +1471,17 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_collected_by' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'collection' => 'collection',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_catalog_link' => array(),
     ),
 
     /*
@@ -1517,6 +1570,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_extent' => array(),
       'field_edoweb_description' => array(),
       'field_edoweb_subject' => array(),
+      'field_edoweb_subject_chain' => array(),
       'field_edoweb_tag' => array(),
       'field_edoweb_abstract' => array(),
       'field_edoweb_struct_child' => array(
@@ -1893,6 +1947,15 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_gnd_date_of_termination' => array(
       'label' => $t('Auflösungsdatum'),
+    ),
+    'field_edoweb_collected_by' => array(
+      'label' => $t('Bestandteil von'),
+    ),
+    'field_edoweb_subject_chain' => array(
+      'label' => $t('Schlagwortkette'),
+    ),
+    'field_edoweb_catalog_link' => array(
+      'label' => $t('Katalogeintrag'),
     ),
   );
   return $defaults[$field_name];
