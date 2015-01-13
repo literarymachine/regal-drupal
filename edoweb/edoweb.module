@@ -2049,6 +2049,17 @@ function edoweb_file_insert($files) {
   //drupal_set_message(print_r($files, TRUE));
 }
 
+/**
+ * Set prefix of HTML title
+ */
+function edoweb_preprocess_html(&$vars) {
+  $title_parts = explode('|', $vars['head_title']);
+  $site_name = variable_get('site_name');
+  if ($site_name == trim(array_pop($title_parts)) && $title_parts) {
+    $vars['head_title'] = "{$site_name}: " . implode('|', $title_parts);
+  }
+}
+
 function _edoweb_format_date($timestamp) {
   return format_date($timestamp, 'custom', 'D, d.m.Y - H:i:s');
 }
