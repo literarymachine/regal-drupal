@@ -154,7 +154,7 @@
             modal_overlay.dialog('open');
             return false;
           });
-          submit_button.after(import_button);
+          template_select.after(import_button);
         }
 
         activateFields(entity.find('.field'), bundle, context);
@@ -178,7 +178,11 @@
           url += '?namespace=template';
         }
         var subject = topic.o;
-        var post_data = rdf.databank.dump({format:'application/rdf+xml', serialize: true});
+        var post_data = rdf.databank.dump({
+          format:'application/rdf+xml',
+          serialize: true,
+          namespaces: Drupal.settings.edoweb.namespaces
+        });
         $.post(url, post_data, function(data, textStatus, jqXHR) {
           var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
           button.trigger('insert', resource_uri);
