@@ -39,7 +39,6 @@
       Drupal.settings.edoweb.entity = decodeURIComponent(
         window.location.pathname.replace(Drupal.settings.basePath, '').split('/')[1]
       );
-      console.log(Drupal.settings.edoweb.entity);
 
       $('form#edoweb-basic-admin fieldset#edit-actions div.fieldset-wrapper', context).append(
         $('<input type="submit" id="edit-cut" value="In die Ablage laden" class="form-submit" />')

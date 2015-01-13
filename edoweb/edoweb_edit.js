@@ -21,13 +21,6 @@
 
   Drupal.behaviors.edoweb_edit = {
     attach: function (context, settings) {
-      var home_href = Drupal.settings.basePath + 'resource';
-      if (document.location.pathname == home_href && '' != document.location.search) {
-        localStorage.setItem('edoweb_search', document.location.search);
-      }
-      if (search = localStorage.getItem('edoweb_search')) {
-        $('a[href="' + home_href + '"]').attr('href', home_href + search);
-      }
       $('input#edit-delete', context).bind('click', function() {
         var confirmed = confirm('Möchten Sie den Eintrag unwideruflich löschen?');
         if (confirmed) {
