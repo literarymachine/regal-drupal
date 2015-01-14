@@ -338,8 +338,9 @@
                 } else if ($(this).find('.field-item').length < 1) {
                   createTextInput(instance, $(this));
                 }
-                if ((instance['settings']['cardinality'] == -1)
-                    || ($(this).find('.field-item').length < instance['settings']['cardinality'])) {
+                if (! instance['settings']['read_only'] &&
+                    ((instance['settings']['cardinality'] == -1)
+                    || ($(this).find('.field-item').length < instance['settings']['cardinality']))) {
                   var add_button = $('<a href="#"><span class="octicon octicon-plus" /></a>')
                     .bind('click', function() {
                       createTextInput(instance, field.find('.field-items'));
@@ -351,7 +352,8 @@
               break;
             case 'edoweb_autocomplete_widget':
               field.find('.field-items').each(function() {
-                if (instance['settings']['metadata_type'] == 'descriptive'
+                if (! instance['settings']['read_only']
+                    && instance['settings']['metadata_type'] == 'descriptive'
                     && ((instance['settings']['cardinality'] == -1)
                     || ($(this).find('.field-item').length < instance['settings']['cardinality']))) {
                   var add_button = $('<a href="#"><span class="octicon octicon-link" /></a>')

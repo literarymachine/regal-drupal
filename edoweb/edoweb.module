@@ -273,6 +273,10 @@ function edoweb_entity_property_info() {
     'label' => t('The data access scheme of the Entity'),
     'type' => 'text',
   );
+  $properties['catalog_link'] = array(
+    'label' => t('The URL of the catalog link of the Entity'),
+    'type' => 'uri',
+  );
   return $property_info;
 }
 
@@ -1273,6 +1277,20 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       '#weight' => 1001,
     );
 
+    if (property_exists($entity, 'catalog_link')) {
+      $entity->content['catalog_link'] = array(
+        '#type' => 'item',
+        '#markup' => '<small>' . l(
+          'View in catalog',
+          $entity->catalog_link,
+          array('attributes' => array(
+            'target'=>'_blank',
+          ))
+        ) . '</small>',
+        '#weight' => 1002,
+      );
+    }
+
     try {
       $origin = $wrapper->field_edoweb_parallel->value();
       if (! empty($origin)) {
@@ -1286,7 +1304,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
               'class' => array('entity-id'),
             ))
           ) . '</small>',
-          '#weight' => 1002,
+          '#weight' => 1003,
         );
       }
     } catch (EntityMetadataWrapperException $e) {
@@ -1934,6 +1952,7 @@ function edoweb_rdf_namespaces() {
     'nwbib' => 'http://purl.org/lobid/nwbib#',
     'nwbib-spatial' => 'http://purl.org/lobid/nwbib-spatial#',
     'radion' => 'http://www.w3.org/ns/radion#',
+    'holding' => 'http://purl.org/ontology/holding#',
   );
 }
 
@@ -3087,3 +3106,34 @@ function edoweb_update_7141() {
 function edoweb_update_7142() {
   entity_info_cache_clear();
 }
+
+/**
+ * Add fields for lv:subjectChain, holding:collectedBy and foaf:isPrimaryTopicOf
+ */
+function edoweb_update_7143() {
+  $added_fields = array(
+    'field_edoweb_subject_chain',
+    'field_edoweb_collected_by',
+    'field_edoweb_catalog_link',
+  );
+  $added_instances = array(
+    'monograph' => array(
+      'field_edoweb_subject_chain',
+      'field_edoweb_collected_by',
+      'field_edoweb_catalog_link',
+    ),
+    'journal' => array(
+      'field_edoweb_subject_chain',
+      'field_edoweb_collected_by',
+      'field_edoweb_catalog_link',
+    ),
+    'article' => array(
+      'field_edoweb_subject_chain',
+    ),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+  entity_info_cache_clear();
+}
+
