@@ -316,7 +316,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         $link = base_path() . 'resource/' . $item['value'];
         $title = t('Download @extension', array('@extension' => strtoupper($extension)));
         $elements[] = array(
-          '#markup' => "<a class=\"edoweb download\" data-curie=\"$curie\" title=\"$title\" href=\"$link\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
+          '#markup' => "<a class=\"edoweb download\" data-curie=\"$curie\" title=\"$title\" href=\"$link\" target=\"_blank\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
         );
       }
       break;

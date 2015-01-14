@@ -753,6 +753,13 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
             'column' => 'value',
           ),
         ),
+        array(
+          'data' => t('Updated'),
+          'type' => 'property',
+          'specifier' => 'updated',
+          'format' => '_edoweb_format_date',
+          'sort' => $init_sort ? 'desc' : null,
+        ),
       );
       break;
     case 'person':
@@ -862,14 +869,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
 
   // Add fixed columns, independant of bundle type
   array_unshift($columns, 'ID');
-  $updated = array(
-    'data' => t('Updated'),
-    'type' => 'property',
-    'specifier' => 'updated',
-    'format' => '_edoweb_format_date',
-    'sort' => $init_sort ? 'desc' : null,
-  );
-  array_push($columns, $updated);
   array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
@@ -2048,6 +2047,17 @@ function edoweb_file_load($files) {
  */
 function edoweb_file_insert($files) {
   //drupal_set_message(print_r($files, TRUE));
+}
+
+/**
+ * Set prefix of HTML title
+ */
+function edoweb_preprocess_html(&$vars) {
+  $title_parts = explode('|', $vars['head_title']);
+  $site_name = variable_get('site_name');
+  if ($site_name == trim(array_pop($title_parts)) && $title_parts) {
+    $vars['head_title'] = "{$site_name}: " . implode('|', $title_parts);
+  }
 }
 
 function _edoweb_format_date($timestamp) {
