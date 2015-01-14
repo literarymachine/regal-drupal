@@ -30,9 +30,9 @@ require_once dirname(__FILE__) . '/lib/php-json-ld/jsonld.php';
  * Implements hook_init().
  */
 function edoweb_init() {
+  drupal_add_library('system', 'ui.sortable');
   if (drupal_match_path(current_path(), 'resource' . PHP_EOL . 'resource/*')) {
     drupal_add_library('system', 'ui.dialog');
-    drupal_add_library('system', 'ui.sortable');
     drupal_add_library('system', 'ui.datepicker');
     drupal_add_library('system', 'drupal.collapse');
     global $user;
@@ -62,6 +62,7 @@ function edoweb_init() {
       'primary_bundles' => array(
         'monograph', 'journal', 'volume', 'issue', 'article'
       ),
+      'site_frontpage' => variable_get('site_frontpage', '/'),
     );
     drupal_add_js(array('edoweb' => $settings), 'setting');
     drupal_add_js(
@@ -1982,12 +1983,6 @@ function edoweb_block_list_alter(&$blocks) {
  * This hook generates the contents of the blocks themselves.
  */
 function edoweb_block_view($delta = '') {
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb_edit.js'
-  );
-  drupal_add_js(
-    drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
-  );
   $block = array();
   // The $delta parameter tells us which block is being requested.
   switch ($delta) {
@@ -2007,6 +2002,12 @@ function edoweb_block_view($delta = '') {
       break;
     case 'edoweb_tree_navigation':
       if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
+        drupal_add_js(
+          drupal_get_path('module', 'edoweb') . '/edoweb_edit.js'
+        );
+        drupal_add_js(
+          drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
+        );
         $top_level_parent = _edoweb_find_top_level_parent($entity);
         if (in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
           $subtree = _edoweb_build_tree($top_level_parent);

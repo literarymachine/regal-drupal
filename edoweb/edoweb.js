@@ -20,6 +20,35 @@
 (function($) {
 
   /**
+   * Common behaviours
+   */
+  Drupal.behaviors.edoweb = {
+    attach: function (context, settings) {
+      var home_href = Drupal.settings.basePath + 'resource';
+      if (document.location.pathname == home_href && '' != document.location.search) {
+        var query_params = [];
+        var all_params = document.location.search.substr(1).split('&');
+        $.each(all_params, function(i, param) {
+          if ('query[0][facets]' == param.substr(0, 16)) {
+            query_params.push(param);
+          }
+        });
+        if (query_params) {
+          sessionStorage.setItem('edoweb_search', '?' + query_params.join('&'));
+        }
+      } else if (document.location.pathname == home_href) {
+        sessionStorage.removeItem('edoweb_search');
+      }
+      if (search = sessionStorage.getItem('edoweb_search')) {
+        $('a[href="' + home_href + '"]').attr('href', home_href + search);
+        if ('resource' == Drupal.settings.edoweb.site_frontpage) {
+          $('a[href="/"]').attr('href', home_href + search);
+        }
+      }
+    }
+  }
+
+  /**
    * Edoweb helper functions
    */
   Drupal.edoweb = {
