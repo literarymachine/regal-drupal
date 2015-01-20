@@ -1316,6 +1316,25 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     }
 
     try {
+      $archived_url = $wrapper->field_edoweb_webpage_archived->value();
+      if (! empty($archived_url)) {
+        $entity->content['archived_url'] = array(
+          '#type' => 'item',
+          '#markup' => '<small>' . l(
+            'View in Internet Archive',
+            "http://web.archive.org/web/*/{$archived_url}",
+            array('attributes' => array(
+              'target'=>'_blank',
+            ))
+          ) . '</small>',
+          '#weight' => 1003,
+        );
+      }
+    } catch (EntityMetadataWrapperException $e) {
+      // Field not present, ignore
+    }
+
+    try {
       $origin = $wrapper->field_edoweb_parallel->value();
       if (! empty($origin)) {
         $entity->content['mab_source'] = array(
@@ -1328,7 +1347,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
               'class' => array('entity-id'),
             ))
           ) . '</small>',
-          '#weight' => 1003,
+          '#weight' => 1004,
         );
       }
     } catch (EntityMetadataWrapperException $e) {
