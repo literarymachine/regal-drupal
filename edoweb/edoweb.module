@@ -3191,7 +3191,10 @@ function edoweb_update_7144() {
   entity_info_cache_clear();
   module_load_install('edoweb');
 
-  $updated_fields = array('field_edoweb_parallel');
+  $updated_fields = array(
+    'field_edoweb_parallel',
+    'field_edoweb_webpage_archived',
+  );
   _update_edoweb_installed_fields($updated_fields);
   _update_rdf_mapping();
 
@@ -3204,7 +3207,7 @@ function edoweb_update_7144() {
 
 }
 
-/*
+/**
  * Add field and instance for field_edoweb_webpage_archived
  */
 function edoweb_update_7145() {
