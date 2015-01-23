@@ -168,6 +168,20 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'webpage' => array(
+        'label' => t('Webseite'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/webpage/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
+      'version' => array(
+        'label' => t('Version'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/version/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
       'person' => array(
         'label' => t('Person'),
         'namespace' => 'local',
@@ -462,7 +476,7 @@ function edoweb_info_page() {
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->entityCondition('bundle', array(
-    'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+    'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'webpage', 'version'
   ));
   $content['resource_list'] = edoweb_basic_search_entities(
     $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity')
@@ -708,6 +722,8 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'article':
     case 'file':
     case 'collection':
+    case 'webpage':
+    case 'version':
       $columns = array(
         array(
           'data' => t('Title'),
@@ -1143,6 +1159,10 @@ function _edoweb_map_string($string) {
       return t('issue');
     case 'article':
       return t('article');
+    case 'webpage':
+      return t('webpage');
+    case 'version':
+      return t('version');
     case 'Add monograph':
       return t('Add monograph');
     case 'Add journal':
@@ -1155,6 +1175,10 @@ function _edoweb_map_string($string) {
       return t('Add article');
     case 'Add file':
       return t('Add file');
+    case 'Add webpage':
+      return t('Add webpage');
+    case 'Add version':
+      return t('Add version');
     default:
       return $string;
   }
@@ -1292,6 +1316,25 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     }
 
     try {
+      $archived_url = $wrapper->field_edoweb_webpage_archived->value();
+      if (! empty($archived_url)) {
+        $entity->content['archived_url'] = array(
+          '#type' => 'item',
+          '#markup' => '<small>' . l(
+            'View in Internet Archive',
+            "http://web.archive.org/web/*/{$archived_url}",
+            array('attributes' => array(
+              'target'=>'_blank',
+            ))
+          ) . '</small>',
+          '#weight' => 1003,
+        );
+      }
+    } catch (EntityMetadataWrapperException $e) {
+      // Field not present, ignore
+    }
+
+    try {
       $origin = $wrapper->field_edoweb_parallel->value();
       if (! empty($origin)) {
         $entity->content['mab_source'] = array(
@@ -1304,7 +1347,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
               'class' => array('entity-id'),
             ))
           ) . '</small>',
-          '#weight' => 1003,
+          '#weight' => 1004,
         );
       }
     } catch (EntityMetadataWrapperException $e) {
@@ -1904,6 +1947,9 @@ function edoweb_rdf_types($bundle = null) {
     'issue' => array('bibo:Issue'),
     'article' => array('bibo:Article'),
     'file' => array('bibo:DocumentPart'),
+    'webpage' => array('lv:ArchivedWebPage'),
+    //FIXME: dummy RDF type for version
+    'version' => array('lv:ArchivedWebPageVersion'),
     'authority_resource' => array('gnd:AuthorityResource'),
     'collection' => array(
       'bibo:Collection',
@@ -3137,3 +3183,41 @@ function edoweb_update_7143() {
   entity_info_cache_clear();
 }
 
+/**
+ * Add field instances for webpage and version bundles, update RDF mapping of field_edoweb_parallel
+ */
+function edoweb_update_7144() {
+
+  entity_info_cache_clear();
+  module_load_install('edoweb');
+
+  $updated_fields = array(
+    'field_edoweb_parallel',
+    'field_edoweb_webpage_archived',
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_rdf_mapping();
+
+  $available_instances = _edoweb_installed_instances();
+  $added_instances = array(
+    'webpage' => array_keys($available_instances['webpage']),
+    'version' => array_keys($available_instances['version']),
+  );
+  _update_edoweb_installed_instances($added_instances);
+
+}
+
+/**
+ * Add field and instance for field_edoweb_webpage_archived
+ */
+function edoweb_update_7145() {
+
+  $added_fields = array('field_edoweb_webpage_archived');
+  $added_instances = array(
+    'webpage' => array('field_edoweb_webpage_archived')
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+
+}

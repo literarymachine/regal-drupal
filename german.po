@@ -11,8 +11,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Edoweb\n"
-"POT-Creation-Date: 2014-09-29 17:47+0200\n"
-"PO-Revision-Date: 2014-11-27 13:10+0100\n"
+"POT-Creation-Date: 2015-01-20 14:40+0100\n"
+"PO-Revision-Date: 2015-01-20 14:41+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -20,772 +20,725 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: edoweb/edoweb.module:50
+#: edoweb/edoweb.module:94
 msgid "Edoweb Basic Entity"
 msgstr "Edoweb Objekt"
 
-#: edoweb/edoweb.module:92
+#: edoweb/edoweb.module:130
 msgid "Monograph"
 msgstr "Monografie"
 
-#: edoweb/edoweb.module:99
+#: edoweb/edoweb.module:137
 msgid "Journal"
 msgstr "Periodikum"
 
-#: edoweb/edoweb.module:106;643
+#: edoweb/edoweb.module:144;745
 msgid "Volume"
 msgstr "Band"
 
-#: edoweb/edoweb.module:113
+#: edoweb/edoweb.module:151
 msgid "Issue"
 msgstr "Heft"
 
-#: edoweb/edoweb.module:120
+#: edoweb/edoweb.module:158
 msgid "Article"
 msgstr "Artikel"
 
-#: edoweb/edoweb.module:127
+#: edoweb/edoweb.module:165
 msgid "File"
 msgstr "Datei"
 
-#: edoweb/edoweb.module:134
+#: edoweb/edoweb.module:172
+msgid "Webseite"
+msgstr ""
+
+#: edoweb/edoweb.module:179
+msgid "Version"
+msgstr ""
+
+#: edoweb/edoweb.module:186
 msgid "Person"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.module:141 edoweb/edoweb.install:1940
-msgid "Schlagwort"
+#: edoweb/edoweb.module:194
+msgid "Sachschlagwort"
 msgstr ""
 
-#: edoweb/edoweb.module:148
+#: edoweb/edoweb.module:201
 msgid "Körperschaft"
 msgstr ""
 
-#: edoweb/edoweb.module:155
+#: edoweb/edoweb.module:209
 msgid "Veranstaltung"
 msgstr ""
 
-#: edoweb/edoweb.module:162
+#: edoweb/edoweb.module:216
 msgid "Familie"
 msgstr ""
 
-#: edoweb/edoweb.module:169
+#: edoweb/edoweb.module:223
 msgid "Werk"
 msgstr ""
 
-#: edoweb/edoweb.module:176
-msgid "Ort"
+#: edoweb/edoweb.module:230
+msgid "Geographikum"
 msgstr ""
 
-#: edoweb/edoweb.module:183
+#: edoweb/edoweb.module:237
 msgid "Sammlung"
 msgstr ""
 
-#: edoweb/edoweb.module:190
+#: edoweb/edoweb.module:244
 msgid "Authority Resource"
+msgstr "Normdatensatz"
+
+#: edoweb/edoweb.module:263
+msgid "The bundle of the Entity"
 msgstr ""
 
-#: edoweb/edoweb.module:200
-msgid "Tweaky"
+#: edoweb/edoweb.module:267
+msgid "The creation date of the Entity"
 msgstr ""
 
-#: edoweb/edoweb.module:400
+#: edoweb/edoweb.module:271
+msgid "The update date of the Entity"
+msgstr ""
+
+#: edoweb/edoweb.module:275
+msgid "The user ID of the creator of the Entity"
+msgstr ""
+
+#: edoweb/edoweb.module:279
+msgid "The ID of the Entity, a URI"
+msgstr ""
+
+#: edoweb/edoweb.module:283
+msgid "The metadata access scheme of the Entity"
+msgstr ""
+
+#: edoweb/edoweb.module:287
+msgid "The data access scheme of the Entity"
+msgstr ""
+
+#: edoweb/edoweb.module:291
+msgid "The URL of the catalog link of the Entity"
+msgstr ""
+
+#: edoweb/edoweb.module:494
 msgid "Administer Edoweb Basic entities"
 msgstr ""
 
-#: edoweb/edoweb.module:403
+#: edoweb/edoweb.module:497
 msgid "View any Edoweb Basic entity"
 msgstr ""
 
-#: edoweb/edoweb.module:406
+#: edoweb/edoweb.module:500
 msgid "Edit any Edoweb Basic entity"
 msgstr ""
 
-#: edoweb/edoweb.module:409
+#: edoweb/edoweb.module:503
 msgid "Create Edoweb Basic Entities"
 msgstr ""
 
-#: edoweb/edoweb.module:412
+#: edoweb/edoweb.module:506
 msgid "Administer Edoweb Configuration"
 msgstr ""
 
-#: edoweb/edoweb.module:493
+#: edoweb/edoweb.module:592
 msgid ""
 "Enter your search term here. You may use quotes to search for phrases as in "
 "\"The quick brown fox\", and also boolean operators as in This AND that OR "
 "those."
 msgstr ""
 
-#: edoweb/edoweb.module:520;1968
+#: edoweb/edoweb.module:619;2039
 msgid "Search"
 msgstr "Suche"
 
-#: edoweb/edoweb.module:627
+#: edoweb/edoweb.module:729
 msgid "Title"
 msgstr "Titel"
 
-#: edoweb/edoweb.module:635
+#: edoweb/edoweb.module:737
 msgid "HT-Nummer"
 msgstr ""
 
-#: edoweb/edoweb.module:651
+#: edoweb/edoweb.module:753
 msgid "Issued"
 msgstr "E-Jahr"
 
-#: edoweb/edoweb.module:659
+#: edoweb/edoweb.module:761
 msgid "Download"
 msgstr ""
 
-#: edoweb/edoweb.module:667
-msgid "Byte"
-msgstr ""
-
-#: edoweb/edoweb.module:675
+#: edoweb/edoweb.module:769
 msgid "File type"
 msgstr "Dateityp"
 
-#: edoweb/edoweb.module:786
+#: edoweb/edoweb.module:777
 msgid "Updated"
 msgstr "Letzte Bearb."
 
-#: edoweb/edoweb.module:793
+#: edoweb/edoweb.module:892
 msgid "Type"
 msgstr "Objektart"
 
-#: edoweb/edoweb.module:794
+#: edoweb/edoweb.module:893
 msgid "Operations"
 msgstr ""
 
-#: edoweb/edoweb.module:807
+#: edoweb/edoweb.module:906
 msgid "Your search returned @total results"
 msgstr "@total Treffer"
 
-#: edoweb/edoweb.module:932
+#: edoweb/edoweb.module:1024
 msgid "Facets"
 msgstr "Filter (Auswahl)"
 
-#: edoweb/edoweb.module:963
+#: edoweb/edoweb.module:1055
 msgid " [x]"
 msgstr ""
 
-#: edoweb/edoweb.module:1038
+#: edoweb/edoweb.module:1130
 msgid "No results."
 msgstr "Keine Treffer"
 
-#: edoweb/edoweb.module:1051
+#: edoweb/edoweb.module:1143
 msgid "creator"
 msgstr "Person/Institution"
 
-#: edoweb/edoweb.module:1053
+#: edoweb/edoweb.module:1145
 msgid "subject"
 msgstr "Sacherschließung"
 
-#: edoweb/edoweb.module:1055
+#: edoweb/edoweb.module:1147
 msgid "issued"
 msgstr "Erscheinungsjahr"
 
-#: edoweb/edoweb.module:1057
+#: edoweb/edoweb.module:1149
 msgid "contentType"
 msgstr "Objektart"
 
-#: edoweb/edoweb.module:1059
+#: edoweb/edoweb.module:1151
 msgid "file"
 msgstr "Datei"
 
-#: edoweb/edoweb.module:1061
+#: edoweb/edoweb.module:1153
 msgid "monograph"
 msgstr "Monografie"
 
-#: edoweb/edoweb.module:1063
+#: edoweb/edoweb.module:1155
 msgid "journal"
 msgstr "Periodikum"
 
-#: edoweb/edoweb.module:1065
+#: edoweb/edoweb.module:1157
 msgid "volume"
 msgstr "Band"
 
-#: edoweb/edoweb.module:1067
+#: edoweb/edoweb.module:1159
 msgid "issue"
 msgstr "Heft"
 
-#: edoweb/edoweb.module:1069
+#: edoweb/edoweb.module:1161
 msgid "article"
 msgstr "Artikel"
 
-#: edoweb/edoweb.module:1071
+#: edoweb/edoweb.module:1163
+msgid "webpage"
+msgstr "Webseite"
+
+#: edoweb/edoweb.module:1165
+msgid "version"
+msgstr "Version"
+
+#: edoweb/edoweb.module:1167
 msgid "Add monograph"
 msgstr "Neue Monografie"
 
-#: edoweb/edoweb.module:1073
+#: edoweb/edoweb.module:1169
 msgid "Add journal"
 msgstr "Neues Periodikum"
 
-#: edoweb/edoweb.module:1075
+#: edoweb/edoweb.module:1171
 msgid "Add volume"
 msgstr "Neuer Band"
 
-#: edoweb/edoweb.module:1077
+#: edoweb/edoweb.module:1173
 msgid "Add issue"
 msgstr "Neues Heft"
 
-#: edoweb/edoweb.module:1079
+#: edoweb/edoweb.module:1175
 msgid "Add article"
 msgstr "Neuer Artikel"
 
-#: edoweb/edoweb.module:1081
+#: edoweb/edoweb.module:1177
 msgid "Add file"
 msgstr "Neue Datei"
 
-#: edoweb/edoweb.module:1209
+#: edoweb/edoweb.module:1179
+msgid "Add webpage"
+msgstr "Neue Webseite"
+
+#: edoweb/edoweb.module:1181
+msgid "Add version"
+msgstr "Neue Version"
+
+#: edoweb/edoweb.module:1343
 msgid "Turtle view"
 msgstr ""
 
-#: edoweb/edoweb.module:1216
+#: edoweb/edoweb.module:1350
 msgid "JSON-LD view"
 msgstr ""
 
-#: edoweb/edoweb.module:1347
-msgid "Creation date"
-msgstr ""
-
-#: edoweb/edoweb.module:1348
-msgid "Creation date (an extra display field)"
-msgstr ""
-
-#: edoweb/edoweb.module:1414
-msgid "Actions"
-msgstr "Aktionen"
-
-#: edoweb/edoweb.module:1420
-msgid "Reload"
-msgstr "Neu laden"
-
-#: edoweb/edoweb.module:1437
-msgid "Add URN"
-msgstr "URN erzeugen"
-
-#: edoweb/edoweb.module:1444
-msgid "Index"
-msgstr "Metadaten neu Indexieren"
-
-#: edoweb/edoweb.module:1450
-msgid "Delete"
-msgstr "Löschen"
-
-#: edoweb/edoweb.module:1456
-msgid "Transformers"
-msgstr "Optionen"
-
-#: edoweb/edoweb.module:1463
-msgid "Register Urn"
-msgstr "URN an DNB melden"
-
-#: edoweb/edoweb.module:1464
-msgid "Copy to Catalog"
-msgstr "Upload in den HBZ-Verbundkatalog bzw. Bereitstellen für LOBID"
-
-#: edoweb/edoweb.module:1465
-msgid "Support OAI-PMH"
-msgstr "Veröffentlichen über OAI"
-
-#: edoweb/edoweb.module:1466
-msgid "Allow Fulltext Search"
-msgstr "Volltextindexierung"
-
-#: edoweb/edoweb.module:1467
-msgid "Prepare for Long Term Preservation"
-msgstr "Vorbereiten für Langzeitarchivierung"
-
-#: edoweb/edoweb.module:1485
-msgid "Apply"
-msgstr "Übernehmen"
-
-#: edoweb/edoweb.module:1503
-msgid "The entity %id has been indexed."
-msgstr "Das Objekt %id wurde indexiert."
-
-#: edoweb/edoweb.module:1507
-msgid "Failed to index entity %id."
-msgstr "Fehler beim Indexieren von Objekt %id."
-
-#: edoweb/edoweb.module:1523
-msgid "The entity %id has been reloaded."
-msgstr "Das Objekt %id wurde neu geladen."
-
-#: edoweb/edoweb.module:1537
-msgid "The entity %id has been deleted"
-msgstr "Das Objekt %id wurde gelöscht."
-
-#: edoweb/edoweb.module:1559
-msgid "Transformers applied"
-msgstr "Die Optionen wurden angewandt."
-
-#: edoweb/edoweb.module:1561
-msgid "Failed to apply transformers"
-msgstr "Fehler beim Anwenden der Optionen."
-
-#: edoweb/edoweb.module:1574
-msgid "URN added"
-msgstr "URN wurde erzeugt"
-
-#: edoweb/edoweb.module:1576
-msgid "Failed to add URN"
-msgstr "Fehler beim Erzeugen der URN."
-
-#: edoweb/edoweb.module:1597
-msgid "Import"
-msgstr "Importieren"
-
-#: edoweb/edoweb.module:1644
-msgid "Imported data from "
-msgstr "Daten wurden importiert von"
-
-#: edoweb/edoweb.module:1646
-msgid "Failed importing data from "
-msgstr "Fehler beim Importieren von Daten von"
-
-#: edoweb/edoweb.module:1690
-msgid "Speichern"
-msgstr ""
-
-#: edoweb/edoweb.module:1696
-msgid "Fertigstellen"
-msgstr ""
-
-#: edoweb/edoweb.module:1702
-msgid "Cancel"
-msgstr "Abbruch"
-
-#: edoweb/edoweb.module:1742
-msgid "File is required."
-msgstr "Datei wird benötigt"
-
-#: edoweb/edoweb.module:1926
-msgid "Edoweb search"
-msgstr "Suche"
-
-#: edoweb/edoweb.module:1933
-msgid "Edoweb Tree Navigation"
-msgstr "Edoweb Baumnavigator"
-
-#: edoweb/edoweb.module:2090
-msgid "edoweb_storage"
-msgstr "Edoweb Speicher"
-
-#: edoweb/edoweb.module:2090
-msgid "Unable to fetch resource listing from @api."
-msgstr "Fehler beim Beziehen der Ressourcenliste von @api."
-
-#: edoweb/edoweb.module:256
-msgid "Configuration"
-msgstr "Konfiguration"
-
-#: edoweb/edoweb.module:257
-msgid "Configuration options for the Edoweb modules"
-msgstr "Konfigurationsoptionen für die Edoweb Module"
-
-#: edoweb/edoweb.module:268
-msgid "Bulk Import"
-msgstr "Batch import"
-
-#: edoweb/edoweb.module:269
-msgid "Import objects from the Edoweb API."
-msgstr "Objekte aus der Edoweb API importieren."
-
-#: edoweb/edoweb.module:302
+#: edoweb/edoweb.module:1501;378
 msgid "Edoweb"
 msgstr ""
 
-#: edoweb/edoweb.module:321
+#: edoweb/edoweb.module:1514
+msgid "Creation date"
+msgstr ""
+
+#: edoweb/edoweb.module:1515
+msgid "Creation date (an extra display field)"
+msgstr ""
+
+#: edoweb/edoweb.module:1597
+msgid "Actions"
+msgstr "Aktionen"
+
+#: edoweb/edoweb.module:1603
+msgid "Reload"
+msgstr "Neu laden"
+
+#: edoweb/edoweb.module:1614
+msgid "Add URN"
+msgstr "URN erzeugen"
+
+#: edoweb/edoweb.module:1621
+msgid "Index"
+msgstr "Metadaten neu Indexieren"
+
+#: edoweb/edoweb.module:1627
+msgid "Delete"
+msgstr "Löschen"
+
+#: edoweb/edoweb.module:1633
+msgid "Transformers"
+msgstr "Optionen"
+
+#: edoweb/edoweb.module:1640
+msgid "Register Urn"
+msgstr "URN an DNB melden"
+
+#: edoweb/edoweb.module:1641
+msgid "Copy to Catalog"
+msgstr "Upload in den HBZ-Verbundkatalog bzw. Bereitstellen für LOBID"
+
+#: edoweb/edoweb.module:1642
+msgid "Support OAI-PMH"
+msgstr "Veröffentlichen über OAI"
+
+#: edoweb/edoweb.module:1643
+msgid "Allow Fulltext Search"
+msgstr "Volltextindexierung"
+
+#: edoweb/edoweb.module:1644
+msgid "Prepare for Long Term Preservation"
+msgstr "Vorbereiten für Langzeitarchivierung"
+
+#: edoweb/edoweb.module:1662;1789
+msgid "Apply"
+msgstr "Übernehmen"
+
+#: edoweb/edoweb.module:1680
+msgid "The entity %id has been indexed."
+msgstr "Das Objekt %id wurde indexiert."
+
+#: edoweb/edoweb.module:1684
+msgid "Failed to index entity %id."
+msgstr "Fehler beim Indexieren von Objekt %id."
+
+#: edoweb/edoweb.module:1708
+msgid "The entity %id has been deleted"
+msgstr "Das Objekt %id wurde gelöscht."
+
+#: edoweb/edoweb.module:1730
+msgid "Transformers applied"
+msgstr "Die Optionen wurden angewandt."
+
+#: edoweb/edoweb.module:1732
+msgid "Failed to apply transformers"
+msgstr "Fehler beim Anwenden der Optionen."
+
+#: edoweb/edoweb.module:1745
+msgid "URN added"
+msgstr "URN wurde erzeugt"
+
+#: edoweb/edoweb.module:1747
+msgid "Failed to add URN"
+msgstr "Fehler beim Erzeugen der URN."
+
+#: edoweb/edoweb.module:1763
+msgid "Metadata"
+msgstr "Metadaten"
+
+#: edoweb/edoweb.module:1766;1777
+msgid "Public"
+msgstr "Öffentlich"
+
+#: edoweb/edoweb.module:1767;1778
+msgid "Private"
+msgstr "Privat"
+
+#: edoweb/edoweb.module:1774
+msgid "Data"
+msgstr "Daten"
+
+#: edoweb/edoweb.module:1779
+msgid "Restricted"
+msgstr "Eingeschränkt"
+
+#: edoweb/edoweb.module:1780
+msgid "Remote"
+msgstr "Fernzugriff"
+
+#: edoweb/edoweb.module:1781
+msgid "Single"
+msgstr "Einzelplatz"
+
+#: edoweb/edoweb.module:1811
+msgid "Access rights for @id updated."
+msgstr ""
+
+#: edoweb/edoweb.module:1815
+#, fuzzy
+msgid "Failed to update access rights for @id."
+msgstr "Fehler beim Indexieren von Objekt %id."
+
+#: edoweb/edoweb.module:1842
+msgid "File is required."
+msgstr "Datei wird benötigt"
+
+#: edoweb/edoweb.module:1996
+msgid "Edoweb search"
+msgstr "Suche"
+
+#: edoweb/edoweb.module:2003
+msgid "Edoweb Tree Navigation"
+msgstr "Edoweb Baumnavigator"
+
+#: edoweb/edoweb.module:342
+msgid "Configuration"
+msgstr "Konfiguration"
+
+#: edoweb/edoweb.module:343
+msgid "Configuration options for the Edoweb modules"
+msgstr "Konfigurationsoptionen für die Edoweb Module"
+
+#: edoweb/edoweb.module:398
 msgid "View"
 msgstr "Ansicht"
 
-#: edoweb/edoweb.module:328
+#: edoweb/edoweb.module:405
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: edoweb/edoweb.module:338
+#: edoweb/edoweb.module:415
 msgid "Admin"
 msgstr "Extras"
 
-#: (duplicate) edoweb/edoweb.install:1727
+#: edoweb/edoweb.module:424
+msgid "Access"
+msgstr ""
+
+#: (duplicate) edoweb/edoweb.install:1840
 msgid "HT Nummer"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1730
+#: (duplicate) edoweb/edoweb.install:1843
 msgid "ZDB ID"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1733
+#: (duplicate) edoweb/edoweb.install:1846
 msgid "Überordnung"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1734
-msgid ""
-"Übergeordnetes Werk; z.B. Zeitschrift bei einem Zeitschriftenband; Angabe "
-"eines Identifikators, z.B. einer URI: \"http://lobid.org/resource/"
-"HT015490187\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1737
+#: (duplicate) edoweb/edoweb.install:1849
 msgid "Band"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1738
-msgid ""
-"Die Bandbezeichnung einer Zeitschrift oder eines Gesamtwerkes; bei "
-"Zeitschriften eine Zusammenfassung mehrere Hefte; z.B. \"2012\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1741
+#: (duplicate) edoweb/edoweb.install:1852
 msgid "Titel"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1750
+#: (duplicate) edoweb/edoweb.install:1861
 msgid "Untertitel"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1758
+#: (duplicate) edoweb/edoweb.install:1869
 msgid "Alternativer Titel"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1766
+#: (duplicate) edoweb/edoweb.install:1877
 msgid "Kurztitel"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1769
+#: (duplicate) edoweb/edoweb.install:1880
 msgid "Autor"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1770
-msgid ""
-"Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder "
-"ein Dienst, die oder der das Dokument hauptsächlich verfasst hat; Auswahl "
-"aus GND"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1773
+#: (duplicate) edoweb/edoweb.install:1886
 msgid "[Bearb.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1774
-msgid ""
-"Eine Person, Organisation, Institut, Firma, Gesellschaft, Körperschaft oder "
-"ein Dienst, die oder der bei der Verfassung des Dokuments mitgewirkt hat; "
-"Auswahl aus GND"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1777
+#: (duplicate) edoweb/edoweb.install:1889
 msgid "[Hrsg.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1778
-msgid "Editor, Herausgeber oder Redakteur"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1781
+#: (duplicate) edoweb/edoweb.install:1892
 msgid "[Red.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1785
+#: (duplicate) edoweb/edoweb.install:1895
 msgid "[Übers.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1789
+#: (duplicate) edoweb/edoweb.install:1898
 msgid "[Ill.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1793
+#: (duplicate) edoweb/edoweb.install:1901
 msgid "[Darst.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1797
+#: (duplicate) edoweb/edoweb.install:1904
 msgid "[Regie]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1801
+#: (duplicate) edoweb/edoweb.install:1907
 msgid "[Mitarb.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1805
+#: (duplicate) edoweb/edoweb.install:1910
 msgid "[Fotogr.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1809
+#: (duplicate) edoweb/edoweb.install:1913
 msgid "[Dir.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1813
+#: (duplicate) edoweb/edoweb.install:1916
 msgid "[Komp.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1817
+#: (duplicate) edoweb/edoweb.install:1919
 msgid "[Vorr.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1821
+#: (duplicate) edoweb/edoweb.install:1922
 msgid "[Drehbuch]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1825
+#: (duplicate) edoweb/edoweb.install:1925
 msgid "[Sammler]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1829
+#: (duplicate) edoweb/edoweb.install:1928
 msgid "[Beitr.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1833
+#: (duplicate) edoweb/edoweb.install:1931
 msgid "[Interpr.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1837
+#: (duplicate) edoweb/edoweb.install:1934
 msgid "[Kamera]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1841
+#: (duplicate) edoweb/edoweb.install:1937
 msgid "[Vorl.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1845
+#: (duplicate) edoweb/edoweb.install:1940
 msgid "[Gesang]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1849
+#: (duplicate) edoweb/edoweb.install:1943
 msgid "[Interviewer]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1853
+#: (duplicate) edoweb/edoweb.install:1946
 msgid "[Interviewter]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1857
+#: (duplicate) edoweb/edoweb.install:1949
 msgid "[Kartograph]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1861
+#: (duplicate) edoweb/edoweb.install:1952
 msgid "[Musik]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1865
+#: (duplicate) edoweb/edoweb.install:1955
 msgid "[Nachr.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1869
+#: (duplicate) edoweb/edoweb.install:1958
 msgid "[Prod.]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1873
+#: (duplicate) edoweb/edoweb.install:1961
 msgid "[Stecher]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1877
+#: (duplicate) edoweb/edoweb.install:1964
 msgid "[Widmungsempfänger]"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1881
+#: (duplicate) edoweb/edoweb.install:1967
 msgid "Ausgabe"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1882
-msgid "Ausgabe oder Auflage, z.B. \"2. Aufl. 2012\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1885
+#: (duplicate) edoweb/edoweb.install:1970
 msgid "Erscheinungsort"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1888
+#: (duplicate) edoweb/edoweb.install:1973
 msgid "Verlag"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1889
-msgid ""
-"Verleger, Drucker, Vertrieb, Auslieferer; eine Person, Organisation oder ein "
-"Dienst"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1892
-msgid "Erscheinungsdatum"
+#: (duplicate) edoweb/edoweb.install:1976
+#, fuzzy
+msgid "Erscheinungsjahr"
 msgstr "Erscheinungsjahr"
 
-#: (duplicate) edoweb/edoweb.install:1893
-msgid ""
-"Datum der formellen Herausgabe, Veröffentlichung; kann eine Jahreszahl, ein "
-"Tagesdatum oder ein Monat (mit Jahreszahl) sein"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1896
+#: (duplicate) edoweb/edoweb.install:1982
 msgid "erscheint seit"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1897
-msgid ""
-"Datum des ersten Erscheinens / des ersten Bandes; kann eine Jahreszahl, ein "
-"Tagesdatum oder ein Monat (mit Jahreszahl) sein"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1900
+#: (duplicate) edoweb/edoweb.install:1985
 msgid "eingestellt am/in"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1901
-msgid ""
-"Datum des letzten Erscheinens bei eingestellter Ausgabe; kann eine "
-"Jahreszahl, ein Tagesdatum oder ein Monat (mit Jahreszahl) sein"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1904
+#: (duplicate) edoweb/edoweb.install:1988
 msgid "Erscheinungsweise"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1905
-msgid ""
-"In welchem zeitlichen Abstand erscheinen die einzelnen Ausgaben dieser "
-"Veröffentlichung ? Z.B. \"erscheint wöchentlich\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1908
-msgid "URL"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1909
-msgid ""
-"Ein \"Uniform Ressource Identifier\", z.B.  \"http://lobid.org/resource/"
-"TT001152974\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1912
+#: (duplicate) edoweb/edoweb.install:1991
 msgid "URN"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1913
-msgid "Ein \"Uniform Ressource Name\", z.B.  \"urn:nbn:de:hbz:929:02-1058\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1916
+#: (duplicate) edoweb/edoweb.install:1994
 msgid "ISBN-10"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1919
+#: (duplicate) edoweb/edoweb.install:1997
 msgid "ISBN-13"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1922
+#: (duplicate) edoweb/edoweb.install:2000
 msgid "ISSN"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1925
+#: (duplicate) edoweb/edoweb.install:2003
 msgid "DOI"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1926
-msgid "Ein \"Digital Object Identifier\", z.B.  \"10.4126/38m-002470993\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1929
+#: (duplicate) edoweb/edoweb.install:2006
 msgid "Sprache"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1933
+#: (duplicate) edoweb/edoweb.install:2010
 msgid "Umfang"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1934
-msgid "z.B. \"103 S. : Ill., graph. Darst.\""
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1937
+#: (duplicate) edoweb/edoweb.install:2013
 msgid "Beschreibung"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1941
-msgid ""
-"Stichwörter oder Schlagwörter in einem kontrollierten Vokabular (GND, DDC, "
-"rheinland-pfälzische Bibliographie)"
+#: (duplicate) edoweb/edoweb.install:2016
+msgid "Sacherschließung"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1944
+#: (duplicate) edoweb/edoweb.install:2019
 msgid "Tag"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1945
-msgid "Freie Verschlagwortung"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1948
-msgid "Abriss"
-msgstr "Zusammenfassung"
-
-#: (duplicate) edoweb/edoweb.install:1949
+#: (duplicate) edoweb/edoweb.install:2022
 msgid "Abstract"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1952
+#: (duplicate) edoweb/edoweb.install:2025
 msgid "Parallele Ausgabe"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1953
-msgid "Angabe eines Identifikators, z.B. URI"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1957
+#: (duplicate) edoweb/edoweb.install:2029
 msgid "Homepage"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1960
+#: (duplicate) edoweb/edoweb.install:2032
 msgid "Label"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1961
-msgid "A generic label"
-msgstr ""
-
-#: (duplicate) edoweb/edoweb.install:1964
+#: (duplicate) edoweb/edoweb.install:2035
 msgid "Größe (Byte)"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1967
+#: (duplicate) edoweb/edoweb.install:2038
 msgid "Dateityp"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1970
+#: (duplicate) edoweb/edoweb.install:2041
 msgid "Datei"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1973
+#: (duplicate) edoweb/edoweb.install:2044
 msgid "Parent"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1976
+#: (duplicate) edoweb/edoweb.install:2047
 msgid "Child"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1979
+#: (duplicate) edoweb/edoweb.install:2050
 msgid "Name"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1982
+#: (duplicate) edoweb/edoweb.install:2054
 msgid "Identifikator"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1985
+#: (duplicate) edoweb/edoweb.install:2057
 msgid "Geburtsdatum"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1988
+#: (duplicate) edoweb/edoweb.install:2060
 msgid "Todesdatum"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1991
+#: (duplicate) edoweb/edoweb.install:2063
 msgid "Beruf"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1994
+#: (duplicate) edoweb/edoweb.install:2066
 msgid "Gründungsdatum"
 msgstr ""
 
-#: (duplicate) edoweb/edoweb.install:1997
+#: (duplicate) edoweb/edoweb.install:2069
 msgid "Auflösungsdatum"
+msgstr ""
+
+#: (duplicate) edoweb/edoweb.install:2072
+msgid "Bestandteil von"
+msgstr ""
+
+#: (duplicate) edoweb/edoweb.install:2075
+msgid "Schlagwortkette"
+msgstr ""
+
+#: (duplicate) edoweb/edoweb.install:2078
+msgid "Katalogeintrag"
 msgstr ""
 
 #: edoweb_field/edoweb_field.module:27
@@ -812,31 +765,31 @@ msgstr ""
 msgid "This field holds datastream URIs"
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:153
+#: edoweb_field/edoweb_field.module:154
 msgid "Dates must be of the form DD.MM.YYY, MM/YYYY or YYYY."
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:164
+#: edoweb_field/edoweb_field.module:165
 msgid "@label must be a valid, absolute URI."
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:246
+#: edoweb_field/edoweb_field.module:247
 msgid "Auto-complete"
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:254
+#: edoweb_field/edoweb_field.module:255
 msgid "File Upload"
 msgstr "Datei Upload"
 
-#: edoweb_field/edoweb_field.module:267
+#: edoweb_field/edoweb_field.module:268
 msgid "Linked data URI"
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:272
+#: edoweb_field/edoweb_field.module:273
 msgid "Datastream URI"
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:321
+#: edoweb_field/edoweb_field.module:324
 msgid "Download @extension"
 msgstr ""
 
@@ -844,7 +797,7 @@ msgstr ""
 msgid "Hinzufügen"
 msgstr ""
 
-#: edoweb_field/edoweb_field.module:454
+#: edoweb_field/edoweb_field.module:453
 msgid "Choose a file"
 msgstr "Bitte wählen Sie eine Datei"
 
@@ -853,54 +806,106 @@ msgid "API host"
 msgstr ""
 
 #: edoweb_storage/edoweb_storage.module:57
-msgid "The hostname or IP address of the API, without leading http://"
+msgid "The hostname or IP address of the API"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:70
-msgid "API user"
+#: edoweb_storage/edoweb_storage.module:66
+msgid "API account settings"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:71
-msgid "The username to authorize with."
+#: edoweb_storage/edoweb_storage.module:76
+msgid "API admin user"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:84
-msgid "API password"
+#: edoweb_storage/edoweb_storage.module:77
+msgid "The username to authorize with for the admin role."
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:85
-msgid "The password to authorize with."
+#: edoweb_storage/edoweb_storage.module:90
+msgid "API admin password"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:98
+#: edoweb_storage/edoweb_storage.module:91
+msgid "The password to authorize with for the admin role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:104
+msgid "API editor user"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:105
+msgid "The username to authorize with for the editor role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:118
+msgid "API editor password"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:119
+msgid "The password to authorize with for the editor role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:132
+msgid "API reader user"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:133
+msgid "The username to authorize with for the reader role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:146
+msgid "API reader password"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:147
+msgid "The password to authorize with for the reader role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:160
+msgid "API anonymous user"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:161
+msgid "The username to authorize with for the anonymous role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:174
+msgid "API anonymous password"
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:175
+msgid "The password to authorize with for the anonymous role."
+msgstr ""
+
+#: edoweb_storage/edoweb_storage.module:188
 msgid "Namespace"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:99
+#: edoweb_storage/edoweb_storage.module:189
 msgid "The namespace of the primary resources."
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:112
+#: edoweb_storage/edoweb_storage.module:202
 msgid "lobid API host"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:113
-msgid "The hostname or IP address of the lobid API, without leading http://"
+#: edoweb_storage/edoweb_storage.module:203
+msgid "The hostname or IP address of the lobid API"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:123
+#: edoweb_storage/edoweb_storage.module:213
 msgid "Show debugging output"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:130
+#: edoweb_storage/edoweb_storage.module:220
 msgid "Disable caching"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:157
+#: edoweb_storage/edoweb_storage.module:232
 msgid "Edoweb Storage field storage"
 msgstr ""
 
-#: edoweb_storage/edoweb_storage.module:158
+#: edoweb_storage/edoweb_storage.module:233
 msgid "Stores nodes and fields in a Edoweb Storage database."
 msgstr ""
 
@@ -911,3 +916,33 @@ msgstr ""
 #: edoweb_storage/edoweb_storage.module:34
 msgid "Configuration for the Edoweb Storage module."
 msgstr ""
+
+#~ msgid "The entity %id has been reloaded."
+#~ msgstr "Das Objekt %id wurde neu geladen."
+
+#~ msgid "Import"
+#~ msgstr "Importieren"
+
+#~ msgid "Imported data from "
+#~ msgstr "Daten wurden importiert von"
+
+#~ msgid "Failed importing data from "
+#~ msgstr "Fehler beim Importieren von Daten von"
+
+#~ msgid "Cancel"
+#~ msgstr "Abbruch"
+
+#~ msgid "edoweb_storage"
+#~ msgstr "Edoweb Speicher"
+
+#~ msgid "Unable to fetch resource listing from @api."
+#~ msgstr "Fehler beim Beziehen der Ressourcenliste von @api."
+
+#~ msgid "Bulk Import"
+#~ msgstr "Batch import"
+
+#~ msgid "Import objects from the Edoweb API."
+#~ msgstr "Objekte aus der Edoweb API importieren."
+
+#~ msgid "Abriss"
+#~ msgstr "Zusammenfassung"
