@@ -52,11 +52,12 @@
         width: '80%'
       });
 
+      var additional_fields = $('<select class="field-selector"><option>Feld hinzufügen</option></select>');
       $('.edoweb.entity.edit', context).each(function() {
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
         entity.css('margin-bottom', '2em');
-        var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
+        additional_fields.change(function() {
           var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
           activateFields(field, bundle, context);
@@ -228,11 +229,11 @@
       function createTextInput(instance, target) {
         var input = $('<div class="field-item" />')
           .attr('property', instance['settings']['predicates'].join(' '));
-        enableTextInput(input);
+        enableTextInput(input, instance);
         target.append(input);
       }
 
-      function enableTextInput(field) {
+      function enableTextInput(field, instance) {
 
         field.attr('contenteditable', true)
           .css('border', '1px solid grey')
@@ -241,9 +242,16 @@
           .css('min-height', '1.5em')
           .keydown(function(e) {
             var target = $(e.target);
-            if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
-              placeCaretAtEnd(target.prev('.field-item').get(0));
-              $(this).remove();
+            if (e.keyCode == 8 && ! target.text().length) {
+              if (target.siblings('.field-item').length) {
+                placeCaretAtEnd(target.prev('.field-item').get(0));
+                $(this).remove();
+              } else if (! instance['required'] ) {
+                $(this).closest('div.field').remove();
+                additional_fields.append(
+                  $('<option />').text(instance['label']).val(instance['field_name'])
+                );
+              }
               return false;
             }
           });
@@ -334,7 +342,7 @@
             case 'number':
               field.find('.field-items').each(function() {
                 if ($(this).find('.field-item').length && ! instance['settings']['read_only']) {
-                  enableTextInput($(this).find('.field-item'));
+                  enableTextInput($(this).find('.field-item'), instance);
                 } else if ($(this).find('.field-item').length < 1) {
                   createTextInput(instance, $(this));
                 }
