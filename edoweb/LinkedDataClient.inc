@@ -32,6 +32,11 @@ class LinkedDataClient {
     if (is_null($rdf_model)) {
       $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
     } else {
+      // FIXME: workaround for API bug after HTTP PATCHing access rights
+      // for a subtree (i.e. resource/all).
+      if ("" === "$rdf_model") {
+        $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      }
       file_put_contents('php://stderr', "Loading $remote_id from data\n");
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
