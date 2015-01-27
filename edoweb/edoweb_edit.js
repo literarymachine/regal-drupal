@@ -53,7 +53,22 @@
       });
 
       var additional_fields = $('<select class="field-selector"><option>Feld hinzufügen</option></select>');
+      var ops = {
+        '-': function(table) {
+          table.find('tbody > tr').each(function() {
+            var row = $(this);
+            var resource_curie = row.attr('data-curie');
+            $(this).children('td').last()
+              .append('<button>-</button>')
+              .bind('click', function(event) {
+                row.add($(this).closest('div.field').find('div.field-item:has(>a[data-curie="' + resource_curie + '"])')).remove();
+                return false;
+              });
+          });
+        }
+      };
       $('.edoweb.entity.edit', context).each(function() {
+
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
         entity.css('margin-bottom', '2em');
@@ -291,7 +306,7 @@
             .attr('resource', Drupal.edoweb.compact_uri(uri));
           input.append(link);
           target.append(input);
-          Drupal.edoweb.entity_table(target);
+          Drupal.edoweb.entity_table(target, ops);
         });
         modal_overlay.dialog('open');
       }
@@ -354,7 +369,16 @@
                       createTextInput(instance, field.find('.field-items'));
                       return false;
                     }).css('float', 'right').css('margin-right', '0.3em');
+                  var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
+                    .bind('click', function() {
+                      $(this).closest('div.field').remove();
+                      additional_fields.append(
+                        $('<option />').text(instance['label']).val(instance['field_name'])
+                      );
+                      return false;
+                    }).css('float', 'right').css('margin-right', '0.3em');
                   field.find('.field-label').append(add_button);
+                  field.find('.field-label').append(remove_button);
                 }
               });
               break;
@@ -369,7 +393,25 @@
                       createLinkInput(instance, field.find('.field-items'));
                       return false;
                     }).css('float', 'right').css('margin-right', '0.3em');
+                  var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
+                    .bind('click', function() {
+                      $(this).closest('div.field').remove();
+                      additional_fields.append(
+                        $('<option />').text(instance['label']).val(instance['field_name'])
+                      );
+                      return false;
+                    }).css('float', 'right').css('margin-right', '0.3em');
                   field.find('.field-label').append(add_button);
+                  field.find('.field-label').append(remove_button);
+                  // Load entities into table with remove ops
+                  if ($(this).find('div.field-item').length) {
+                    Drupal.edoweb.entity_table($(this), ops);
+                  }
+                } else {
+                  // Load entities into table
+                  if ($(this).find('div.field-item').length) {
+                    Drupal.edoweb.entity_table($(this));
+                  }
                 }
               });
               break;

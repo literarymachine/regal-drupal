@@ -22,25 +22,21 @@
   Drupal.behaviors.edoweb_view = {
     attach: function (context, settings) {
 
-      $(context).find('table').not('.field-multiple-table').each(function() {
-        Drupal.edoweb.hideEmptyTableColumns($(this));
-        Drupal.edoweb.hideTableHeaders($(this));
+      $('.edoweb.entity.default', context).each(function() {
+        $(this).find('table').not('.field-multiple-table').each(function() {
+          Drupal.edoweb.hideEmptyTableColumns($(this));
+          Drupal.edoweb.hideTableHeaders($(this));
+        });
+
+        // Load entities into table
+        Drupal.edoweb.entity_table($(this).find('.field-type-edoweb-ld-reference .field-items'));
       });
 
-      // Load entities into table
-      Drupal.edoweb.entity_table($(context).find('.field-type-edoweb-ld-reference .field-items'));
 
       // Load entity-labels in facet list
       $(context).find('*[data-curie].facet').each(function() {
         Drupal.edoweb.entity_label($(this));
       });
-
-      // Modify hrefs to point to local data
-      // TODO: rewrite links on click
-      //$(context).find('a[data-curie]').not('.facet').each(function() {
-      //  var href = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
-      //  $(this).attr('href', href);
-      //})
 
       // Live search result updates
       var delay = (function() {
