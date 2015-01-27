@@ -366,7 +366,18 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
 
     $http_response = $this->_http_patch($http_url, json_encode($data), 'application/json');
-    print_r($http_response);die;
+
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to set access rights for @id at @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+
+    return TRUE;
 
   }
 
