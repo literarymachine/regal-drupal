@@ -23,15 +23,15 @@
     attach: function (context, settings) {
 
       $('.edoweb.entity.default', context).each(function() {
-        $(this).find('table').not('.field-multiple-table').each(function() {
-          Drupal.edoweb.hideEmptyTableColumns($(this));
-          Drupal.edoweb.hideTableHeaders($(this));
-        });
-
         // Load entities into table
         Drupal.edoweb.entity_table($(this).find('.field-type-edoweb-ld-reference .field-items'));
       });
 
+      // Process result listing tables
+      $('table', context).not('.field-multiple-table').each(function() {
+        Drupal.edoweb.hideEmptyTableColumns($(this));
+        Drupal.edoweb.hideTableHeaders($(this));
+      });
 
       // Load entity-labels in facet list
       $(context).find('*[data-curie].facet').each(function() {
