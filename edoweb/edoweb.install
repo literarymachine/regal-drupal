@@ -1389,7 +1389,6 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-      'field_edoweb_catalog_link' => array(),
     ),
 
     /*
@@ -1490,7 +1489,6 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-      'field_edoweb_catalog_link' => array(),
     ),
 
     /*
@@ -1727,8 +1725,6 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
-      'field_edoweb_catalog_link' => array(),
-      'field_edoweb_webpage_archived' => array(),
     ),
 
     /*
