@@ -3221,3 +3221,29 @@ function edoweb_update_7145() {
   _update_rdf_mapping();
 
 }
+
+/**
+ * Remove field_edoweb_webpage_archived and field_edoweb_catalog_link instances.
+ */
+function edoweb_update_7146() {
+  $deleted_instances = array(
+    'monograph' => array(
+      'field_edoweb_catalog_link',
+    ),
+    'journal' => array(
+      'field_edoweb_catalog_link',
+    ),
+    'webpage' => array(
+      'field_edoweb_catalog_link',
+      'field_edoweb_webpage_archived',
+    ),
+  );
+  foreach ($deleted_instances as $bundle => $field_names) {
+    foreach ($field_names as $field_name) {
+      if ($instance = field_info_instance(EDOWEB_ENTITY_TYPE, $field_name, $bundle)) {
+        field_delete_instance($instance, FALSE);
+        drupal_set_message("Deleted $field_name in $bundle bundle.");
+      }
+    }
+  }
+}
