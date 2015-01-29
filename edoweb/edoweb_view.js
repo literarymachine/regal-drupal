@@ -42,24 +42,6 @@
       //  $(this).attr('href', href);
       //})
 
-      // Live search result updates
-      var delay = (function() {
-        var timer;
-        return function(callback, ms) {
-          clearTimeout (timer);
-          timer = setTimeout(callback, ms);
-        };
-      })();
-      $(context).find('.edoweb_live_search').bind('keyup', function() {
-        var trigger_button = $(this).parent().nextAll('input[type=submit]');
-        for (var i = 0; i < Drupal.edoweb.pending_requests.length; i++) {
-          Drupal.edoweb.pending_requests[i].abort();
-        }
-        delay(function() {
-          trigger_button.click();
-        }, 1000);
-      });
-
     }
 
   };

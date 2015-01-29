@@ -561,7 +561,7 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
 
 }
 
-function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query, $live_search = TRUE) {
+function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query) {
 
   $form['#method'] = 'get';
 
@@ -592,11 +592,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       'title' => t('Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.'),
     ),
   );
-
-  if ($live_search) {
-    $form['query'][$search_count]['term']['#attributes']['class']
-      = array('edoweb_live_search');
-  }
 
   if (isset($query['target_bundles']) && isset($query['endpoint'])) {
     $options = array();
@@ -2057,7 +2052,7 @@ function edoweb_block_view($delta = '') {
       );
       $block['subject'] = t('Search');
       $block['content'] = drupal_get_form(
-        'edoweb_basic_search_entities_form', FALSE, 0, array(), FALSE
+        'edoweb_basic_search_entities_form', FALSE, 0, array()
       );
       $block['content']['#action'] = url('resource');
       unset($block['content']['form_build_id']);
