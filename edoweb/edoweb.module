@@ -283,13 +283,9 @@ function edoweb_entity_property_info() {
     'label' => t('The metadata access scheme of the Entity'),
     'type' => 'text',
   );
-  $properties['data_md'] = array(
+  $properties['access_data'] = array(
     'label' => t('The data access scheme of the Entity'),
     'type' => 'text',
-  );
-  $properties['catalog_link'] = array(
-    'label' => t('The URL of the catalog link of the Entity'),
-    'type' => 'uri',
   );
   return $property_info;
 }
@@ -1295,20 +1291,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       ) . '</small>',
       '#weight' => 1001,
     );
-
-    if (property_exists($entity, 'catalog_link')) {
-      $entity->content['catalog_link'] = array(
-        '#type' => 'item',
-        '#markup' => '<small>' . l(
-          'View in catalog',
-          $entity->catalog_link,
-          array('attributes' => array(
-            'target'=>'_blank',
-          ))
-        ) . '</small>',
-        '#weight' => 1002,
-      );
-    }
 
     try {
       $archived_url = $wrapper->field_edoweb_webpage_archived->value();
