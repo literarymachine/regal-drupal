@@ -309,7 +309,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   public function index($entity) {
     // Index resource
     $http_url = sprintf(
-      '%s/utils/index/%s?type=%s',
+      '%s/utils/index/%s?contentType=%s',
       $this->__edoweb_api_host,
       $entity->remote_id,
       $entity->bundle_type
