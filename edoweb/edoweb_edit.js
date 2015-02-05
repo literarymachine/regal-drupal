@@ -37,6 +37,11 @@
         return confirmed;
       });
 
+      $('#edoweb-basic-access-form').submit(function() {
+        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+        $(this).find('#edit-submit').replaceWith(throbber);
+      });
+
       $('.tabs a', context).bind('click', function() {
         var href = $(this).attr('href');
         history.pushState({tree: true}, null, href);
