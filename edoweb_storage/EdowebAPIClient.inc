@@ -67,7 +67,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function getTemplates($bundle) {
     $http_url = sprintf(
-      '%s/resource?namespace=template&contentType=%s',
+      '%s/resource?namespace=template&contentType=%s&from=0&until=100',
       $this->__edoweb_api_host,
       $bundle
     );
@@ -228,13 +228,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (isset($entity->access_data)) $data['accessScheme'] = $entity->access_data;
     if (isset($entity->access_md)) $data['publishScheme'] = $entity->access_md;
     if (isset($entity->uid)) $data['isDescribedBy']['createdBy'] = $entity->uid;
+    if (isset($entity->name)) $data['isDescribedBy']['name'] = $entity->name;
 
     $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
     if (FALSE !== $parents) {
       $data['parentPid'] = $parents[0]['value'];
     }
-
     if (isset($entity->remote_id)) {
+
       // Update resource
       $http_url = sprintf(
         '%s/resource/%s',
@@ -242,6 +243,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $entity->remote_id
       );
       $http_response = $this->_http_put($http_url, json_encode($data), 'application/json');
+
     } else {
 
       $entity_info = (entity_get_info(EDOWEB_ENTITY_TYPE));
@@ -263,6 +265,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $resource_uri = $http_response->headers['location'];
       $remote_id = substr($resource_uri, strrpos($resource_uri, '/') + 1);
       $entity->remote_id = $remote_id;
+
     }
 
     if (200 != $http_response->code) {
