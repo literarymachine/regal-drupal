@@ -371,6 +371,10 @@
                     }).css('float', 'right').css('margin-right', '0.3em');
                   var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
                     .bind('click', function() {
+                      var confirmed = confirm(
+                        'Feld ' + instance['label'] + ' entfernen? Werte gehen dabei verloren.'
+                      );
+                      if (!confirmed) return false;
                       $(this).closest('div.field').remove();
                       additional_fields.append(
                         $('<option />').text(instance['label']).val(instance['field_name'])
@@ -395,6 +399,10 @@
                     }).css('float', 'right').css('margin-right', '0.3em');
                   var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
                     .bind('click', function() {
+                      var confirmed = confirm(
+                        'Feld ' + instance['label'] + ' entfernen? Werte gehen dabei verloren.'
+                      );
+                      if (!confirmed) return false;
                       $(this).closest('div.field').remove();
                       additional_fields.append(
                         $('<option />').text(instance['label']).val(instance['field_name'])
