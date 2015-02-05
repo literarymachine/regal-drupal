@@ -561,7 +561,7 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
 
 }
 
-function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query, $live_search = TRUE) {
+function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query) {
 
   $form['#method'] = 'get';
 
@@ -592,11 +592,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       'title' => t('Enter your search term here. You may use quotes to search for phrases as in "The quick brown fox", and also boolean operators as in This AND that OR those.'),
     ),
   );
-
-  if ($live_search) {
-    $form['query'][$search_count]['term']['#attributes']['class']
-      = array('edoweb_live_search');
-  }
 
   if (isset($query['target_bundles']) && isset($query['endpoint'])) {
     $options = array();
@@ -2066,7 +2061,7 @@ function edoweb_block_view($delta = '') {
       );
       $block['subject'] = t('Search');
       $block['content'] = drupal_get_form(
-        'edoweb_basic_search_entities_form', FALSE, 0, array(), FALSE
+        'edoweb_basic_search_entities_form', FALSE, 0, array()
       );
       $block['content']['#action'] = url('resource');
       unset($block['content']['form_build_id']);
@@ -3229,4 +3224,30 @@ function edoweb_update_7145() {
   _update_edoweb_installed_instances($added_instances);
   _update_rdf_mapping();
 
+}
+
+/**
+ * Remove field_edoweb_webpage_archived and field_edoweb_catalog_link instances.
+ */
+function edoweb_update_7146() {
+  $deleted_instances = array(
+    'monograph' => array(
+      'field_edoweb_catalog_link',
+    ),
+    'journal' => array(
+      'field_edoweb_catalog_link',
+    ),
+    'webpage' => array(
+      'field_edoweb_catalog_link',
+      'field_edoweb_webpage_archived',
+    ),
+  );
+  foreach ($deleted_instances as $bundle => $field_names) {
+    foreach ($field_names as $field_name) {
+      if ($instance = field_info_instance(EDOWEB_ENTITY_TYPE, $field_name, $bundle)) {
+        field_delete_instance($instance, FALSE);
+        drupal_set_message("Deleted $field_name in $bundle bundle.");
+      }
+    }
+  }
 }

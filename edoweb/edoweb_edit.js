@@ -135,7 +135,7 @@
                 }
                 entity_content.find('.field-name-field-edoweb-identifier-ht').each(function() {
                   var hbzURI = 'lr:' + $(this).find('.field-item').text();
-                  var field_item = $('<div class="field-item" rel="umbel:isLike">'
+                  var field_item = $('<div class="field-item" rel="regal:parallelEdition">'
                     + '<a href="/resource/' + hbzURI + '" data-curie="' + hbzURI + '" resource="' + hbzURI + '" data-target-bundle="' + bundle + '">'
                     + Drupal.edoweb.expand_curie(hbzURI)
                     + '</a></div>');
