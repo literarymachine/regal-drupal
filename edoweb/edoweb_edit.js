@@ -52,11 +52,27 @@
         width: '80%'
       });
 
+      var additional_fields = $('<select class="field-selector"><option>Feld hinzufügen</option></select>');
+      var ops = {
+        '-': function(table) {
+          table.find('tbody > tr').each(function() {
+            var row = $(this);
+            var resource_curie = row.attr('data-curie');
+            $(this).children('td').last()
+              .append('<button>-</button>')
+              .bind('click', function(event) {
+                row.add($(this).closest('div.field').find('div.field-item:has(>a[data-curie="' + resource_curie + '"])')).remove();
+                return false;
+              });
+          });
+        }
+      };
       $('.edoweb.entity.edit', context).each(function() {
+
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
         entity.css('margin-bottom', '2em');
-        var additional_fields = $('<select><option>Feld hinzufügen</option></select>').change(function() {
+        additional_fields.change(function() {
           var instance = Drupal.settings.edoweb.fields[bundle][$(this).val()].instance;
           var field = createField(instance);
           activateFields(field, bundle, context);
@@ -228,11 +244,11 @@
       function createTextInput(instance, target) {
         var input = $('<div class="field-item" />')
           .attr('property', instance['settings']['predicates'].join(' '));
-        enableTextInput(input);
+        enableTextInput(input, instance);
         target.append(input);
       }
 
-      function enableTextInput(field) {
+      function enableTextInput(field, instance) {
 
         field.attr('contenteditable', true)
           .css('border', '1px solid grey')
@@ -241,9 +257,16 @@
           .css('min-height', '1.5em')
           .keydown(function(e) {
             var target = $(e.target);
-            if (e.keyCode == 8 && ! target.text().length && target.siblings('.field-item').length) {
-              placeCaretAtEnd(target.prev('.field-item').get(0));
-              $(this).remove();
+            if (e.keyCode == 8 && ! target.text().length) {
+              if (target.siblings('.field-item').length) {
+                placeCaretAtEnd(target.prev('.field-item').get(0));
+                $(this).remove();
+              } else if (! instance['required'] ) {
+                $(this).closest('div.field').remove();
+                additional_fields.append(
+                  $('<option />').text(instance['label']).val(instance['field_name'])
+                );
+              }
               return false;
             }
           });
@@ -283,7 +306,7 @@
             .attr('resource', Drupal.edoweb.compact_uri(uri));
           input.append(link);
           target.append(input);
-          Drupal.edoweb.entity_table(target);
+          Drupal.edoweb.entity_table(target, ops);
         });
         modal_overlay.dialog('open');
       }
@@ -334,7 +357,7 @@
             case 'number':
               field.find('.field-items').each(function() {
                 if ($(this).find('.field-item').length && ! instance['settings']['read_only']) {
-                  enableTextInput($(this).find('.field-item'));
+                  enableTextInput($(this).find('.field-item'), instance);
                 } else if ($(this).find('.field-item').length < 1) {
                   createTextInput(instance, $(this));
                 }
@@ -346,7 +369,20 @@
                       createTextInput(instance, field.find('.field-items'));
                       return false;
                     }).css('float', 'right').css('margin-right', '0.3em');
+                  var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
+                    .bind('click', function() {
+                      var confirmed = confirm(
+                        'Feld ' + instance['label'] + ' entfernen? Werte gehen dabei verloren.'
+                      );
+                      if (!confirmed) return false;
+                      $(this).closest('div.field').remove();
+                      additional_fields.append(
+                        $('<option />').text(instance['label']).val(instance['field_name'])
+                      );
+                      return false;
+                    }).css('float', 'right').css('margin-right', '0.3em');
                   field.find('.field-label').append(add_button);
+                  field.find('.field-label').append(remove_button);
                 }
               });
               break;
@@ -361,7 +397,29 @@
                       createLinkInput(instance, field.find('.field-items'));
                       return false;
                     }).css('float', 'right').css('margin-right', '0.3em');
+                  var remove_button = $('<a href="#"><span class="octicon octicon-dash" /></a>')
+                    .bind('click', function() {
+                      var confirmed = confirm(
+                        'Feld ' + instance['label'] + ' entfernen? Werte gehen dabei verloren.'
+                      );
+                      if (!confirmed) return false;
+                      $(this).closest('div.field').remove();
+                      additional_fields.append(
+                        $('<option />').text(instance['label']).val(instance['field_name'])
+                      );
+                      return false;
+                    }).css('float', 'right').css('margin-right', '0.3em');
                   field.find('.field-label').append(add_button);
+                  field.find('.field-label').append(remove_button);
+                  // Load entities into table with remove ops
+                  if ($(this).find('div.field-item').length) {
+                    Drupal.edoweb.entity_table($(this), ops);
+                  }
+                } else {
+                  // Load entities into table
+                  if ($(this).find('div.field-item').length) {
+                    Drupal.edoweb.entity_table($(this));
+                  }
                 }
               });
               break;

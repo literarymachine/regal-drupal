@@ -84,7 +84,7 @@
     /**
      * Function loads a tabular view for a list of linked entities
      */
-    entity_table: function(field_items) {
+    entity_table: function(field_items, operations) {
       field_items.each(function() {
         var container = $(this);
         var curies = [];
@@ -110,6 +110,9 @@
               //Drupal.attachBehaviors(result_table);
               container.hide();
               container.after(result_table);
+              for (label in operations) {
+                operations[label](result_table);
+              }
               Drupal.edoweb.hideEmptyTableColumns(result_table);
               Drupal.edoweb.hideTableHeaders(result_table);
             }
