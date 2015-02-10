@@ -629,6 +629,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
   } catch (LibRDF_LookupError $e) {
     $entity->uid = 0;
   }
+  try {
+    $entity->name = $rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:name'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    $entity->name = $entity->remote_id;
+  }
 
 }
 

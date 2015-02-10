@@ -283,13 +283,13 @@ function edoweb_entity_property_info() {
     'label' => t('The metadata access scheme of the Entity'),
     'type' => 'text',
   );
-  $properties['data_md'] = array(
+  $properties['access_data'] = array(
     'label' => t('The data access scheme of the Entity'),
     'type' => 'text',
   );
-  $properties['catalog_link'] = array(
-    'label' => t('The URL of the catalog link of the Entity'),
-    'type' => 'uri',
+  $properties['name'] = array(
+    'label' => t('A name for the metadata record'),
+    'type' => 'text',
   );
   return $property_info;
 }
@@ -1298,20 +1298,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       '#weight' => 1001,
     );
 
-    if (property_exists($entity, 'catalog_link')) {
-      $entity->content['catalog_link'] = array(
-        '#type' => 'item',
-        '#markup' => '<small>' . l(
-          'View in catalog',
-          $entity->catalog_link,
-          array('attributes' => array(
-            'target'=>'_blank',
-          ))
-        ) . '</small>',
-        '#weight' => 1002,
-      );
-    }
-
     try {
       $archived_url = $wrapper->field_edoweb_webpage_archived->value();
       if (! empty($archived_url)) {
@@ -1400,9 +1386,6 @@ function edoweb_basic_edit($entity, $view_mode = 'edit') {
 
   $postdata = file_get_contents("php://input");
   if ($postdata != '') {
-    $entity->namespace = isset($_GET['namespace'])
-      ? $_GET['namespace'] : null;
-
     $rdf_model = new LibRDF_Model(new LibRDF_Storage());
     $rdf_parser = new LibRDF_Parser('rdfxml');
 
@@ -1415,6 +1398,12 @@ function edoweb_basic_edit($entity, $view_mode = 'edit') {
     );
     $entity->remote_id = $entity_uri->getValue();
     _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
+
+    $entity->namespace = isset($_GET['namespace'])
+      ? $_GET['namespace'] : null;
+    $entity->name = isset($_GET['name'])
+      ? $_GET['name'] : null;
+
     if ($entity_uri instanceof LibRDF_BlankNode) {
       $entity->remote_id = null;
     }

@@ -105,7 +105,7 @@
         entity.after(submit_button);
 
         if (Drupal.settings.edoweb.primary_bundles.indexOf(entity.attr('data-entity-bundle')) != -1) {
-          var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
+          var template_select = $('<select><option>Liste der Satzschablonen wird geladen...</option></select>').change(function() {
             var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
             $(this).after(throbber);
             entity_render_view('edoweb_basic', $(this).val()).onload = function() {
@@ -122,8 +122,12 @@
           $.get(Drupal.settings.basePath + 'edoweb/templates/' + bundle,
             function(data) {
               $.each(JSON.parse(data), function(i, entity) {
-                $('<option />').text(entity['@id']).val(entity['@id']).appendTo(template_select);
+                var label = entity['isDescribedBy']['name']
+                  ? entity['isDescribedBy']['name']
+                  : entity['@id'];
+                $('<option />').text(label).val(entity['@id']).appendTo(template_select);
               });
+              template_select.find('option').first().text("Satzschablone laden");
             }
           );
           additional_fields.after(template_select);
@@ -184,7 +188,7 @@
         var topic = rdf.where('?s <http://xmlns.com/foaf/0.1/primaryTopic> ?o').get(0);
         var url = topic.s.value.toString();
         if ('save-entity-template' == button.attr('id')) {
-          url += '?namespace=template';
+          url += '?namespace=template&name=' + prompt("Satzschablone speichern als");
         }
         var subject = topic.o;
         var post_data = rdf.databank.dump({
