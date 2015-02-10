@@ -89,7 +89,7 @@
         entity.after(submit_button);
 
         if (Drupal.settings.edoweb.primary_bundles.indexOf(entity.attr('data-entity-bundle')) != -1) {
-          var template_select = $('<select><option>Satzschablone laden</option></select>').change(function() {
+          var template_select = $('<select><option>Liste der Satzschablonen wird geladen...</option></select>').change(function() {
             var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
             $(this).after(throbber);
             entity_render_view('edoweb_basic', $(this).val()).onload = function() {
@@ -111,6 +111,7 @@
                   : entity['@id'];
                 $('<option />').text(label).val(entity['@id']).appendTo(template_select);
               });
+              template_select.find('option').first().text("Satzschablone laden");
             }
           );
           additional_fields.after(template_select);
