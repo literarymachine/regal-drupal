@@ -37,6 +37,53 @@
         return confirmed;
       });
 
+      // TODO: implement something like this as the hijax default behavior
+      $('#edoweb-basic-access-form', context).submit(function() {
+        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
+        $('#content').hide();
+        $('#content').after(throbber);
+        var form = $(this);
+        var action = form.attr('action');
+        var method = form.attr('method');
+        $.ajax({
+          type: method,
+          url: action,
+          data: form.serialize(),
+          success: function(data) {
+            var html = $(data);
+            Drupal.attachBehaviors(html);
+            $('#content').replaceWith(html.find('#content'));
+            $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+            if ($('#messages').length) {
+              $('#messages').replaceWith(html.find('#messages'));
+            } else {
+              $('#header').after(html.find('#messages'));
+            }
+            document.title = html.filter('title').text();
+            $('.edoweb-tree li.active').removeClass('active');
+            $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
+          },
+          error: function(jqXHR) {
+            var html = $(jqXHR.responseText);
+            Drupal.attachBehaviors(html);
+            $('#content').replaceWith(html.find('#content'));
+            $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+            if ($('#messages').length) {
+              $('#messages').replaceWith(html.find('#messages'));
+            } else {
+              $('#header').after(html.find('#messages'));
+            }
+            document.title = html.filter('title').text();
+            $('.edoweb-tree li.active').removeClass('active');
+            $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
+          },
+          complete: function() {
+            throbber.remove();
+          }
+        });
+        return false;
+      });
+
       $('.tabs a', context).bind('click', function() {
         var href = $(this).attr('href');
         history.pushState({tree: true}, null, href);

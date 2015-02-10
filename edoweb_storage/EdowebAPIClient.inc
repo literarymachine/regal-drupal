@@ -348,6 +348,42 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return $results;
   }
 
+  public function setAccessRights($entity, $subtree_apply = false) {
+
+    $data = array();
+
+    if (isset($entity->access_data)) $data['accessScheme'] = $entity->access_data;
+    if (isset($entity->access_md)) $data['publishScheme'] = $entity->access_md;
+
+    // Update resource
+    $http_url = sprintf(
+      '%s/resource/%s',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    if ($subtree_apply) {
+      $http_url .= '/all';
+    } else {
+      $data['contentType'] = $entity->bundle_type;
+    }
+
+    $http_response = $this->_http_patch($http_url, json_encode($data), 'application/json');
+
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to set access rights for @id at @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+
+    return TRUE;
+
+  }
+
   protected function _query_lobid(EntityFieldQuery $efq, $page = 0) {
     $lobid_host = variable_get('edoweb_lobid_host');
     $term = str_replace(
@@ -791,6 +827,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _http_head($request_url) {
     $http_options = array(
       'method' => 'HEAD',
+    );
+    return _edoweb_http_request($request_url, $http_options);
+  }
+
+  protected function _http_patch($request_url, $request_body, $content_type = 'text/plain') {
+    $http_options = array(
+      'method' => 'PATCH',
+      'data' => $request_body,
+      'headers' => array('Content-Type' => $content_type),
     );
     return _edoweb_http_request($request_url, $http_options);
   }
