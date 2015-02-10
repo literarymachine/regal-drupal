@@ -1052,6 +1052,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         // Add facet to query
         if ('contentType' == $jsonld_property) {
           $efq->entityCondition('bundle', array($value));
+        } else if ('createdBy' == $jsonld_property) {
+          $efq->propertyCondition('uid', $value);
         } else {
           $field_name = _jsonld_key_to_field_name($jsonld_property);
           $efq->fieldCondition(
