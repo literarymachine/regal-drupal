@@ -461,7 +461,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $index
     );
     $query = $this->_efq_to_es($efq, $page);
-
     $http_response = $this->_http_post(
       $http_url, $query, 'application/json'
     );
@@ -563,7 +562,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
             $uids = array($uids);
           }
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
-            ["creator"] = $uids;
+            ['isDescribedBy.createdBy'] = $uids;
           break;
       }
     }
