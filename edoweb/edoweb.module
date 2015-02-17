@@ -730,14 +730,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => t('Download'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_datastream',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => t('Issued'),
           'type' => 'field',
           'specifier' => array(
