@@ -34,7 +34,7 @@
       });
 
       // Load entity-labels in facet list
-      $(context).find('*[data-curie].facet').each(function() {
+      $('a[data-curie]', context).not('.resolved').each(function() {
         Drupal.edoweb.entity_label($(this));
       });
 
