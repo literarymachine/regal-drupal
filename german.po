@@ -473,7 +473,7 @@ msgid "Titel"
 msgstr ""
 
 #: (duplicate) edoweb/edoweb.install:1861
-msgid "Untertitel"
+msgid "Zusatz zum Sachtitel"
 msgstr ""
 
 #: (duplicate) edoweb/edoweb.install:1869
