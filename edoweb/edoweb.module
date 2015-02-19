@@ -248,6 +248,12 @@ function edoweb_entity_info() {
         ),
       ),
     ),
+    'view modes' => array(
+      'compact' => array(
+        'label' => t('Compact'),
+        'custom settings' => TRUE,
+      ),
+    ),
   );
 
   return $info;
@@ -3225,4 +3231,9 @@ function edoweb_update_7146() {
       }
     }
   }
+}
+
+function edoweb_update_7147() {
+  entity_info_cache_clear();
+  _update_edoweb_installed_instances();
 }
