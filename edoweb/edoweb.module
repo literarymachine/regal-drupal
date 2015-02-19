@@ -3233,6 +3233,9 @@ function edoweb_update_7146() {
   }
 }
 
+/**
+ * Update view mode settings for all fields
+ */
 function edoweb_update_7147() {
   entity_info_cache_clear();
   _update_edoweb_installed_instances();
