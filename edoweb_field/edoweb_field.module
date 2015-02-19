@@ -28,7 +28,8 @@ function edoweb_field_field_info() {
       'description' => t('This field holds the URI of a linked data resource'),
       'default_widget' => 'edoweb_autocomplete_widget',
       'default_formatter' => 'edoweb_ld_format',
-      'property_type' => 'text',
+      'property_type' => 'edoweb_ld_property',
+      'property_callbacks' => array('edoweb_ld_property_info_callback'),
     ),
     'edoweb_date' => array(
       'label' => t('A field for dates'),
@@ -295,13 +296,19 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 
       foreach ($items as $delta => $item) {
         $curie = _edoweb_compact_uri($item['value']);
+        $attributes = array(
+          'data-target-bundle' => implode(' ', $target_bundles),
+          'data-curie' => $curie,
+          'resource' => $item['value'],
+        );
+        if ('' == $item['label']) {
+          $item['label'] = $item['value'];
+        } else {
+          $attributes['class'][] = 'resolved';
+        }
         $elements[$delta] = array(
-          '#markup' => l($item['value'], 'resource/' . $curie,
-            array('attributes' => array(
-              'data-target-bundle' => implode(' ', $target_bundles),
-              'data-curie' => $curie,
-              'resource' => $item['value'],
-            ))
+          '#markup' => l($item['label'], 'resource/' . $curie,
+            array('attributes' => $attributes)
           ),
         );
       }
@@ -499,6 +506,23 @@ function edoweb_autocomplete_widget_update_value($form, &$form_state) {
 function edoweb_autocomplete_widget_validate_value($form, &$form_state) {
   form_clear_error();
   drupal_get_messages('error');
+}
+
+function edoweb_ld_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
+  $property['getter callback'] = 'entity_metadata_field_verbatim_get';
+  $property['setter callback'] = 'entity_metadata_field_verbatim_set';
+  //unset($property['query callback']);
+  $property['property info']['value'] = array(
+    'type' => 'text',
+    'label' => t('Value'),
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+  $property['property info']['label'] = array(
+    'type' => 'text',
+    'label' => t('Label'),
+    'setter callback' => 'entity_property_verbatim_set',
+  );
 }
 
 /**

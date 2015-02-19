@@ -500,14 +500,14 @@ function _edoweb_storage_entity_serialize_rdf(
               }
             }
           } else {
-            if (_is_edoweb_entity($item)) {
-              $rdf_object = new LibRDF_URINode($item);
+            if (_is_edoweb_entity($item['value'])) {
+              $rdf_object = new LibRDF_URINode($item['value']);
             } else {
-              $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+              $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item['value']));
             }
             if ($embedded_storage) {
               $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-                edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
+                edoweb_basic_load(_edoweb_compact_uri($item['value'])), false, $metadata_types
               );
               foreach ($embedded_item_graph as $embedded_item_statement) {
                 $rdf_model->addStatement($embedded_item_statement);
@@ -570,15 +570,33 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
               $wrapper->{$field_name}[] = (string) $value;
             }
           } else {
+            // Check if label is available
+            try {
+              $label = $rdf_model->getTarget($value,
+                  new LibRDF_URINode(_edoweb_expand_curie('skos:prefLabel'))
+              )->getValue();
+            } catch (LibRDF_LookupError $e) {
+              $label = '';
+            }
             if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
               $wrapper->{$field_name} = $value->getValue();
+            } else if ($wrapper->{$field_name} instanceOf EntityStructureWrapper) {
+              $wrapper->{$field_name} = array(
+                'value' => $value->getValue(),
+                'label' => $label,
+              );
             } else {
-              $wrapper->{$field_name}[] = $value->getValue();
+              $wrapper->{$field_name}[] = array(
+                'value' => $value->getValue(),
+                'label' => $label,
+              );
             }
           }
-          //drupal_set_message("Populated $field_name.");
         } catch (EntityMetadataWrapperException $e) {
-          //drupal_set_message($e->getMessage(), 'error');
+          console_log($e->getMessage());
+          console_log("$rdf_subject");
+          console_log("$rdf_predicate");
+          console_log("$value");
         }
       }
     }

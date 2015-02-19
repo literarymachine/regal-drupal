@@ -1539,8 +1539,12 @@ function edoweb_basic_structure($entity) {
     $api = new EdowebAPIClient();
     if ($new_parent_id) {
       $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-      $prev_parent_id = $wrapper->field_edoweb_struct_parent->value();
-      $wrapper->field_edoweb_struct_parent = $new_parent_id;
+      $prev_parent = $wrapper->field_edoweb_struct_parent->value();
+      $prev_parent_id = $prev_parent['value'];
+      $wrapper->field_edoweb_struct_parent = array(
+        'value' => $new_parent_id,
+        'label' => '',
+      );
       if ($api->saveResource($entity)) {
         echo "Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
       } else if ($new_parent_id) {
