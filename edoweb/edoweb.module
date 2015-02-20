@@ -850,7 +850,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   }
 
   // Add fixed columns, independant of bundle type
-  array_unshift($columns, 'ID');
+  array_unshift($columns, t('Objekt'));
   array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
