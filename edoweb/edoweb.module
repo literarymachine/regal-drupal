@@ -1200,7 +1200,9 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   } else {
     $uri = entity_uri(EDOWEB_ENTITY_TYPE, $entity);
     $entity->content = array(
-      '#prefix' => '<h1><a href="' . url($uri['path']) . '">' . entity_label(EDOWEB_ENTITY_TYPE, $entity) . '</a></h1>'
+      '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
+                 . '<h1><a href="' . url($uri['path']) . '">' . entity_label(EDOWEB_ENTITY_TYPE, $entity) . '</a></h1>',
+      '#suffix' => "</div>",
     );
   }
 
