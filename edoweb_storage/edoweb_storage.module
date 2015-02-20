@@ -500,7 +500,9 @@ function _edoweb_storage_entity_serialize_rdf(
               }
             }
           } else {
-            if (_is_edoweb_entity($item['value'])) {
+            if (!is_array($item)) {
+              $rdf_object = new LibRDF_URINode($item);
+            } else if (_is_edoweb_entity($item['value'])) {
               $rdf_object = new LibRDF_URINode($item['value']);
             } else {
               $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item['value']));

@@ -1306,7 +1306,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
             '#type' => 'item',
             '#markup' => '<small>' . l(
               'View MAB source',
-              $origin[0] . '?format=source',
+              $origin[0]['value'] . '?format=source',
               array('attributes' => array(
                 'target'=>'_blank',
                 'class' => array('entity-id'),
