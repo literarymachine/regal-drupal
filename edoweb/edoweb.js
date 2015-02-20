@@ -64,6 +64,7 @@
           return prefix + ':' + local_part;
         }
       }
+      return uri;
     },
 
     expand_curie: function(curie) {
@@ -203,7 +204,9 @@
       window.addEventListener("popstate", function(e) {
         if (e.state && e.state.tree) {
           Drupal.edoweb.navigateTo(location.pathname);
-          Drupal.edoweb.refreshTree();
+          if (Drupal.edoweb.refreshTree) {
+            Drupal.edoweb.refreshTree();
+          }
         }
       });
       this.attached = true;
