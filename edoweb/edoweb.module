@@ -3236,9 +3236,22 @@ function edoweb_update_7146() {
 }
 
 /**
- * Update view mode settings for all fields
+ * Update field titel
  */
 function edoweb_update_7147() {
+  $updated_instances = array(
+    'monograph' => array('field_edoweb_title_other'),
+    'journal' => array('field_edoweb_title_other'),
+    'article' => array('field_edoweb_title_other'),
+    'webpage' => array('field_edoweb_title_other')
+  );
+  _update_edoweb_installed_instances($updated_instances);
+}
+
+/**
+ * Update view mode settings for all fields
+ */
+function edoweb_update_7148() {
   entity_info_cache_clear();
   _update_edoweb_installed_instances();
 }
