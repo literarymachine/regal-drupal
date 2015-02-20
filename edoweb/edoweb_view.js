@@ -22,6 +22,8 @@
   Drupal.behaviors.edoweb_view = {
     attach: function (context, settings) {
 
+      $('.field-name-field-edoweb-collected-by').hide();
+
       $('.edoweb.entity.default', context).each(function() {
         // Load entities into table
         Drupal.edoweb.entity_table($(this).find('.field-type-edoweb-ld-reference .field-items'));
