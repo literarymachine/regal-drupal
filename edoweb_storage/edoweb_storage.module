@@ -574,9 +574,9 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
           } else {
             // Check if label is available
             try {
-              $label = $rdf_model->getTarget($value,
+              $label = _edoweb_unescape_utf8($rdf_model->getTarget($value,
                   new LibRDF_URINode(_edoweb_expand_curie('skos:prefLabel'))
-              )->getValue();
+              )->getValue());
             } catch (LibRDF_LookupError $e) {
               $label = '';
             }
@@ -721,7 +721,7 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
   return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
 }
 
-function _edoweb_escape_utf8($string) {
+function _edoweb_utf8_charmap() {
   $char_map = array(
     '¢' => '\u00A2',
     '£' => '\u00A3',
@@ -801,7 +801,17 @@ function _edoweb_escape_utf8($string) {
     'þ' => '\u00FE',
     'ÿ' => '\u00FF',
   );
+  return $char_map;
+}
+
+function _edoweb_escape_utf8($string) {
+  $char_map = _edoweb_utf8_charmap();
   return strtr($string, $char_map);
+}
+
+function _edoweb_unescape_utf8($string) {
+  $char_map = _edoweb_utf8_charmap();
+  return strtr($string, array_flip($char_map));
 }
 
 function _edoweb_expand_curie($curie) {
