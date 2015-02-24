@@ -190,6 +190,10 @@
           {
         table.find('thead').hide();
       }
+    },
+
+    blockUIMessage: {
+      message: '<div class="ajax-progress"><div class="throbber">&nbsp;</div></div> Bitte warten...'
     }
 
   }
