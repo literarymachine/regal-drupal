@@ -74,7 +74,9 @@ function edoweb_init() {
     drupal_add_js(
       drupal_get_path('module', 'edoweb') . '/jquery.tablesorter.min.js'
     );
-    drupal_add_js("https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.66.0-2013.10.09/jquery.blockUI.min.js");
+    drupal_add_js(
+      drupal_get_path('module', 'edoweb') . '/jquery.blockUI.js'
+    );
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
   }
