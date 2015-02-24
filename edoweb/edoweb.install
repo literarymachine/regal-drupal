@@ -2113,6 +2113,14 @@ function _edoweb_installed_permissions() {
       'administer edoweb configuration',
       EDOWEB_ENTITY_TYPE . ' entity js read',
     ),
+    'edoweb_backend_subscriber' => array(
+      'view any edoweb_basic entity',
+      EDOWEB_ENTITY_TYPE . ' entity js read',
+    ),
+    'edoweb_backend_remote' => array(
+      'view any edoweb_basic entity',
+      EDOWEB_ENTITY_TYPE . ' entity js read',
+    ),
   );
 }
 
@@ -2129,6 +2137,12 @@ function _edoweb_installed_roles() {
     ),
     array(
       'name' => 'edoweb_backend_admin',
+    ),
+    array(
+      'name' => 'edoweb_backend_subscriber',
+    ),
+    array(
+      'name' => 'edoweb_backend_remote',
     ),
   );
 }

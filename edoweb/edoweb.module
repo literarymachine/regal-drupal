@@ -3255,3 +3255,20 @@ function edoweb_update_7147() {
   );
   _update_edoweb_installed_instances($updated_instances);
 }
+
+/**
+ * Add edoweb_backend_subscriber and edoweb_backend_remote roles and permissions
+ */
+function edoweb_update_7148() {
+  module_load_install('edoweb');
+  $permissions = _edoweb_installed_permissions();
+  $subscriber_role = new stdClass();
+  $subscriber_role->name = 'edoweb_backend_subscriber';
+  user_role_save($subscriber_role);
+  user_role_grant_permissions($subscriber_role->rid, $permissions[$subscriber_role->name]);
+  $remote_role = new stdClass();
+  $remote_role->name = 'edoweb_backend_remote';
+  user_role_save($remote_role);
+  user_role_grant_permissions($remote_role->rid, $permissions[$remote_role->name]);
+}
+
