@@ -64,6 +64,7 @@
           return prefix + ':' + local_part;
         }
       }
+      return uri;
     },
 
     expand_curie: function(curie) {
@@ -101,8 +102,11 @@
           Drupal.edoweb.entity_list('edoweb_basic', curies, columns).onload = function () {
             if (this.status == 200) {
               var result_table = $(this.responseText).find('table');
-              result_table.find('a[data-curie][data-target-bundle]').each(function() {
-                Drupal.edoweb.entity_label($(this));
+              result_table.find('a[data-curie]').not('.resolved').not('.edoweb.download').each(function() {
+                var href = Drupal.settings.basePath
+                  + 'resource/'
+                  + Drupal.edoweb.compact_uri($(this).attr('href'));
+                $(this).attr('href', href);
               });
               result_table.removeClass('sticky-enabled');
               result_table.tablesorter({sortList: [[1,1]]});
@@ -137,6 +141,7 @@
             sessionStorage.setItem(entity_id, label);
           }
           element.text(label);
+          element.addClass('resolved');
         };
       }
     },
@@ -161,22 +166,6 @@
             $(this).hide();
             tds.hide();
         }
-      });
-      // Hide the first table column which contains the ID,
-      // move the link to the first visible column
-      table.find('th').eq(0).hide();
-      table.find('tr[data-curie]').each(function() {
-        $(this).find('td').eq(0).hide();
-        if ($(this).parents('.ui-dialog').length) {
-          var link = $(this).find('td').eq(0).find('a').attr('href');
-          var target = "_blank";
-        } else {
-          var link = Drupal.settings.basePath + 'resource/' + $(this).attr('data-curie');
-          var target = "_self";
-        }
-        var content = $(this).find('td:visible').first().html();
-        var link_text = $(content).text() ? content : link;
-        $(this).find('td:visible').first().html($('<a target="' + target + '" href="' + link + '">' + link_text + '</a>'));
       });
     },
 
@@ -215,7 +204,9 @@
       window.addEventListener("popstate", function(e) {
         if (e.state && e.state.tree) {
           Drupal.edoweb.navigateTo(location.pathname);
-          Drupal.edoweb.refreshTree();
+          if (Drupal.edoweb.refreshTree) {
+            Drupal.edoweb.refreshTree();
+          }
         }
       });
       this.attached = true;

@@ -248,6 +248,12 @@ function edoweb_entity_info() {
         ),
       ),
     ),
+    'view modes' => array(
+      'compact' => array(
+        'label' => t('Compact'),
+        'custom settings' => TRUE,
+      ),
+    ),
   );
 
   return $info;
@@ -479,7 +485,7 @@ function edoweb_info_page() {
     'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'webpage', 'version'
   ));
   $content['resource_list'] = edoweb_basic_search_entities(
-    $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity')
+    $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity'), TRUE, 'compact'
   );
 
   return $content;
@@ -629,7 +635,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 }
 
 function edoweb_basic_search_entities(
-  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE
+  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE, $view_mode = 'default'
 ) {
   static $search_count = 0;
   if (array_key_exists('query', $_GET)
@@ -697,7 +703,7 @@ function edoweb_basic_search_entities(
   }
 
   if ($term || $list_noterm) {
-    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets'], $sortable);
+    $content['results'] = edoweb_basic_list_entities($efq, $operations, $search_count, @$query['facets'], $sortable, $view_mode);
   }
 
   $search_count++;
@@ -708,6 +714,7 @@ function edoweb_basic_search_entities(
  * Returns table header
  */
 function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false) {
+
   $columns = array();
   switch ($bundle_type) {
     case 'monograph':
@@ -721,14 +728,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'version':
       $columns = array(
         array(
-          'data' => t('Title'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_title',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => t('HT-Nummer'),
           'type' => 'field',
           'specifier' => array(
@@ -737,34 +736,10 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => t('Volume'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_volume',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => t('Issued'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_issued',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => t('Download'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_datastream',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => t('File type'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_filetype',
             'column' => 'value',
           ),
         ),
@@ -786,14 +761,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'authority_resource':
       $columns = array(
         array(
-          'data' => 'Name',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_name',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => 'ID / Notation',
           'type' => 'field',
           'specifier' => array(
@@ -802,7 +769,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
         array(
-          'data' => 'Objektart',
+          'data' => 'Quelle',
           'type' => 'property',
           'specifier' => 'remote_id',
           'format' => '_edoweb_format_subject',
@@ -883,7 +850,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   }
 
   // Add fixed columns, independant of bundle type
-  array_unshift($columns, 'ID');
+  array_unshift($columns, t('Objekt'));
   array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
@@ -894,7 +861,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
 /*
  * Returns a list of entities themed as a table.
  */
-function edoweb_basic_entity_table($header, $entities, $operations = array(), $total = null) {
+function edoweb_basic_entity_table($header, $entities, $operations = array(), $total = null, $view_mode = 'default') {
 
   $content = array(
     '#type' => 'fieldset',
@@ -919,13 +886,20 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
     }
 
     $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-    $curie = $wrapper->remote_id->value();
+    $curie = _edoweb_compact_uri($wrapper->remote_id->value());
     $row = array('data-curie' => $curie);
-    $row['data'][] = l(
-      $curie, _edoweb_expand_curie($curie), array(
-        'attributes' => array('data-curie' => $curie)
-      )
-    );
+    if ('compact' == $view_mode) {
+      $entity_view = edoweb_basic_view($entity, 'compact');
+      $row['data'][] = drupal_render($entity_view);
+    } else {
+      $row['data'][] = l(
+        entity_label(EDOWEB_ENTITY_TYPE, $entity),
+        _edoweb_expand_curie($curie),
+        array(
+          'attributes' => array('data-curie' => $curie, 'class' => array('resolved'))
+        )
+      );
+    }
     foreach ($columns as $column) {
       $property = null;
       $value = null;
@@ -998,7 +972,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  * Returns a render array with all edoweb_basic entities.
  *
  */
-function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE) {
+function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE, $view_mode = 'default') {
 
   // Prepare query: header for table sort
   // TODO: decide which table header to use if multiple target bundles
@@ -1119,7 +1093,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
 
 
   if (!empty($entities)) {
-    $content['entity_list'] = edoweb_basic_entity_table($header, $entities, $operations, $result['hits']);
+    $content['entity_list'] = edoweb_basic_entity_table($header, $entities, $operations, $result['hits'], $view_mode);
   } else {
     // There were no entities. Tell the user.
     $content[] = array(
@@ -1217,11 +1191,20 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     : 'resource="[_:foo]"';
 
   // Start setting up the content.
-  $entity->content = array(
-    '#view_mode' => $view_mode,
-    '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>",
-    '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
-  );
+  if (!('compact' == $view_mode)) {
+    $entity->content = array(
+      '#view_mode' => $view_mode,
+      '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>",
+      '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
+    );
+  } else {
+    $uri = entity_uri(EDOWEB_ENTITY_TYPE, $entity);
+    $entity->content = array(
+      '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
+                 . '<h1><a href="' . url($uri['path']) . '">' . entity_label(EDOWEB_ENTITY_TYPE, $entity) . '</a></h1>',
+      '#suffix' => "</div>",
+    );
+  }
 
   if (isset($entity->remote_id)) {
     // Build fields content - this is where the Field API really comes in to play.
@@ -1238,105 +1221,107 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     $entity->content += field_attach_view($entity_type, $entity, $view_mode);
 
     // OK, Field API done, now we can set up some of our own data.
+    if ('default' == $view_mode) {
 
-    // Find fields linking to this entity
-    $inverse_query = new EntityFieldQuery();
-    $inverse_query->addTag('elasticsearch');
-    $inverse_query->entityCondition(
-      'entity_type', 'edoweb_basic'
-    );
-    $fields_info = field_info_fields();
-    $has_inverse = FALSE;
-    foreach ($fields_info as $field_name => $field_info) {
-      if (isset($field_info['settings']['inverse'])
-          && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
-        $has_inverse = TRUE;
-        $inverse_query->fieldCondition(
-          $field_name, 'value', $entity->identifier(), null, 'or'
-        );
-      }
-    }
-    if ($has_inverse) {
-      $inverse_query->entityCondition('bundle', array(
-        'monograph', 'journal', 'volume', 'issue', 'article', 'file'
-      ));
-      $entity->content['related'] = edoweb_basic_search_entities(
-        $inverse_query
+      // Find fields linking to this entity
+      $inverse_query = new EntityFieldQuery();
+      $inverse_query->addTag('elasticsearch');
+      $inverse_query->entityCondition(
+        'entity_type', 'edoweb_basic'
       );
-      $entity->content['related'] += array(
-        '#weight' => 900,
-        '#type' => 'fieldset',
-        '#title' => 'Related resources',
+      $fields_info = field_info_fields();
+      $has_inverse = FALSE;
+      foreach ($fields_info as $field_name => $field_info) {
+        if (isset($field_info['settings']['inverse'])
+            && in_array($entity->bundle_type, $field_info['settings']['inverse']['bundles'])) {
+          $has_inverse = TRUE;
+          $inverse_query->fieldCondition(
+            $field_name, 'value', $entity->identifier(), null, 'or'
+          );
+        }
+      }
+      if ($has_inverse) {
+        $inverse_query->entityCondition('bundle', array(
+          'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+        ));
+        $entity->content['related'] = edoweb_basic_search_entities(
+          $inverse_query
+        );
+        $entity->content['related'] += array(
+          '#weight' => 900,
+          '#type' => 'fieldset',
+          '#title' => 'Related resources',
+        );
+      }
+
+      $entity->content['access_rights'] = array(
+        '#type' => 'item',
+        '#markup' => '<div style="display: none;">'
+                    . '<span property="regal:publishScheme">' . $entity->access_md . '</span>'
+                    . '<span property="regal:accessScheme">' .  $entity->access_data . '</span>'
+                    . '</div>',
+        '#weight' => 1000,
       );
-    }
 
-    $entity->content['access_rights'] = array(
-      '#type' => 'item',
-      '#markup' => '<div style="display: none;">'
-                  . '<span property="regal:publishScheme">' . $entity->access_md . '</span>'
-                  . '<span property="regal:accessScheme">' .  $entity->access_data . '</span>'
-                  . '</div>',
-      '#weight' => 1000,
-    );
+      $entity->content['_updated'] = array(
+        '#type' => 'item',
+        '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
+        '#weight' => 1000,
+      );
 
-    $entity->content['_updated'] = array(
-      '#type' => 'item',
-      '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
-      '#weight' => 1000,
-    );
+      $entity->content['remote_id'] = array(
+        '#type' => 'item',
+        '#markup' => '<small>' . l(
+          'View source',
+          _edoweb_expand_curie($entity->remote_id),
+          array('attributes' => array(
+            'target'=>'_blank',
+            'class' => array('entity-id'),
+          ))
+        ) . '</small>',
+        '#weight' => 1001,
+      );
 
-    $entity->content['remote_id'] = array(
-      '#type' => 'item',
-      '#markup' => '<small>' . l(
-        'View source',
-        _edoweb_expand_curie($entity->remote_id),
-        array('attributes' => array(
-          'target'=>'_blank',
-          'class' => array('entity-id'),
-        ))
-      ) . '</small>',
-      '#weight' => 1001,
-    );
-
-    try {
-      $archived_url = $wrapper->field_edoweb_webpage_archived->value();
-      if (! empty($archived_url)) {
-        $entity->content['archived_url'] = array(
-          '#type' => 'item',
-          '#markup' => '<small>' . l(
-            'View in Internet Archive',
-            "http://web.archive.org/web/*/{$archived_url}",
-            array('attributes' => array(
-              'target'=>'_blank',
-            ))
-          ) . '</small>',
-          '#weight' => 1003,
-        );
+      try {
+        $archived_url = $wrapper->field_edoweb_webpage_archived->value();
+        if (! empty($archived_url)) {
+          $entity->content['archived_url'] = array(
+            '#type' => 'item',
+            '#markup' => '<small>' . l(
+              'View in Internet Archive',
+              "http://web.archive.org/web/*/{$archived_url}",
+              array('attributes' => array(
+                'target'=>'_blank',
+              ))
+            ) . '</small>',
+            '#weight' => 1003,
+          );
+        }
+      } catch (EntityMetadataWrapperException $e) {
+        // Field not present, ignore
       }
-    } catch (EntityMetadataWrapperException $e) {
-      // Field not present, ignore
-    }
 
-    try {
-      $origin = $wrapper->field_edoweb_parallel->value();
-      if (! empty($origin)) {
-        $entity->content['mab_source'] = array(
-          '#type' => 'item',
-          '#markup' => '<small>' . l(
-            'View MAB source',
-            $origin[0] . '?format=source',
-            array('attributes' => array(
-              'target'=>'_blank',
-              'class' => array('entity-id'),
-            ))
-          ) . '</small>',
-          '#weight' => 1004,
-        );
+      try {
+        $origin = $wrapper->field_edoweb_parallel->value();
+        if (! empty($origin)) {
+          $entity->content['mab_source'] = array(
+            '#type' => 'item',
+            '#markup' => '<small>' . l(
+              'View MAB source',
+              $origin[0]['value'] . '?format=source',
+              array('attributes' => array(
+                'target'=>'_blank',
+                'class' => array('entity-id'),
+              ))
+            ) . '</small>',
+            '#weight' => 1004,
+          );
+        }
+      } catch (EntityMetadataWrapperException $e) {
+        // Field not present, ignore
       }
-    } catch (EntityMetadataWrapperException $e) {
-      // Field not present, ignore
-    }
 
+    }
   }
 
   if (1 == variable_get('edoweb_api_debug')) {
@@ -1364,7 +1349,9 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
   // Now invoke hook_entity_view_alter().
   drupal_alter(array('edoweb_basic_view', 'entity_view'), $entity->content, $entity_type);
 
-  _edoweb_build_breadcrumb($entity);
+  if (!('compact' == $view_mode)) {
+    _edoweb_build_breadcrumb($entity);
+  }
 
   // Add custom HTTP header for AJAX requests
   if (isset($entity->remote_id)) {
@@ -1560,8 +1547,12 @@ function edoweb_basic_structure($entity) {
     $api = new EdowebAPIClient();
     if ($new_parent_id) {
       $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
-      $prev_parent_id = $wrapper->field_edoweb_struct_parent->value();
-      $wrapper->field_edoweb_struct_parent = $new_parent_id;
+      $prev_parent = $wrapper->field_edoweb_struct_parent->value();
+      $prev_parent_id = $prev_parent['value'];
+      $wrapper->field_edoweb_struct_parent = array(
+        'value' => $new_parent_id,
+        'label' => '',
+      );
       if ($api->saveResource($entity)) {
         echo "Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
       } else if ($new_parent_id) {
@@ -2125,7 +2116,8 @@ function _edoweb_format_date($timestamp) {
 }
 
 function _edoweb_format_subject($remote_id) {
-  return strtoupper(substr($remote_id, 0, strpos($remote_id, ':')));
+  $curie = _edoweb_compact_uri($remote_id);
+  return strtoupper(substr($curie, 0, strpos($curie, ':')));
 }
 
 function _edoweb_http_request($request_url, $http_options) {
@@ -3257,9 +3249,17 @@ function edoweb_update_7147() {
 }
 
 /**
- * Add edoweb_backend_subscriber and edoweb_backend_remote roles and permissions
+ * Update view mode settings for all fields
  */
 function edoweb_update_7148() {
+  entity_info_cache_clear();
+  _update_edoweb_installed_instances();
+}
+
+/**
+ * Add edoweb_backend_subscriber and edoweb_backend_remote roles and permissions
+ */
+function edoweb_update_7149() {
   module_load_install('edoweb');
   $permissions = _edoweb_installed_permissions();
   $subscriber_role = new stdClass();

@@ -214,7 +214,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     }
     $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
     try {
-      $wrapper->field_edoweb_struct_child = json_decode($http_response->data);
+      $current_values = $wrapper->field_edoweb_struct_child->value();
+      $wrapper->field_edoweb_struct_child = array();
+      foreach (json_decode($http_response->data) as $new_key => $child)
+        foreach($current_values as $old_key => $current_value)
+          if ($child == $current_value['value'])
+            $wrapper->field_edoweb_struct_child[$new_key] = $current_value;
     } catch (EntityMetadataWrapperException $e) {
       // No child field available, ignore
     }

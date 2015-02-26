@@ -1887,87 +1887,115 @@ function _edoweb_field_instance_defaults($field_name) {
       'settings' => array(
         'default' => TRUE,
       ),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_contributor' => array(
       'label' => $t('[Bearb.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_editor' => array(
       'label' => $t('[Hrsg.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_edt' => array(
       'label' => $t('[Red.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_translator' => array(
       'label' => $t('[Übers.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ill' => array(
       'label' => $t('[Ill.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_act' => array(
       'label' => $t('[Darst.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_drt' => array(
       'label' => $t('[Regie]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_clb' => array(
       'label' => $t('[Mitarb.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_pht' => array(
       'label' => $t('[Fotogr.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_cnd' => array(
       'label' => $t('[Dir.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_cmp' => array(
       'label' => $t('[Komp.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_aui' => array(
       'label' => $t('[Vorr.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_aus' => array(
       'label' => $t('[Drehbuch]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_col' => array(
       'label' => $t('[Sammler]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ctb' => array(
       'label' => $t('[Beitr.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_prf' => array(
       'label' => $t('[Interpr.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_cng' => array(
       'label' => $t('[Kamera]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ant' => array(
       'label' => $t('[Vorl.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_voc' => array(
       'label' => $t('[Gesang]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ivr' => array(
       'label' => $t('[Interviewer]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ive' => array(
       'label' => $t('[Interviewter]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_ctg' => array(
       'label' => $t('[Kartograph]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_mus' => array(
       'label' => $t('[Musik]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_aft' => array(
       'label' => $t('[Nachr.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_pro' => array(
       'label' => $t('[Prod.]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_egr' => array(
       'label' => $t('[Stecher]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_dte' => array(
       'label' => $t('[Widmungsempfänger]'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_edition' => array(
       'label' => $t('Ausgabe'),
@@ -1977,6 +2005,7 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_publisher' => array(
       'label' => $t('Verlag'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_issued' => array(
       'label' => $t('Erscheinungsjahr'),
@@ -2039,12 +2068,15 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_filesize' => array(
       'label' => $t('Größe (Byte)'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_filetype' => array(
       'label' => $t('Dateityp'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_datastream' => array(
       'label' => $t('Datei'),
+      'display' => array('compact' => array()),
     ),
     'field_edoweb_struct_parent' => array(
       'label' => $t('Parent'),
