@@ -500,14 +500,16 @@ function _edoweb_storage_entity_serialize_rdf(
               }
             }
           } else {
-            if (_is_edoweb_entity($item)) {
+            if (!is_array($item)) {
               $rdf_object = new LibRDF_URINode($item);
+            } else if (_is_edoweb_entity($item['value'])) {
+              $rdf_object = new LibRDF_URINode($item['value']);
             } else {
-              $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item));
+              $rdf_object = new LibRDF_URINode(_edoweb_expand_curie($item['value']));
             }
             if ($embedded_storage) {
               $embedded_item_graph = _edoweb_storage_entity_serialize_rdf(
-                edoweb_basic_load(_edoweb_compact_uri($item)), false, $metadata_types
+                edoweb_basic_load(_edoweb_compact_uri($item['value'])), false, $metadata_types
               );
               foreach ($embedded_item_graph as $embedded_item_statement) {
                 $rdf_model->addStatement($embedded_item_statement);
@@ -570,15 +572,33 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
               $wrapper->{$field_name}[] = (string) $value;
             }
           } else {
+            // Check if label is available
+            try {
+              $label = _edoweb_unescape_utf8($rdf_model->getTarget($value,
+                  new LibRDF_URINode(_edoweb_expand_curie('skos:prefLabel'))
+              )->getValue());
+            } catch (LibRDF_LookupError $e) {
+              $label = '';
+            }
             if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
               $wrapper->{$field_name} = $value->getValue();
+            } else if ($wrapper->{$field_name} instanceOf EntityStructureWrapper) {
+              $wrapper->{$field_name} = array(
+                'value' => $value->getValue(),
+                'label' => $label,
+              );
             } else {
-              $wrapper->{$field_name}[] = $value->getValue();
+              $wrapper->{$field_name}[] = array(
+                'value' => $value->getValue(),
+                'label' => $label,
+              );
             }
           }
-          //drupal_set_message("Populated $field_name.");
         } catch (EntityMetadataWrapperException $e) {
-          //drupal_set_message($e->getMessage(), 'error');
+          console_log($e->getMessage());
+          console_log("$rdf_subject");
+          console_log("$rdf_predicate");
+          console_log("$value");
         }
       }
     }
@@ -701,7 +721,7 @@ function _edoweb_storage_entity_deserialize_jsonld($entity, $rdf_data) {
   return _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model);
 }
 
-function _edoweb_escape_utf8($string) {
+function _edoweb_utf8_charmap() {
   $char_map = array(
     '¢' => '\u00A2',
     '£' => '\u00A3',
@@ -781,7 +801,17 @@ function _edoweb_escape_utf8($string) {
     'þ' => '\u00FE',
     'ÿ' => '\u00FF',
   );
+  return $char_map;
+}
+
+function _edoweb_escape_utf8($string) {
+  $char_map = _edoweb_utf8_charmap();
   return strtr($string, $char_map);
+}
+
+function _edoweb_unescape_utf8($string) {
+  $char_map = _edoweb_utf8_charmap();
+  return strtr($string, array_flip($char_map));
 }
 
 function _edoweb_expand_curie($curie) {

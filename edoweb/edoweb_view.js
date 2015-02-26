@@ -22,6 +22,8 @@
   Drupal.behaviors.edoweb_view = {
     attach: function (context, settings) {
 
+      $('.field-name-field-edoweb-collected-by').hide();
+
       $('.edoweb.entity.default', context).each(function() {
         // Load entities into table
         Drupal.edoweb.entity_table($(this).find('.field-type-edoweb-ld-reference .field-items'));
@@ -34,7 +36,7 @@
       });
 
       // Load entity-labels in facet list
-      $(context).find('*[data-curie].facet').each(function() {
+      $('a[data-curie]', context).add($('span[data-curie]', context)).not('.resolved').not('.edoweb.download').each(function() {
         Drupal.edoweb.entity_label($(this));
       });
 

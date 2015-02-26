@@ -606,7 +606,7 @@
             .append('<button>Übernehmen</button>')
             .bind('click', function(event) {
               container.dialog('close');
-              var resource_uri = row.children('td').first().children('a').first().attr('href');
+              var resource_uri = row.attr('data-curie');
               callback(resource_uri);
               return false;
             });
