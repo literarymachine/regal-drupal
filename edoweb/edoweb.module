@@ -395,8 +395,8 @@ function edoweb_menu() {
     'title arguments' => array(EDOWEB_ENTITY_TYPE, 1),
     'page callback' => 'edoweb_basic_view',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_has_md_access',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
+    // Access control handled by API
+    'access callback' => TRUE,
   );
 
   // 'View' tab for an individual entity page.
@@ -439,8 +439,8 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/data'] = array(
     'page callback' => 'edoweb_basic_data',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_has_data_access',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
+    // Access control handled by API
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
@@ -2278,24 +2278,6 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
   } else {
     return _is_edoweb_entity($entity);
   }
-}
-
-function _edoweb_has_md_access($entity, $permissions = null) {
-  global $user;
-  $user_access = isset($permissions) ? user_access($permissions) : true;
-  $public_access = ($entity->access_md == 'public') && $user_access;
-  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
-  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
-  return $public_access || $admin_access || $backend_access;
-}
-
-function _edoweb_has_data_access($entity, $permissions = null) {
-  global $user;
-  $user_access = isset($permissions) ? user_access($permissions) : true;
-  $public_access = ($entity->access_data == 'public') && $user_access;
-  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
-  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
-  return $public_access || $admin_access || $backend_access;
 }
 
 function _edoweb_available_languages() {
