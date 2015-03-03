@@ -398,8 +398,8 @@ function edoweb_menu() {
     'title arguments' => array(EDOWEB_ENTITY_TYPE, 1),
     'page callback' => 'edoweb_basic_view',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_has_md_access',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
+    // Access control handled by API
+    'access callback' => TRUE,
   );
 
   // 'View' tab for an individual entity page.
@@ -442,8 +442,8 @@ function edoweb_menu() {
   $items['resource/%edoweb_basic/data'] = array(
     'page callback' => 'edoweb_basic_data',
     'page arguments' => array(1),
-    'access callback' => '_edoweb_has_data_access',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
+    // Access control handled by API
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
@@ -2293,24 +2293,6 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
   }
 }
 
-function _edoweb_has_md_access($entity, $permissions = null) {
-  global $user;
-  $user_access = isset($permissions) ? user_access($permissions) : true;
-  $public_access = ($entity->access_md == 'public') && $user_access;
-  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
-  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
-  return $public_access || $admin_access || $backend_access;
-}
-
-function _edoweb_has_data_access($entity, $permissions = null) {
-  global $user;
-  $user_access = isset($permissions) ? user_access($permissions) : true;
-  $public_access = ($entity->access_data == 'public') && $user_access;
-  $admin_access = in_array('edoweb_backend_admin', $user->roles) && $user_access;
-  $backend_access = in_array('edoweb_backend_user', $user->roles) && $user_access;
-  return $public_access || $admin_access || $backend_access;
-}
-
 function _edoweb_available_languages() {
   $languages = include drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc';
   return $languages;
@@ -3268,3 +3250,20 @@ function edoweb_update_7148() {
   entity_info_cache_clear();
   _update_edoweb_installed_instances();
 }
+
+/**
+ * Add edoweb_backend_subscriber and edoweb_backend_remote roles and permissions
+ */
+function edoweb_update_7149() {
+  module_load_install('edoweb');
+  $permissions = _edoweb_installed_permissions();
+  $subscriber_role = new stdClass();
+  $subscriber_role->name = 'edoweb_backend_subscriber';
+  user_role_save($subscriber_role);
+  user_role_grant_permissions($subscriber_role->rid, $permissions[$subscriber_role->name]);
+  $remote_role = new stdClass();
+  $remote_role->name = 'edoweb_backend_remote';
+  user_role_save($remote_role);
+  user_role_grant_permissions($remote_role->rid, $permissions[$remote_role->name]);
+}
+
