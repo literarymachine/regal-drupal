@@ -209,6 +209,11 @@
         Drupal.attachBehaviors(html);
         $('#content').replaceWith(html.find('#content'));
         $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+        if ($('#messages').length) {
+          $('#messages').replaceWith(html.find('#messages'));
+        } else {
+          $('#header').after(html.find('#messages'));
+        }
         document.title = html.filter('title').text();
         $('.edoweb-tree li.active').removeClass('active');
         $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
