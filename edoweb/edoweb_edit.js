@@ -38,50 +38,8 @@
       });
 
       // TODO: implement something like this as the hijax default behavior
-      $('#edoweb-basic-access-form', context).submit(function() {
-        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-        $('#content').hide();
-        $('#content').after(throbber);
-        var form = $(this);
-        var action = form.attr('action');
-        var method = form.attr('method');
-        $.ajax({
-          type: method,
-          url: action,
-          data: form.serialize(),
-          success: function(data) {
-            var html = $(data);
-            Drupal.attachBehaviors(html);
-            $('#content').replaceWith(html.find('#content'));
-            $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
-            if ($('#messages').length) {
-              $('#messages').replaceWith(html.find('#messages'));
-            } else {
-              $('#header').after(html.find('#messages'));
-            }
-            document.title = html.filter('title').text();
-            $('.edoweb-tree li.active').removeClass('active');
-            $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
-          },
-          error: function(jqXHR) {
-            var html = $(jqXHR.responseText);
-            Drupal.attachBehaviors(html);
-            $('#content').replaceWith(html.find('#content'));
-            $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
-            if ($('#messages').length) {
-              $('#messages').replaceWith(html.find('#messages'));
-            } else {
-              $('#header').after(html.find('#messages'));
-            }
-            document.title = html.filter('title').text();
-            $('.edoweb-tree li.active').removeClass('active');
-            $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
-          },
-          complete: function() {
-            throbber.remove();
-          }
-        });
-        return false;
+      $('#edoweb-basic-access-form', context).add($('#edoweb-basic-admin', context)).submit(function() {
+        $.blockUI(Drupal.edoweb.blockUIMessage);
       });
 
       $('.tabs a', context).bind('click', function() {
@@ -225,8 +183,7 @@
         var entity = e.data.entity;
         var bundle = e.data.bundle;
         var button = $(this);
-        var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-        $(this).after(throbber);
+        $.blockUI(Drupal.edoweb.blockUIMessage);
         $('button.edoweb.edit.action').hide();
         entity.find('[contenteditable]').each(function() {
           $(this).text($(this).text());
@@ -264,7 +221,7 @@
             Drupal.edoweb.navigateTo(href);
             Drupal.edoweb.refreshTree(context);
           }
-          throbber.remove();
+          $.unblockUI();
         });
         return false;
       }
@@ -548,8 +505,7 @@
               container.find('#save-entity').remove();
               var submit_button = $('<button id="save-entity">Speichern</button>').bind('click', function() {
                 var button = $(this);
-                var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
-                $(this).replaceWith(throbber);
+                $.blockUI(Drupal.edoweb.blockUIMessage);
                 container.find('[contenteditable]').each(function() {
                   $(this).text($(this).text());
                 });
@@ -561,7 +517,7 @@
                   var resource_uri = jqXHR.getResponseHeader('X-Edoweb-Entity');
                   callback(Drupal.edoweb.expand_curie(resource_uri));
                   container.dialog('close');
-                  throbber.remove();
+                  $.unblockUI();
                 });
                 return false;
               });
