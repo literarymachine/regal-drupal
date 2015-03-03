@@ -894,9 +894,13 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
     } else {
       $row['data'][] = l(
         entity_label(EDOWEB_ENTITY_TYPE, $entity),
-        _edoweb_expand_curie($curie),
+        'resource/' . $curie,
         array(
-          'attributes' => array('data-curie' => $curie, 'class' => array('resolved'))
+          'attributes' => array(
+            'resource' => _edoweb_expand_curie($curie),
+            'data-curie' => $curie,
+            'class' => array('resolved')
+          )
         )
       );
     }
@@ -919,9 +923,15 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
           if ('field' == $column['type']) {
             // Fixme: workaround for Drupal bug
             // https://www.drupal.org/node/1824820
-            $field_value = field_view_value(
-              EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
-            );
+            if ($is_ref) {
+              $field_value = field_view_value(
+                EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value['value'])
+              );
+            } else {
+              $field_value = field_view_value(
+                EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
+              );
+            }
             $list_items[] = drupal_render($field_value);
           } else if (isset($column['format'])) {
             $list_items[] = $column['format']($value);

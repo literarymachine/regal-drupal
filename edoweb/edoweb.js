@@ -103,10 +103,7 @@
             if (this.status == 200) {
               var result_table = $(this.responseText).find('table');
               result_table.find('a[data-curie]').not('.resolved').not('.edoweb.download').each(function() {
-                var href = Drupal.settings.basePath
-                  + 'resource/'
-                  + Drupal.edoweb.compact_uri($(this).attr('href'));
-                $(this).attr('href', href);
+                Drupal.edoweb.entity_label($(this));
               });
               result_table.removeClass('sticky-enabled');
               result_table.tablesorter({sortList: [[1,1]]});
