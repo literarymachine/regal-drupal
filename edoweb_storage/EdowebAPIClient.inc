@@ -497,7 +497,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
     $index = user_access('edit any edoweb_basic entity')
       ? variable_get('edoweb_api_namespace')
-      : 'public_' . variable_get('edoweb_api_namespace') . ',fulltext_index';
+      : 'public_' . variable_get('edoweb_api_namespace') . ',fulltext_edoweb';
     // Search resources
     $http_url = sprintf(
       '%s/search/%s/_search',
