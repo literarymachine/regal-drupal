@@ -543,7 +543,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         );
       } catch(JsonLdException $e) {
         watchdog('edoweb_storage', 'Unable to parse JSON LD');
-        return FALSE;
+        continue;
       }
       $rdf_model->loadStatementsFromString(
         $rdf_parser,
