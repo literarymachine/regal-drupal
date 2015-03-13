@@ -114,6 +114,7 @@
               for (label in operations) {
                 operations[label](result_table);
               }
+              Drupal.edoweb.last_modified_label(result_table);
               Drupal.edoweb.hideEmptyTableColumns(result_table);
               Drupal.edoweb.hideTableHeaders(result_table);
             }
@@ -148,6 +149,15 @@
      */
     entity_list: function(entity_type, entity_curies, columns) {
       return $.get(Drupal.settings.basePath + 'edoweb_entity_list/' + entity_type + '?' + $.param({'ids': entity_curies, 'columns': columns}));
+    },
+
+    last_modified_label: function(container) {
+      $('a.edoweb.lastmodified', container).each(function() {
+        var link = $(this);
+        $.get(link.attr('href'), function(data) {
+          link.replaceWith($(data));
+        });
+      });
     },
 
     /**
