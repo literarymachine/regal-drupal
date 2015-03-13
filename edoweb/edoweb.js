@@ -85,7 +85,7 @@
     /**
      * Function loads a tabular view for a list of linked entities
      */
-    entity_table: function(field_items, operations) {
+    entity_table: function(field_items, operations, view_mode = 'default') {
       field_items.each(function() {
         var container = $(this);
         var curies = [];
@@ -99,7 +99,7 @@
           container.siblings('table').remove();
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
           container.before(throbber);
-          Drupal.edoweb.entity_list('edoweb_basic', curies, columns).onload = function () {
+          Drupal.edoweb.entity_list('edoweb_basic', curies, columns, view_mode).onload = function () {
             if (this.status == 200) {
               var result_table = $(this.responseText).find('table');
               result_table.find('a[data-curie]').not('.resolved').not('.edoweb.download').each(function() {
@@ -144,10 +144,15 @@
     },
 
     /**
-     * Function returns an entities label.
+     * Function returns a list of entities.
      */
-    entity_list: function(entity_type, entity_curies, columns) {
-      return $.get(Drupal.settings.basePath + 'edoweb_entity_list/' + entity_type + '?' + $.param({'ids': entity_curies, 'columns': columns}));
+    entity_list: function(entity_type, entity_curies, columns, view_mode) {
+      return $.get(Drupal.settings.basePath
+        + 'edoweb_entity_list/'
+        + entity_type
+        + '/' + view_mode
+        + '?' + $.param({'ids': entity_curies, 'columns': columns})
+      );
     },
 
     /**

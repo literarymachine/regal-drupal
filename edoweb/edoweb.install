@@ -2068,11 +2068,9 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_filesize' => array(
       'label' => $t('Größe (Byte)'),
-      'display' => array('compact' => array()),
     ),
     'field_edoweb_filetype' => array(
       'label' => $t('Dateityp'),
-      'display' => array('compact' => array()),
     ),
     'field_edoweb_datastream' => array(
       'label' => $t('Datei'),
