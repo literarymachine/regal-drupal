@@ -262,6 +262,20 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Text field for thumby URL.
+  $form['edoweb_thumby_url'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_thumby_url',
+      variable_get('edoweb_api_host') . '/thumby'
+    ),
+    '#title' => t('Thumby URL'),
+    '#description' => t('The full URL to a thumby thumbnailer service'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => FALSE,
+  );
+
   // Checkbox for debugging mode
   $form['edoweb_api_debug'] = array(
     '#type' => 'checkbox',

@@ -1275,6 +1275,14 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     // OK, Field API done, now we can set up some of our own data.
     if ('default' == $view_mode) {
 
+      if ('file' == $entity->bundle() && ($thumby = variable_get('edoweb_thumby_url'))) {
+        $url = $entity->url() . '/data';
+        $entity->content['thumbnail'] = array(
+          '#markup' => "<a href=\"$url\"><img src=\"$thumby?url=$url&size=250\" /></a>",
+          '#weight' => -1000
+        );
+      }
+
       // Find fields linking to this entity
       $inverse_query = new EntityFieldQuery();
       $inverse_query->addTag('elasticsearch');

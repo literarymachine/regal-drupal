@@ -37,6 +37,10 @@ class EdowebBasicEntity extends Entity {
     }
   }
 
+  public function url() {
+    return url("resource/{$this->remote_id}", array('absolute' => TRUE));
+  }
+
   public function identifier() {
     if (isset($this->remote_id) && _is_edoweb_entity($this)) {
       $remote_id = $this->remote_id;
