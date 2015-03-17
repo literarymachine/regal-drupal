@@ -496,7 +496,7 @@ function edoweb_info_page() {
     'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'webpage', 'version'
   ));
   $content['resource_list'] = edoweb_basic_search_entities(
-    $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity'), TRUE, 'compact'
+    $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity'), TRUE, 'compact', TRUE
   );
 
   return $content;
@@ -583,7 +583,7 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
 
 }
 
-function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query) {
+function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $search_count, $query, $fulltext_option = false) {
 
   $form['#method'] = 'get';
 
@@ -599,6 +599,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
         || 'op' == $key
         || "query[$search_count][type]" == urldecode($key)
         || "query[$search_count][user]" == urldecode($key)
+        || "query[$search_count][fulltext]" == urldecode($key)
         ) continue;
     $form['query']['url_params'][] = array(
       '#type' => 'hidden',
@@ -631,6 +632,14 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     );
   }
 
+  if ($fulltext_option) {
+    $form['query'][$search_count]['fulltext'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Volltexte'),
+      '#default_value' => isset($query['fulltext']),
+    );
+  }
+
   $form['query'][$search_count]['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Search'),
@@ -651,7 +660,9 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
 }
 
 function edoweb_basic_search_entities(
-  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(), $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE, $view_mode = 'default'
+  EntityFieldQuery $efq, $advanced = FALSE, $operations = array(),
+  $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE,
+  $view_mode = 'default', $fulltext_option = false
 ) {
   static $search_count = 0;
   if (array_key_exists('query', $_GET)
@@ -673,7 +684,7 @@ function edoweb_basic_search_entities(
 
   $content = array();
   $content['search'] = drupal_get_form(
-    'edoweb_basic_search_entities_form', $advanced, $search_count, $query
+    'edoweb_basic_search_entities_form', $advanced, $search_count, $query, $fulltext_option
   );
 
   unset($content['search']['form_build_id']);
@@ -716,6 +727,10 @@ function edoweb_basic_search_entities(
 
   if (@$term = $query['term']) {
     $efq->addMetaData('term', $term);
+  }
+
+  if (@$fulltext = $query['fulltext']) {
+    $efq->addTag('fulltext');
   }
 
   if ($term || $list_noterm) {
