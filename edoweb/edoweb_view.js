@@ -40,6 +40,9 @@
         Drupal.edoweb.entity_label($(this));
       });
 
+      // Resolve last modified child object label
+      Drupal.edoweb.last_modified_label(context);
+
     }
 
   };

@@ -75,6 +75,41 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     die($http_response->data);
   }
 
+  public function getLastModified($remote_id) {
+    $http_url = sprintf(
+      '%s/resource/%s/all/lastModified',
+      $this->__edoweb_api_host,
+      $remote_id
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+
+    $options = array(
+      'format' => 'application/ntriples',
+    );
+    $rdf_parser = new LibRDF_Parser('ntriples');
+    $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+    $json = json_decode($http_response->data);
+    try {
+      $rdf_ntriples = _edoweb_escape_utf8(
+        jsonld_to_rdf($json, $options)
+      );
+    } catch(JsonLdException $e) {
+      watchdog('edoweb_storage', 'Unable to parse JSON LD');
+      die(FALSE);
+    }
+    $rdf_model->loadStatementsFromString(
+      $rdf_parser,
+      $rdf_ntriples
+    );
+
+    $entity = current(entity_get_controller('edoweb_basic')->load(
+      array($json->{'@id'}), array(), $rdf_model
+    ));
+
+    die(l($entity->label(), 'resource/' . $entity->identifier()));
+
+  }
+
   public function addURN($entity) {
     list($namespace, $id) = explode(':', $entity->remote_id);
     $snid = 'hbz:929:02';
@@ -650,7 +685,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           break;
       }
       $order = $sort['direction'];
-      if ($jsonld_property) {
+      if (isset($jsonld_property) && $jsonld_property) {
         $query['sort'][][$jsonld_property] = array(
           'order' => $order,
           'ignore_unmapped' => TRUE,

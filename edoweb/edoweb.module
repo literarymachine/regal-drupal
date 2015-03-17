@@ -372,6 +372,14 @@ function edoweb_menu() {
     'type' => MENU_CALLBACK
   );
 
+  // Returns last modified entity in tree
+  $items['edoweb/lastmodified/%'] = array(
+    'page callback' => '_edoweb_lastmodified',
+    'page arguments' => array(2),
+    'access arguments' => array('view any edoweb_basic entity'),
+    'type' => MENU_CALLBACK
+  );
+
   // Add new resources
   $items['resource/add/%'] = array(
     'title callback' => 'edoweb_basic_bundle_name',
@@ -521,6 +529,11 @@ function edoweb_permission() {
 function _edoweb_templates($bundle_name = null) {
   $api = new EdowebAPIClient();
   return $api->getTemplates($bundle_name);
+}
+
+function _edoweb_lastmodified($remote_id) {
+  $api = new EdowebAPIClient();
+  return $api->getLastModified($remote_id);
 }
 
 function _edoweb_search($bundle_name = null, $field_name = null) {
@@ -752,6 +765,12 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           'specifier' => 'updated',
           'format' => '_edoweb_format_date',
           'sort' => $init_sort ? 'desc' : null,
+        ),
+        array(
+          'data' => t('Zuletzt hinzugefügtes Label'),
+          'type' => 'property',
+          'specifier' => 'remote_id',
+          'format' => '_edoweb_link_lastmodified',
         ),
       );
       break;
@@ -2131,6 +2150,16 @@ function _edoweb_format_date($timestamp) {
 function _edoweb_format_subject($remote_id) {
   $curie = _edoweb_compact_uri($remote_id);
   return strtoupper(substr($curie, 0, strpos($curie, ':')));
+}
+
+function _edoweb_link_lastmodified($remote_id) {
+  if (_is_edoweb_entity($remote_id)) {
+    $curie = _edoweb_compact_uri($remote_id);
+    $href = "edoweb/lastmodified/$curie";
+    return l("Zuletzt hinzugefügtes Label wird geladen ...",
+      $href, array('attributes' => array('class' => array('edoweb lastmodified')))
+    );
+  }
 }
 
 function _edoweb_http_request($request_url, $http_options) {
