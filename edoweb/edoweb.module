@@ -1239,7 +1239,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       if ('file' == $entity->bundle() && ($thumby = variable_get('edoweb_thumby_url'))) {
         $url = $entity->url() . '/data';
         $entity->content['thumbnail'] = array(
-          '#markup' => "<a href=\"$url\"><img src=\"$thumby?url=$url&size=250\" /></a>",
+          '#markup' => "<div class=\"thumb\"><a target=\"_blank\" href=\"$url\"><img src=\"$thumby?url=$url&size=250\" /></a></div>",
           '#weight' => -1000
         );
       }
