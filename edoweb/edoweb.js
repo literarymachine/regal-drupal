@@ -85,7 +85,8 @@
     /**
      * Function loads a tabular view for a list of linked entities
      */
-    entity_table: function(field_items, operations, view_mode = 'default') {
+    entity_table: function(field_items, operations, view_mode) {
+      view_mode = view_mode || 'default';
       field_items.each(function() {
         var container = $(this);
         var curies = [];
