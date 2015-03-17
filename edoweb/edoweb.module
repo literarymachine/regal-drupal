@@ -1253,7 +1253,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
                       . ':</div><div class="field-items"><div class="field-item even">',
         '#suffix' => '</div></div></div>',
         '#markup' => _edoweb_link_lastmodified($entity->remote_id),
-        '#weight' => 1000,
+        '#weight' => 999,
       );
     }
 
