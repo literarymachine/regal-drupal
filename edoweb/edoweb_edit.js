@@ -74,27 +74,6 @@
       };
       $('.edoweb.entity.edit', context).each(function() {
 
-        if ('file' == $(this).attr('data-entity-bundle')) {
-          var struct_parent = $(this)
-            .find('.field-name-field-edoweb-struct-parent>.field-items>.field-item>a')
-            .attr('resource');
-
-          if (struct_parent) {
-            var field = $(this).find('.field-name-field-edoweb-title');
-            var copy_button = $('<a href="#" title="Titelübernahme vom Parent"><span class="octicon octicon-repo-pull" /></a>')
-              .bind('click', function() {
-                $.get(Drupal.settings.basePath + 'edoweb_entity_label/edoweb_basic/' + struct_parent).onload = function() {
-                  if (this.status == 200) {
-                    field.find('.field-item').text(this.responseText);
-                  }
-                };
-                return false;
-              }).css('float', 'right').css('margin-right', '0.3em');
-            field.find('.field-label').append(copy_button);
-          }
-
-        }
-
         var bundle = $(this).attr('data-entity-bundle');
         var entity = $(this);
         entity.css('margin-bottom', '2em');
@@ -197,6 +176,28 @@
         }
 
         activateFields(entity.find('.field'), bundle, context);
+
+        if ('file' == $(this).attr('data-entity-bundle')) {
+          var struct_parent = $(this)
+            .find('.field-name-field-edoweb-struct-parent>.field-items>.field-item>a')
+            .attr('resource');
+
+          if (struct_parent) {
+            var field = $('.edoweb.entity.edit .field-name-field-edoweb-title');
+            var copy_button = $('<a href="#" title="Titelübernahme vom Parent"><span class="octicon octicon-repo-pull" /></a>')
+              .bind('click', function() {
+                $.get(Drupal.settings.basePath + 'edoweb_entity_label/edoweb_basic/' + struct_parent).onload = function() {
+                  if (this.status == 200) {
+                    field.find('.field-item').text(this.responseText);
+                  }
+                };
+                return false;
+              }).css('float', 'right').css('margin-right', '0.3em');
+            field.find('.field-label').append(copy_button);
+          }
+
+        }
+
 
       });
 
