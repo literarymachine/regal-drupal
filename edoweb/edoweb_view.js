@@ -26,7 +26,13 @@
 
       $('.edoweb.entity.default', context).each(function() {
         // Load entities into table
-        Drupal.edoweb.entity_table($(this).find('.field-type-edoweb-ld-reference .field-items'));
+        Drupal.edoweb.entity_table($(this)
+          .find('.field-type-edoweb-ld-reference:not(.field-name-field-edoweb-struct-child) .field-items')
+        );
+        Drupal.edoweb.entity_table($(this)
+          .find('.field-type-edoweb-ld-reference.field-name-field-edoweb-struct-child .field-items'),
+            null, 'compact'
+        );
       });
 
       // Process result listing tables

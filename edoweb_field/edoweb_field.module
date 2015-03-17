@@ -64,7 +64,7 @@ function edoweb_field_menu() {
   );
   $items['edoweb_entity_list'] = array(
     'page callback' => 'edoweb_entity_list',
-    'page arguments' => array(1),
+    'page arguments' => array(1, 2),
     'access callback' => 'entity_js_access',
     'access arguments' => array(1, 'read'),
     'type' => MENU_CALLBACK,
@@ -91,12 +91,12 @@ function edoweb_entity_label($entity_type, $entity_id) {
 /**
  * List entities function for JavaScript callbacks.
  */
-function edoweb_entity_list($entity_type) {
+function edoweb_entity_list($entity_type, $view_mode) {
   $ids = isset($_GET['ids']) && !empty($_GET['ids']) ? $_GET['ids'] : array();
   $columns = isset($_GET['columns']) ? $_GET['columns'] : 'generic';
   $entities = edoweb_basic_load_multiple($ids);
   $header = edoweb_basic_table_header($columns);
-  $output = edoweb_basic_entity_table($header, $entities);
+  $output = edoweb_basic_entity_table($header, $entities, array(), null, $view_mode);
   die(drupal_render($output));
 }
 

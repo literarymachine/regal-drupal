@@ -3296,3 +3296,12 @@ function edoweb_update_7149() {
   user_role_grant_permissions($remote_role->rid, $permissions[$remote_role->name]);
 }
 
+/**
+ * Remove filesize and filetype from file compact view mode
+ */
+function edoweb_update_7150() {
+  $updated_instances = array(
+    'file' => array('field_edoweb_filesize', 'field_edoweb_filetype')
+  );
+  _update_edoweb_installed_instances($updated_instances);
+}
