@@ -766,12 +766,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           'format' => '_edoweb_format_date',
           'sort' => $init_sort ? 'desc' : null,
         ),
-        array(
-          'data' => t('Zuletzt hinzugefügtes Label'),
-          'type' => 'property',
-          'specifier' => 'remote_id',
-          'format' => '_edoweb_link_lastmodified',
-        ),
       );
       break;
     case 'person':
@@ -1251,6 +1245,17 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     entity_prepare_view($entity_type, array($entity->remote_id => $entity));
     // Now field_attach_view() generates the content for the fields.
     $entity->content += field_attach_view($entity_type, $entity, $view_mode);
+
+    if ('journal' == $entity->bundle()) {
+      $entity->content['_last_modified_label'] = array(
+        '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                      . t('Zuletzt hinzugefügtes Label')
+                      . ':</div><div class="field-items"><div class="field-item even">',
+        '#suffix' => '</div></div></div>',
+        '#markup' => _edoweb_link_lastmodified($entity->remote_id),
+        '#weight' => 1000,
+      );
+    }
 
     // OK, Field API done, now we can set up some of our own data.
     if ('default' == $view_mode) {
