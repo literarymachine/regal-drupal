@@ -37,7 +37,6 @@
         return confirmed;
       });
 
-      // TODO: implement something like this as the hijax default behavior
       $('#edoweb-basic-access-form', context).add($('#edoweb-basic-admin', context)).submit(function() {
         $.blockUI(Drupal.edoweb.blockUIMessage);
       });
@@ -176,28 +175,6 @@
         }
 
         activateFields(entity.find('.field'), bundle, context);
-
-        if ('file' == $(this).attr('data-entity-bundle')) {
-          var struct_parent = $(this)
-            .find('.field-name-field-edoweb-struct-parent>.field-items>.field-item>a')
-            .attr('resource');
-
-          if (struct_parent) {
-            var field = $('.edoweb.entity.edit .field-name-field-edoweb-title');
-            var copy_button = $('<a href="#" title="Titelübernahme vom Parent"><span class="octicon octicon-repo-pull" /></a>')
-              .bind('click', function() {
-                $.get(Drupal.settings.basePath + 'edoweb_entity_label/edoweb_basic/' + struct_parent).onload = function() {
-                  if (this.status == 200) {
-                    field.find('.field-item').text(this.responseText);
-                  }
-                };
-                return false;
-              }).css('float', 'right').css('margin-right', '0.3em');
-            field.find('.field-label').append(copy_button);
-          }
-
-        }
-
 
       });
 
@@ -384,6 +361,25 @@
           switch (instance['widget']['type']) {
             case 'text_textarea':
             case 'text_textfield':
+              if ('file' == bundle && 'field_edoweb_title' == field_name) {
+                var struct_parent = $(context)
+                  .find('.field-name-field-edoweb-struct-parent>.field-items>.field-item>a')
+                  .attr('resource');
+
+                if (struct_parent) {
+                  var copy_button = $('<a href="#" title="Titelübernahme vom Parent"><span class="octicon octicon-repo-pull" /></a>')
+                    .bind('click', function() {
+                      $.get(Drupal.settings.basePath + 'edoweb_entity_label/edoweb_basic/' + struct_parent).onload = function() {
+                        if (this.status == 200) {
+                          field.find('.field-item').text(this.responseText);
+                        }
+                      };
+                      return false;
+                    }).css('float', 'right').css('margin-right', '0.3em');
+                  field.find('.field-label').append(copy_button);
+                }
+
+              }
             case 'number':
               field.find('.field-items').each(function() {
                 if ($(this).find('.field-item').length && ! instance['settings']['read_only']) {
@@ -471,6 +467,7 @@
             default:
               console.log(instance['widget']['type']);
           }
+
         });
       }
 
