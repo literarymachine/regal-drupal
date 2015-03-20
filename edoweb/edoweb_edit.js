@@ -357,6 +357,7 @@
         $.each(fields, function() {
           var field = $(this);
           var field_name = getFieldName(field);
+          if (!field_name) return true;
           var instance = Drupal.settings.edoweb.fields[bundle][field_name]['instance'];
           switch (instance['widget']['type']) {
             case 'text_textarea':
