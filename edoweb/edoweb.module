@@ -1987,6 +1987,7 @@ function edoweb_rdf_types($bundle = null) {
     ),
     'monograph' => array(
       'bibo:Book',
+      'lv:ArchivedWebPage',
     ),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
@@ -3332,4 +3333,11 @@ function edoweb_update_7150() {
     'file' => array('field_edoweb_filesize', 'field_edoweb_filetype')
   );
   _update_edoweb_installed_instances($updated_instances);
+}
+
+/**
+ * Map lv:ArchivedWebPage to monograph bundle
+ */
+function edoweb_update_7151() {
+  _update_rdf_mapping();
 }
