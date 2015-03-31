@@ -1665,9 +1665,38 @@ function edoweb_basic_structure($entity) {
  */
 function edoweb_basic_crawler_form($form, &$form_state, $entity) {
 
+  $api = new EdowebAPIClient();
+
+  if (!$conf = $api->getCrawlerConfiguration($entity)) {
+    $conf = array();
+  }
+
+  $form['basic_entity'] = array(
+    '#type' => 'value',
+    '#value' => $entity,
+  );
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#default_value' => @$conf['name'],
+    '#required' => TRUE,
+  );
+
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => t('URL'),
+    '#default_value' => @$conf['url'],
+    '#required' => TRUE,
+  );
+
+  $form['startDate'] = array(
+    '#type' => 'date',
+    '#title' => t('Start date'),
+    '#default_value' => isset($conf['startDate'])
+      ?  date_parse($conf['startDate'])
+      : array(),
+    '#required' => TRUE,
   );
 
   $form['interval'] = array(
@@ -1681,14 +1710,19 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
       'weekly' => t('Weekly'),
       'daily' => t('Daily'),
     ),
+    '#default_value' => @$conf['interval'],
+    '#required' => TRUE,
   );
 
-  $form['depth'] = array(
+  $form['deepness'] = array(
     '#type' => 'textfield',
     '#title' => t('Depth'),
+    '#default_value' => @$conf['deepness'],
+    '#required' => TRUE,
+    '#size' => 2,
   );
 
-  $form['robots'] = array(
+  $form['robotsPolicy'] = array(
     '#type' => 'radios',
     '#title' => t('Robots'),
     '#options' => array(
@@ -1696,6 +1730,8 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
       'ignore' => t('Ignore'),
       'obey' => t('Obey'),
     ),
+    '#default_value' => @$conf['robotsPolicy'],
+    '#required' => TRUE,
   );
 
   $form['status'] = array(
@@ -1705,6 +1741,7 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
       'activated' => t('Activated'),
       'deactivated' => t('Deactivated'),
     ),
+    '#default_value' => @$conf['status'],
   );
 
   $form['submit'] = array(
@@ -1720,6 +1757,27 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
  * Processes a form to administrate webpage crawls.
  */
 function edoweb_basic_crawler_form_submit($form, &$form_state) {
+
+  $entity = $form_state['values']['basic_entity'];
+
+  $conf = array();
+  $conf['name'] = $form_state['values']['name'];
+  $conf['url'] = $form_state['values']['url'];
+  $conf['startDate'] = $form_state['values']['startDate']['year']
+      . '-' . $form_state['values']['startDate']['month']
+      . '-' . $form_state['values']['startDate']['day'];
+  $conf['interval'] = $form_state['values']['interval'];
+  $conf['deepness'] = $form_state['values']['deepness'];
+  $conf['robotsPolicy'] = $form_state['values']['robotsPolicy'];
+  //$conf['status'] = $form_state['values']['status'];
+
+  $api = new EdowebAPIClient();
+  if (!$api->setCrawlerConfiguration($entity, $conf)) {
+    drupal_set_message(t('Failed to set crawler configuration'), 'error');
+  } else {
+    drupal_set_message(t('Set crawler configuration'), 'status');
+  }
+
 }
 
 /**
