@@ -427,6 +427,16 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  // 'Crawler settings' tab for an individual webpage.
+  $items['resource/%edoweb_basic/crawler'] = array(
+    'title' => 'Crawler settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('edoweb_basic_crawler_form', 1),
+    'access callback' => '_edoweb_is_webpage_entity',
+    'access arguments' => array(1, 'edit any edoweb_basic entity'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   // 'Admin' tab for an individual entity page.
   $items['resource/%edoweb_basic/admin'] = array(
     'title' => 'Admin',
@@ -1639,6 +1649,68 @@ function edoweb_basic_structure($entity) {
 }
 
 /**
+ * Provides a form to administrate webpage crawls.
+ */
+function edoweb_basic_crawler_form($form, &$form_state, $entity) {
+
+  $form['url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL'),
+  );
+
+  $form['interval'] = array(
+    '#type' => 'select',
+    '#title' => t('Interval'),
+    '#options' => array(
+      'annually' => t('Annually'),
+      'halfYearly' => t('Half yearly'),
+      'quarterly' => t('Quarterly'),
+      'monthly' => t('Monthly'),
+      'weekly' => t('Weekly'),
+      'daily' => t('Daily'),
+    ),
+  );
+
+  $form['depth'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Depth'),
+  );
+
+  $form['robots'] = array(
+    '#type' => 'radios',
+    '#title' => t('Robots'),
+    '#options' => array(
+      'classic' => t('Classic'),
+      'ignore' => t('Ignore'),
+      'obey' => t('Obey'),
+    ),
+  );
+
+  $form['status'] = array(
+    '#type' => 'radios',
+    '#title' => t('Status'),
+    '#options' => array(
+      'activated' => t('Activated'),
+      'deactivated' => t('Deactivated'),
+    ),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  _edoweb_build_breadcrumb($entity);
+  return $form;
+}
+
+/**
+ * Processes a form to administrate webpage crawls.
+ */
+function edoweb_basic_crawler_form_submit($form, &$form_state) {
+}
+
+/**
  * Provides a form to administrate entities.
  */
 function edoweb_basic_admin($form, &$form_state, $entity) {
@@ -2349,6 +2421,11 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
   } else {
     return _is_edoweb_entity($entity);
   }
+}
+
+function _edoweb_is_webpage_entity($entity, $permissions = null) {
+  return 'webpage' == $entity->bundle()
+      && _edoweb_is_editable_entity($entity, $permissions);
 }
 
 function _edoweb_available_languages() {
