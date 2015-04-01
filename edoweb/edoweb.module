@@ -1712,13 +1712,6 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
     '#value' => $entity,
   );
 
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#default_value' => @$conf['name'],
-    '#required' => TRUE,
-  );
-
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => t('URL'),
@@ -1750,14 +1743,6 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
     '#required' => TRUE,
   );
 
-  $form['deepness'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Depth'),
-    '#default_value' => @$conf['deepness'],
-    '#required' => TRUE,
-    '#size' => 2,
-  );
-
   $form['robotsPolicy'] = array(
     '#type' => 'radios',
     '#title' => t('Robots'),
@@ -1768,16 +1753,6 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
     ),
     '#default_value' => @$conf['robotsPolicy'],
     '#required' => TRUE,
-  );
-
-  $form['status'] = array(
-    '#type' => 'radios',
-    '#title' => t('Status'),
-    '#options' => array(
-      'activated' => t('Activated'),
-      'deactivated' => t('Deactivated'),
-    ),
-    '#default_value' => @$conf['status'],
   );
 
   $form['save'] = array(
