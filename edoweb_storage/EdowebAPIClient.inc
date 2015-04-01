@@ -75,11 +75,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     die($http_response->data);
   }
 
-  public function getLastModified($remote_id) {
+  public function getLastModified($remote_id, $content_type = 'file') {
     $http_url = sprintf(
-      '%s/resource/%s/all/lastModified',
+      '%s/resource/%s/all/lastModified?contentType=%s',
       $this->__edoweb_api_host,
-      $remote_id
+      $remote_id,
+      $content_type
     );
     $http_response = $this->_http_get($http_url, 'application/json');
 
