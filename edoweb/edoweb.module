@@ -1773,13 +1773,11 @@ function edoweb_basic_crawler_form($form, &$form_state, $entity) {
     '#value' => t('Save'),
   );
 
-  if (!empty($conf)) {
-    $form['crawl'] = array(
-      '#type' => 'submit',
-      '#name' => 'crawl',
-      '#value' => t('Crawl'),
-    );
-  }
+  $form['crawl'] = array(
+    '#type' => 'submit',
+    '#name' => 'crawl',
+    '#value' => t('Save & Crawl'),
+  );
 
   _edoweb_build_breadcrumb($entity);
   return $form;
@@ -1793,26 +1791,22 @@ function edoweb_basic_crawler_form_submit($form, &$form_state) {
   $api = new EdowebAPIClient();
   $entity = $form_state['values']['basic_entity'];
 
-  if ('save' == $form_state['triggering_element']['#name']) {
 
-    $conf = array();
-    $conf['name'] = $form_state['values']['name'];
-    $conf['url'] = $form_state['values']['url'];
-    $conf['startDate'] = $form_state['values']['startDate']['year']
-        . '-' . $form_state['values']['startDate']['month']
-        . '-' . $form_state['values']['startDate']['day'];
-    $conf['interval'] = $form_state['values']['interval'];
-    $conf['deepness'] = $form_state['values']['deepness'];
-    $conf['robotsPolicy'] = $form_state['values']['robotsPolicy'];
-    //$conf['status'] = $form_state['values']['status'];
+  $conf = array();
+  $conf['url'] = $form_state['values']['url'];
+  $conf['startDate'] = $form_state['values']['startDate']['year']
+      . '-' . $form_state['values']['startDate']['month']
+      . '-' . $form_state['values']['startDate']['day'];
+  $conf['interval'] = $form_state['values']['interval'];
+  $conf['robotsPolicy'] = $form_state['values']['robotsPolicy'];
 
-    if (!$api->setCrawlerConfiguration($entity, $conf)) {
-      drupal_set_message(t('Failed to set crawler configuration'), 'error');
-    } else {
-      drupal_set_message(t('Set crawler configuration'), 'status');
-    }
+  if (!$api->setCrawlerConfiguration($entity, $conf)) {
+    drupal_set_message(t('Failed to set crawler configuration'), 'error');
+  } else {
+    drupal_set_message(t('Set crawler configuration'), 'status');
+  }
 
-  } else if ('crawl' == $form_state['triggering_element']['#name']) {
+  if ('crawl' == $form_state['triggering_element']['#name']) {
 
     if (!$api->triggerCrawl($entity)) {
       drupal_set_message(t('Failed to start crawl'), 'error');
