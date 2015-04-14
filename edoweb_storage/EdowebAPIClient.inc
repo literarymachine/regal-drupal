@@ -628,6 +628,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (array_key_exists('term', $efq->metaData)) {
       $query['query']['filtered']['query']['query_string']['query']
         = $efq->metaData['term'];
+      $query['query']['filtered']['query']['query_string']['default_operator']
+        = 'AND';
     }
 
     if (array_key_exists('bundle', $efq->entityConditions)) {
