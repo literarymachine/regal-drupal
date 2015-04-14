@@ -561,6 +561,10 @@
           Drupal.edoweb.entity_label($(this));
         });
 
+        container.find('a[data-curie].resolved').each(function() {
+          $(this).attr('target', '_blank');
+        });
+
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
           var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
