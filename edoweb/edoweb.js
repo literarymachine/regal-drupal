@@ -45,7 +45,23 @@
           $('a[href="/"]').attr('href', home_href + search);
         }
       }
+
+      /**
+       * Date parser for tablesort plugin
+       */
+      $.tablesorter.addParser({
+        id: 'edowebDate',
+        is: function(s) {
+          return /^.., /.test(s);
+        },
+        format: function(s, table, cell, cellIndex) {
+          return s.substr(3);
+        },
+        type: 'text'
+      });
+
     }
+
   }
 
   /**
