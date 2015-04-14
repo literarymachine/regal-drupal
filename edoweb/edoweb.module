@@ -1503,8 +1503,19 @@ function _edoweb_build_tree($entity) {
       $options = array('attributes' => array('data-bundle' => $entity_bundle));
       $tree_child = array(
         'data' => l($title, $entity_url['path'], $options),
-        'class' => array('collapsed'),
       );
+      try {
+        $ld_data->getTarget(
+          new LibRDF_URINode($child['value']),
+          new LibRDF_URINode(_edoweb_expand_curie('dc:hasPart'))
+        );
+        $tree_child['class'] = array('collapsed');
+      } catch (LibRDF_LookupError $e) {
+        // No children
+        $tree_child['style'] = array(
+          'list-style-image: none;'
+        );
+      }
       // Append download links when applicable
       if ('file' == $child_entity->bundle_type) {
         $datastreams = field_get_items(
@@ -2120,7 +2131,8 @@ function edoweb_block_view($delta = '') {
           drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
         );
         $top_level_parent = _edoweb_find_top_level_parent($entity);
-        if (in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
+        if (_edoweb_is_editable_entity($top_level_parent) &&
+            in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
           $subtree = _edoweb_build_tree($top_level_parent);
           $block['content'] = theme_item_list(array(
             'items' => array($subtree),

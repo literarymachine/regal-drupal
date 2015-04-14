@@ -84,10 +84,11 @@
             loadTree(entity_id, list_element, function() {
               throbber.remove();
             });
-          } else {
+            $(this).toggleClass('expanded collapsed');
+          } else if ($(this).hasClass('expanded')) {
             $(this).children('div.item-list').remove();
+            $(this).toggleClass('expanded collapsed');
           }
-          $(this).toggleClass('expanded collapsed');
           // Fix FF behaviour that selects text of subordinate lists
           // on expansion
           if (window.getSelection && window.getSelection().removeAllRanges) {
@@ -157,20 +158,11 @@
   };
 
   var UIButtons = [];
-  var expandTree = function(tree) {
-    tree.parents('ul').show();
-    tree.addClass('expanded');
-    tree.removeClass('collapsed');
-    tree.parents('li').addClass('expanded');
-    tree.parents('li').removeClass('collapsed');
-    tree.children('div').children('ul').show();
-  }
 
   Drupal.edoweb.refreshTree = function () {
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
     $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
     $('#edoweb-tree-clipboard').empty();
-    expandTree($('.edoweb-tree li.active'));
     $.each(UIButtons, function(i, button) {
       button.remove();
     });
