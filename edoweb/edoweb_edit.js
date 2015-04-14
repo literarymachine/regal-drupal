@@ -140,7 +140,7 @@
         }
 
         if (bundle == 'journal' || bundle == 'monograph') {
-          var import_button = $('<button class="edoweb edit action">Importieren</button>').bind('click', function() {
+          var import_button = $('<button style="display: block; margin-bottom: 1em;" class="edoweb edit action">Import einer Resource aus dem Katalog</button>').bind('click', function() {
             instance = {'bundle': bundle, 'field_name': ''}
             modal_overlay.html('<div />');
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
@@ -171,7 +171,7 @@
             modal_overlay.dialog('open');
             return false;
           });
-          template_select.after(import_button);
+          additional_fields.before(import_button);
         }
 
         activateFields(entity.find('.field'), bundle, context);
