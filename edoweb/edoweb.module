@@ -2120,7 +2120,8 @@ function edoweb_block_view($delta = '') {
           drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
         );
         $top_level_parent = _edoweb_find_top_level_parent($entity);
-        if (in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
+        if (_edoweb_is_editable_entity($top_level_parent) &&
+            in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
           $subtree = _edoweb_build_tree($top_level_parent);
           $block['content'] = theme_item_list(array(
             'items' => array($subtree),
