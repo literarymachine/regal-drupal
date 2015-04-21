@@ -596,6 +596,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     if (empty($param)) continue;
     list($key, $value) = explode('=', $param);
     if ("query[$search_count][term]" == urldecode($key)
+        || 'page' == $key
         || 'op' == $key
         || "query[$search_count][type]" == urldecode($key)
         || "query[$search_count][user]" == urldecode($key)
