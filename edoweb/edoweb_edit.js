@@ -590,6 +590,13 @@
               callback(resource_uri);
               return false;
             });
+          var i = row.closest('table').find('th[specifier="field_edoweb_identifier_ht value"]').index();
+          if (i != -1) {
+            row.children('td:eq(' + i + ')').each(function() {
+              $(this).html('<a href="http://193.30.112.134/F/?func=find-c&ccl_term=IDN%3D'
+                  + $(this).text() + '" target="_blank">' + $(this).text() + '</a>');
+            });
+          }
         });
 
         Drupal.edoweb.hideEmptyTableColumns(container.find('.sticky-enabled'));
