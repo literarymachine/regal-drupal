@@ -1139,7 +1139,7 @@ function _edoweb_installed_fields() {
       'cardinality' => 1,
       'type'        => 'edoweb_datastream',
       'settings'    => array(
-        'metadata_type' => 'descriptive',
+        'metadata_type' => 'structural',
         'predicates' => array('regal:hasData'),
       ),
     ),
