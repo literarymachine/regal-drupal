@@ -30,7 +30,9 @@ class LinkedDataClient {
    */
   public function load($remote_id, $rdf_model = null) {
     if (is_null($rdf_model)) {
-      $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
+      if (! $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id))) {
+        return false;
+      }
     } else {
       // FIXME: workaround for API bug after HTTP PATCHing access rights
       // for a subtree (i.e. resource/all).
@@ -93,7 +95,7 @@ class LinkedDataClient {
         $rdf_data = $http_response->data;
       }
     } else {
-      $rdf_data = '';
+      return false;
     }
 
     try {
