@@ -1063,6 +1063,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     }
     foreach ($active_facets as $jsonld_property => $facet) {
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      $is_user = 'createdBy' == $jsonld_property;
       foreach ($facet as $key => $value) {
         // Link to remove facet
         $params = drupal_get_query_parameters();
@@ -1070,9 +1071,13 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         if (isset($params['page'])) {
           unset($params['page']);
         }
-        $item = $is_ref
-          ? '<span data-curie="' .  _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>'
-          : "<span>" . _edoweb_map_string($value) . "</span>";
+        if ($is_ref) {
+          $item = '<span data-curie="' .  _edoweb_compact_uri($value) .  '" class="facet">' . $value .  '</span>';
+        } else if ($is_user) {
+          $item = '<span>' . _edoweb_user_name($value) . '</span>';
+        } else {
+          $item = '<span>' . _edoweb_map_string($value) . '</span>';
+        }
         $item .= l(t(' [x]'), current_path(), array('query' => $params));
         $content['filters'][$jsonld_property]['#items'][$value] = $item;
         // Add facet to query
@@ -1112,6 +1117,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#title' => _edoweb_map_string($jsonld_property),
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      $is_user = 'createdBy' == $jsonld_property;
       foreach ($facet->terms as $term) {
         // Don't add facets that are already applied to the list
         if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
@@ -1123,8 +1129,15 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
         $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
+        if ($is_ref) {
+          $title = $facet_entity_uri;
+        } else if ($is_user) {
+          $title = _edoweb_user_name($facet_entity_uri);
+        } else {
+          $title = _edoweb_map_string("$facet_entity_uri");
+        }
         $apply_facet_link = l(
-          _edoweb_map_string("$facet_entity_uri"), current_path(),
+          $title, current_path(),
           array(
             'query' => $params,
             'attributes' => $is_ref
@@ -1154,6 +1167,19 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     );
   }
   return $content;
+}
+
+/**
+ * Get a user name
+ */
+function _edoweb_user_name($id) {
+  $account = is_numeric($id) ? user_load($id) : false;
+  if (!$account) {
+    $name = $id;
+  } else {
+    $name = $account->name != '' ? $account->name : $account->uid;
+  }
+  return $name;
 }
 
 /**
@@ -1384,7 +1410,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
       $entity->content['_updated'] = array(
         '#type' => 'item',
-        '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
+        '#markup' => '<small>Letzte Änderung: ' . _edoweb_format_date($entity->updated) . ' durch ' . _edoweb_user_name($entity->uid) . '</small>',
         '#weight' => 1000,
       );
 
