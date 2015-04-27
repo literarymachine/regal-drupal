@@ -52,10 +52,10 @@
       $.tablesorter.addParser({
         id: 'edowebDate',
         is: function(s) {
-          return /^.., /.test(s);
+          return /^.*, /.test(s);
         },
         format: function(s, table, cell, cellIndex) {
-          return s.substr(3);
+          return s.match(/^.*, (.*)/)[1];
         },
         type: 'text'
       });
