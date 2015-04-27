@@ -425,6 +425,30 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   }
 
+  public function getStatus($entity) {
+
+    $http_url = sprintf(
+      '%s/resource/%s/status',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_get($http_url);
+
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to get crawler configuration for @id at @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+
+    return json_decode($http_response->data, TRUE);
+
+  }
+
   public function setCrawlerConfiguration($entity, $conf) {
 
     $http_url = sprintf(
