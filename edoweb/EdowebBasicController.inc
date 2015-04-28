@@ -65,7 +65,11 @@ class EdowebBasicController extends EntityAPIController {
 
     // Save local record
     $api = new EdowebAPIClient();
-    $api->save($entity);
+    if ('entity_update' == $invocation) {
+      $api->saveMetadata($entity);
+    } else {
+      $api->save($entity);
+    }
 
     // Invoke either hook_entity_update() or hook_entity_insert().
     module_invoke_all($invocation, $entity, 'edoweb_basic');

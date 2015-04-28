@@ -1362,15 +1362,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
         );
       }
 
-      $entity->content['access_rights'] = array(
-        '#type' => 'item',
-        '#markup' => '<div style="display: none;">'
-                    . '<span property="regal:publishScheme">' . $entity->access_md . '</span>'
-                    . '<span property="regal:accessScheme">' .  $entity->access_data . '</span>'
-                    . '</div>',
-        '#weight' => 1000,
-      );
-
       $entity->content['_updated'] = array(
         '#type' => 'item',
         '#markup' => '<small>Letzte Änderung: ' . _edoweb_format_date($entity->updated) . ' durch ' . _edoweb_user_name($entity->uid) . '</small>',
