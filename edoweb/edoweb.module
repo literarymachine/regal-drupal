@@ -3593,3 +3593,11 @@ function edoweb_update_7150() {
 function edoweb_update_7151() {
   _update_rdf_mapping();
 }
+
+/**
+ * Update metadata type of field_edoweb_datastream
+ */
+function edoweb_update_7152() {
+  $updated_fields = array('field_edoweb_datastream');
+  _update_edoweb_installed_fields($updated_fields);
+}
