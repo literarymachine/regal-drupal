@@ -85,6 +85,7 @@ function edoweb_entity_label($entity_type, $entity_id) {
   if ($entity = entity_load_single($entity_type, $entity_id)) {
     die(entity_label(EDOWEB_ENTITY_TYPE, $entity));
   }
+  header("HTTP/1.0 404 Not Found");
   exit();
 }
 
