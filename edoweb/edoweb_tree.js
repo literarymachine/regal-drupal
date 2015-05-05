@@ -46,7 +46,7 @@
       );
 
       // Attach clipboard
-      var clipboard = $('<div id="edoweb-tree-clipboard" />');
+      var clipboard = $('<div id="edoweb-tree-clipboard" style="height: 2.5em;" />');
       $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
 
       var menu = $('<div id="edoweb-tree-menu" />');
