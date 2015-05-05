@@ -39,7 +39,6 @@ class LinkedDataClient {
       if ("" === "$rdf_model") {
         $rdf_model = new LibRDF_Model(new LibRDF_Storage());
       }
-      file_put_contents('php://stderr', "Loading $remote_id from data\n");
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
     $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
