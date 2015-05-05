@@ -1514,6 +1514,15 @@ function _edoweb_find_top_level_parent($entity) {
 
 function _edoweb_build_tree($entity) {
 
+  static $ld_data;
+
+  if (!$ld_data) {
+    $ld_client = new LinkedDataClient();
+    $ld_data = $ld_client->getRDF(
+      _edoweb_expand_curie("{$entity->remote_id}/all")
+    );
+  }
+
   // Add current entity to tree
   $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
   $entity_url = entity_class_uri($entity);
@@ -1521,57 +1530,35 @@ function _edoweb_build_tree($entity) {
   $options = array('attributes' => array('data-bundle' => $entity_bundle));
   $tree_item = array(
     'data' => l($title, $entity_url['path'], $options),
-    'class' => array('expanded'),
+    'data-curie' => $entity->remote_id,
+    'class' => array('collapsed'),
   );
+
+  // Append download links when applicable
+  if ('file' == $entity->bundle_type) {
+    $datastreams = field_get_items(
+      'edoweb_basic', $entity, 'field_edoweb_datastream'
+    );
+    if (FALSE !== $datastreams) {
+      foreach ($datastreams as $datastream) {
+        if (drupal_valid_path('resource/' .  $datastream['value'])) {
+          $download_link = field_view_value(
+            EDOWEB_ENTITY_TYPE, $entity, 'field_edoweb_datastream', $datastream
+          );
+          $tree_item['data'] .= ' ' . drupal_render($download_link);
+        }
+      }
+    }
+  }
 
   // Add child enities to tree
   $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
   if (FALSE !== $children) {
-    $ld_client = new LinkedDataClient();
-    $ld_data = $ld_client->getRDF(
-      _edoweb_expand_curie("{$entity->remote_id}/parts")
-    );
     foreach ($children as $child) {
       $child_entity = entity_get_controller('edoweb_basic')->load(
         array($child['value']), array(), $ld_data
       );
-      $child_entity = end($child_entity);
-      $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
-      $entity_url = entity_class_uri($child_entity);
-      $entity_bundle = $child_entity->bundle();
-      $options = array('attributes' => array('data-bundle' => $entity_bundle));
-      $tree_child = array(
-        'data' => l($title, $entity_url['path'], $options),
-      );
-      try {
-        $ld_data->getTarget(
-          new LibRDF_URINode($child['value']),
-          new LibRDF_URINode(_edoweb_expand_curie('dc:hasPart'))
-        );
-        $tree_child['class'] = array('collapsed');
-      } catch (LibRDF_LookupError $e) {
-        // No children
-        $tree_child['style'] = array(
-          'list-style-image: none;'
-        );
-      }
-      // Append download links when applicable
-      if ('file' == $child_entity->bundle_type) {
-        $datastreams = field_get_items(
-          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-        );
-        if (FALSE !== $datastreams) {
-          foreach ($datastreams as $datastream) {
-            if (drupal_valid_path('resource/' .  $datastream['value'])) {
-              $download_link = field_view_value(
-                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-              );
-              $tree_child['data'] .= ' ' . drupal_render($download_link);
-            }
-          }
-        }
-      }
-      $tree_item['children'][] = $tree_child;
+      $tree_item['children'][] = _edoweb_build_tree(end($child_entity));
     }
   }
 

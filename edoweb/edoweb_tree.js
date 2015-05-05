@@ -67,6 +67,10 @@
         });
       }
 
+      $('.edoweb-tree li[data-curie="' + Drupal.settings.edoweb.entity + '"]')
+        .parents('li').toggleClass('expanded collapsed');
+      $('.edoweb-tree li.collapsed').children('div.item-list').hide();
+
       $('.edoweb-tree li', context).each(function() {
 
         var list_element = $(this);
@@ -79,14 +83,10 @@
         $(this).click(function(e) {
           if (e.target != this) return true;
           if ($(this).hasClass('collapsed')) {
-            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-            $(this).find('div.edoweb-tree-toolbox').after(throbber);
-            loadTree(entity_id, list_element, function() {
-              throbber.remove();
-            });
+            $(this).children('div.item-list').show();
             $(this).toggleClass('expanded collapsed');
           } else if ($(this).hasClass('expanded')) {
-            $(this).children('div.item-list').remove();
+            $(this).children('div.item-list').hide();
             $(this).toggleClass('expanded collapsed');
           }
           // Fix FF behaviour that selects text of subordinate lists
@@ -221,15 +221,18 @@
             var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
 
             localStorage.removeItem('cut_entity');
-            $('.edoweb-tree a.edoweb-tree-cut-item').closest('li').remove();
-            var inserted_item = $('<li />');
-            insert_position.prepend(inserted_item);
-            loadTree(entity_id, inserted_item, function() {
-              $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
-                console.log(data);
-                saveStructure(list_item, function() {$.unblockUI()});
-                throbber.remove();
-              });
+            var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+            if (inserted_item.length == 0) {
+              inserted_item = $('<li />');
+              loadTree(entity_id, inserted_item);
+            }
+            insert_position.append(inserted_item);
+            $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+              console.log(data);
+              saveStructure(list_item, function() {$.unblockUI()});
+              throbber.remove();
+              inserted_item.parents('li.collapsed').toggleClass('expanded collapsed').children('div.item-list').show();
+              Drupal.edoweb.refreshTree();
             });
             return false;
           });
@@ -259,15 +262,18 @@
                 var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
 
                 localStorage.removeItem('cut_entity');
-                $('.edoweb-tree a.edoweb-tree-cut-item').closest('li').remove();
-                var inserted_item = $('<li />');
+                var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+                if (inserted_item.length == 0) {
+                  inserted_item = $('<li />');
+                  loadTree(entity_id, inserted_item);
+                }
                 list_item.after(inserted_item);
-                loadTree(entity_id, inserted_item, function() {
-                  $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
-                    console.log(data);
-                    saveStructure(list_item.parent().closest('li'), function() {$.unblockUI()});
-                    throbber.remove();
-                  });
+                $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+                  console.log(data);
+                  saveStructure(list_item.parent().closest('li'), function() {$.unblockUI()});
+                  throbber.remove();
+                  inserted_item.parents('li.collapsed').toggleClass('expanded collapsed').children('div.item-list').show();
+                  Drupal.edoweb.refreshTree();
                 });
                 return false;
               });
