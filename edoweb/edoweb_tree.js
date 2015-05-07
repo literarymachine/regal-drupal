@@ -67,9 +67,6 @@
         });
       }
 
-      $('.edoweb-tree li[data-curie="' + Drupal.settings.edoweb.entity + '"]')
-        .parents('li').toggleClass('expanded collapsed');
-      $('.edoweb-tree li.collapsed').children('div.item-list').hide();
 
       $('.edoweb-tree li', context).each(function() {
 
@@ -108,7 +105,6 @@
           history.pushState({tree: true}, null, link.attr('href'));
           Drupal.edoweb.navigateTo(link.attr('href'));
           $('.edoweb-tree li.active', context).removeClass('active');
-          link.closest('li').addClass('active');
           Drupal.edoweb.refreshTree();
           return false;
         });
@@ -160,6 +156,15 @@
   var UIButtons = [];
 
   Drupal.edoweb.refreshTree = function () {
+    $('.edoweb-tree li[data-curie="' + Drupal.settings.edoweb.entity + '"]')
+        .addClass('active').parents('li').removeClass('collapsed').addClass('expanded');
+    $('.edoweb-tree li.collapsed').children('div.item-list').hide();
+    $('.edoweb-tree li.expanded').children('div.item-list').show();
+    $('.edoweb-tree li:has(>div.item-list)')
+        .css('list-style-image', '').css('list-style-type', '');
+    $('.edoweb-tree li:not(:has(>div.item-list>ul>li))')
+        .css('list-style-image', 'none').css('list-style-type', 'none');
+
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
     $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
     $('#edoweb-tree-clipboard').empty();
@@ -189,11 +194,6 @@
         .closest('li').find('a[data-bundle]').addClass('edoweb-tree-cut-item');
 
       $('.edoweb-tree li').each(function() {
-        var insert_position = $(this).children('div.item-list').children('ul');
-        if (insert_position.length == 0) {
-          insert_position = $('<ul />');
-          $(this).append($('<div class="item-list"></div>').append(insert_position));
-        }
 
         var bundle_fields = Drupal.settings.edoweb.fields[$(this).children('a[data-bundle]').attr('data-bundle')];
         var target_bundles = [];
@@ -226,12 +226,16 @@
               inserted_item = $('<li />');
               loadTree(entity_id, inserted_item);
             }
+            var insert_position = list_item.children('div.item-list').children('ul');
+            if (insert_position.length == 0) {
+              insert_position = $('<ul />');
+              list_item.append($('<div class="item-list"></div>').append(insert_position));
+            }
             insert_position.append(inserted_item);
             $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
               console.log(data);
               saveStructure(list_item, function() {$.unblockUI()});
               throbber.remove();
-              inserted_item.parents('li.collapsed').toggleClass('expanded collapsed').children('div.item-list').show();
               Drupal.edoweb.refreshTree();
             });
             return false;
@@ -272,7 +276,6 @@
                   console.log(data);
                   saveStructure(list_item.parent().closest('li'), function() {$.unblockUI()});
                   throbber.remove();
-                  inserted_item.parents('li.collapsed').toggleClass('expanded collapsed').children('div.item-list').show();
                   Drupal.edoweb.refreshTree();
                 });
                 return false;
