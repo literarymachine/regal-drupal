@@ -2452,6 +2452,10 @@ function _edoweb_http_request($request_url, $http_options) {
 
   $http_response = drupal_http_request($request_url, $http_options);
 
+  if (in_array($http_options['method'], array('PUT', 'POST', 'DELETE', 'PATCH'))) {
+    console_log($http_response);
+  }
+
   // FIXME: drupal_http_request does not follow 303s
   if ((303 == $http_response->code) || (307 == $http_response->code)) {
     $redirect_url = $http_response->headers['location'];
@@ -2466,10 +2470,6 @@ function _edoweb_http_request($request_url, $http_options) {
     }
     $request_url = $redirect_url;
     $http_response = drupal_http_request($request_url, $http_options);
-  }
-
-  if ($http_response->code[0] != 2) {
-    console_log($http_response);
   }
 
   // Display response in UI
@@ -2609,7 +2609,7 @@ function _edoweb_available_languages() {
 }
 
 function console_log($obj) {
-  file_put_contents('php://stderr', print_r($obj, true) . "\n");
+  file_put_contents('php://stderr', date('Y-m-d H:i:s') . ': ' . print_r($obj, true) . "\n");
 }
 
 function _update_edoweb_installed_fields($updated_fields = null) {
