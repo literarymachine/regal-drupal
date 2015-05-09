@@ -36,9 +36,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return false;
     }
     $namespace = variable_get('edoweb_api_namespace');
-    if (_is_edoweb_entity($entity) && !$rdf_model) {
-      $this->sortParts($entity);
-    }
     return $entity;
   }
 
@@ -231,37 +228,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return TRUE;
     }
     return FALSE;
-  }
-
-  public function sortParts($entity) {
-    // Get order of resource parts
-    $http_url = sprintf(
-      '%s/resource/%s/parts?style=short',
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_get($http_url, 'application/json');
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to get parts for @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-    try {
-      $current_values = $wrapper->field_edoweb_struct_child->value();
-      $wrapper->field_edoweb_struct_child = array();
-      foreach (json_decode($http_response->data) as $new_key => $child)
-        foreach($current_values as $old_key => $current_value)
-          if ($child == $current_value['value'])
-            $wrapper->field_edoweb_struct_child[$new_key] = $current_value;
-    } catch (EntityMetadataWrapperException $e) {
-      // No child field available, ignore
-    }
-    return TRUE;
   }
 
   public function saveResource($entity, $transformers = null) {
