@@ -71,15 +71,19 @@
         .bind('click', function() {
           $(this).closest('.edoweb-tree').find('div.item-list').hide();
           $(this).closest('.edoweb-tree').find('li').removeClass('expanded').addClass('collapsed');
-        });
-      $('ul.edoweb-tree>li', context).prepend(collapse_all);
+          $(this).hide();
+          expand_all.show();
+        }).hide();
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).prepend(collapse_all);
 
       var expand_all = $('<span title="[Alle aufklappen]" class="octicon octicon-alignment-aligned-to" style="margin-right: 0.2em;" />')
         .bind('click', function() {
           $(this).closest('.edoweb-tree').find('div.item-list').show();
           $(this).closest('.edoweb-tree').find('li').removeClass('collapsed').addClass('expanded');
+          $(this).hide();
+          collapse_all.show();
         });
-      $('ul.edoweb-tree>li', context).prepend(expand_all);
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).prepend(expand_all);
 
       $('.edoweb-tree li', context).each(function() {
 
