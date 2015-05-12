@@ -624,51 +624,15 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
       // Modify subject URI for datastream metadata
       $rdf_subject = _get_rdf_subject($entity, $field_name);
       foreach ($rdf_model->getTargets($rdf_subject, $rdf_predicate) as $value) {
-        // FIXME: wrong datatype of child relations
-        if ('field_edoweb_struct_child' == $field_name && !$value instanceof LibRDF_URINode) {
-          $value = new LibRDF_URINode($value->getValue());
-        }
-        // External datasources may provide incompatible data, filter that out
-        if (($field_info['type'] == 'edoweb_ld_reference')
-            && (!$value instanceof LibRDF_URINode))
-              continue;
         try {
-          if ($value instanceOf LibRDF_LiteralNode) {
-            // Fix escaped unicode characters such as \u00E4
-            $value = json_decode('"'.$value->getValue().'"');
-            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-              $wrapper->{$field_name} = (string) $value;
-            } else {
-              $wrapper->{$field_name}[] = (string) $value;
-            }
-          } else {
-            // Check if label is available
-            try {
-              $label = _edoweb_unescape_utf8($rdf_model->getTarget($value,
-                  new LibRDF_URINode(_edoweb_expand_curie('skos:prefLabel'))
-              )->getValue());
-            } catch (LibRDF_LookupError $e) {
-              $label = '';
-            }
-            if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
-              $wrapper->{$field_name} = $value->getValue();
-            } else if ($wrapper->{$field_name} instanceOf EntityStructureWrapper) {
-              $wrapper->{$field_name} = array(
-                'value' => $value->getValue(),
-                'label' => $label,
-              );
-            } else {
-              $wrapper->{$field_name}[] = array(
-                'value' => $value->getValue(),
-                'label' => $label,
-              );
-            }
+          $list = $rdf_model->getTarget($value,
+            new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+          );
+          foreach ($rdf_model->getListAsArray($value) as $list_value) {
+            _entity_set_value($wrapper, $field_info, $list_value, $rdf_model);
           }
-        } catch (EntityMetadataWrapperException $e) {
-          console_log($e->getMessage());
-          console_log("$rdf_subject");
-          console_log("$rdf_predicate");
-          console_log("$value");
+        } catch (LibRDF_LookupError $e) {
+          _entity_set_value($wrapper, $field_info, $value, $rdf_model);
         }
       }
     }
@@ -728,6 +692,56 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     $entity->name = $entity->remote_id;
   }
 
+}
+
+function _entity_set_value($wrapper, $field_info, $value, $rdf_model) {
+  $field_name = $field_info['field_name'];
+  // FIXME: wrong datatype of child relations
+  if ('field_edoweb_struct_child' == $field_name && !$value instanceof LibRDF_URINode) {
+    $value = new LibRDF_URINode($value->getValue());
+  }
+  // External datasources may provide incompatible data, filter that out
+  if (($field_info['type'] == 'edoweb_ld_reference')
+      && (!$value instanceof LibRDF_URINode))
+        continue;
+  try {
+    if ($value instanceOf LibRDF_LiteralNode) {
+      // Fix escaped unicode characters such as \u00E4
+      $value = json_decode('"'.$value->getValue().'"');
+      if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+        $wrapper->{$field_name} = (string) $value;
+      } else {
+        $wrapper->{$field_name}[] = (string) $value;
+      }
+    } else {
+      // Check if label is available
+      try {
+        $label = _edoweb_unescape_utf8($rdf_model->getTarget($value,
+            new LibRDF_URINode(_edoweb_expand_curie('skos:prefLabel'))
+        )->getValue());
+      } catch (LibRDF_LookupError $e) {
+        $label = '';
+      }
+      if ($wrapper->{$field_name} instanceOf EntityValueWrapper) {
+        $wrapper->{$field_name} = $value->getValue();
+      } else if ($wrapper->{$field_name} instanceOf EntityStructureWrapper) {
+        $wrapper->{$field_name} = array(
+          'value' => $value->getValue(),
+          'label' => $label,
+        );
+      } else {
+        $wrapper->{$field_name}[] = array(
+          'value' => $value->getValue(),
+          'label' => $label,
+        );
+      }
+    }
+  } catch (EntityMetadataWrapperException $e) {
+    console_log($e->getMessage());
+    console_log("$rdf_subject");
+    console_log("$rdf_predicate");
+    console_log("$value");
+  }
 }
 
 function _get_rdf_subject($entity, $field_name) {

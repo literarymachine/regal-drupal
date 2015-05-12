@@ -214,13 +214,11 @@
                 history.pushState({tree: true}, null, href);
                 Drupal.edoweb.navigateTo(href);
               }
+              $.unblockUI();
             };
           } else {
-            history.pushState({tree: true}, null, href);
-            Drupal.edoweb.navigateTo(href);
-            Drupal.edoweb.refreshTree(context);
+            window.location = href;
           }
-          $.unblockUI();
         });
         return false;
       }
