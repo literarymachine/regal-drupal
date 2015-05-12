@@ -207,11 +207,11 @@
         // Possible insert positions are as a child of the current entry
         // or as a sibling of the children of the current entry
         if (target_bundles.indexOf(entity_bundle) != -1) {
-          var insert_button = $('<a href="#" title="[Unterhalb dieser Ebene einfügen]"><span class="octicon octicon-diff-added" /></a>');
-          insert_button.hide();
-          $(this).children('.edoweb-tree-toolbox').append(insert_button);
-          UIButtons.push(insert_button);
-          insert_button.bind('click', function() {
+          var append_button = $('<a href="#" title="[Unterhalb dieser Ebene als letztes einfügen]"><span class="octicon octicon-jump-down" /></a>');
+          append_button.hide();
+          $(this).children('.edoweb-tree-toolbox').append(append_button);
+          UIButtons.push(append_button);
+          append_button.bind('click', function() {
             $.blockUI(Drupal.edoweb.blockUIMessage);
             var list_item = $(this).closest('li');
             var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
@@ -240,6 +240,39 @@
             });
             return false;
           });
+          var prepend_button = $('<a href="#" title="[Unterhalb dieser Ebene als erstes einfügen]"><span class="octicon octicon-jump-up" /></a>');
+          prepend_button.hide();
+          $(this).children('.edoweb-tree-toolbox').append(prepend_button);
+          UIButtons.push(prepend_button);
+          prepend_button.bind('click', function() {
+            $.blockUI(Drupal.edoweb.blockUIMessage);
+            var list_item = $(this).closest('li');
+            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+            $('#edoweb-tree-clipboard p>span').replaceWith(throbber);
+            var target_struct_url = Drupal.settings.basePath + 'resource/' + entity_id + '/structure';
+            var target_parent_url = list_item.find('a:eq(0)').attr('href');
+            var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
+
+            localStorage.removeItem('cut_entity');
+            var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+            if (inserted_item.length == 0) {
+              inserted_item = $('<li />');
+              loadTree(entity_id, inserted_item);
+            }
+            var insert_position = list_item.children('div.item-list').children('ul');
+            if (insert_position.length == 0) {
+              insert_position = $('<ul />');
+              list_item.append($('<div class="item-list"></div>').append(insert_position));
+            }
+            insert_position.prepend(inserted_item);
+            $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+              console.log(data);
+              saveStructure(list_item, function() {$.unblockUI()});
+              throbber.remove();
+              Drupal.edoweb.refreshTree();
+            });
+            return false;
+          });
           $(this).children('.edoweb-tree-toolbox').addClass('edoweb-tree-insert');
 
           $(this).children('div.item-list')
@@ -252,7 +285,7 @@
               if (self_uri == entity_id) {
                 return true;
               }
-              var insert_button = $('<a href="#" title="[Auf gleicher Ebene einfügen]"><span class="octicon octicon-move-right" /></a>');
+              var insert_button = $('<a href="#" title="[Auf gleicher Ebene dahinter einfügen]"><span class="octicon octicon-jump-right" /></a>');
               insert_button.hide();
               $(this).append(insert_button);
               $(this).addClass('edoweb-tree-insert');
