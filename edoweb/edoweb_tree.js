@@ -67,6 +67,19 @@
         });
       }
 
+      var collapse_all = $('<span title="[Alle zuklappen]" class="octicon octicon-alignment-align" style="margin-right: 0.2em;" />')
+        .bind('click', function() {
+          $(this).closest('.edoweb-tree').find('div.item-list').hide();
+          $(this).closest('.edoweb-tree').find('li').removeClass('expanded').addClass('collapsed');
+        });
+      $('ul.edoweb-tree>li', context).prepend(collapse_all);
+
+      var expand_all = $('<span title="[Alle aufklappen]" class="octicon octicon-alignment-aligned-to" style="margin-right: 0.2em;" />')
+        .bind('click', function() {
+          $(this).closest('.edoweb-tree').find('div.item-list').show();
+          $(this).closest('.edoweb-tree').find('li').removeClass('collapsed').addClass('expanded');
+        });
+      $('ul.edoweb-tree>li', context).prepend(expand_all);
 
       $('.edoweb-tree li', context).each(function() {
 
