@@ -85,6 +85,8 @@
         });
       $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).prepend(expand_all);
 
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).addClass('expanded').removeClass('collapsed');
+
       $('.edoweb-tree li', context).each(function() {
 
         var list_element = $(this);
