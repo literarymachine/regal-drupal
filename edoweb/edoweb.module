@@ -621,7 +621,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     if ("query[$search_count][term]" == urldecode($key)
         || 'page' == $key
         || 'op' == $key
-        || "query[$search_count][type]" == urldecode($key)
+        || "query[$search_count][type]" == substr(urldecode($key), 0, strlen("query[$search_count][type]"))
         || "query[$search_count][user]" == urldecode($key)
         || "query[$search_count][fulltext]" == urldecode($key)
         ) continue;
@@ -653,6 +653,19 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       '#default_value' => isset($query['type']) && $query['type'] != ''
         ? $query['type']
         : current(array_keys($options)),
+    );
+  } else if (isset($query['endpoint']) && 'resource' == $query['endpoint']) {
+    $options = array(
+      'monograph' => t('Monograph'),
+      'journal' => t('Journal'),
+      'webpage' => t('Webpage'),
+    );
+    $form['query'][$search_count]['type'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $options,
+      '#default_value' => isset($query['type']) && $query['type'] != ''
+        ? $query['type']
+        : array_keys($options)
     );
   }
 
@@ -746,6 +759,11 @@ function edoweb_basic_search_entities(
   }
 
   if (@$type = $query['type']) {
+    if (!is_array($type)) {
+      $type = array($type);
+    } else {
+      $type = array_keys($type);
+    }
     $efq->addMetaData('type', $type);
   }
 
