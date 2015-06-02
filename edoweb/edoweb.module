@@ -585,6 +585,9 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $endpoint = 'resource';
     $parameter = 'name';
     $query->entityCondition('bundle', array($bundle_name));
+  } else if (isset($_GET['endpoint'])) {
+    $endpoint = $_GET['endpoint'];
+    $parameter = 'name';
   }
 
   if ($endpoint && $parameter) {

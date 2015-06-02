@@ -141,7 +141,7 @@
 
         if (bundle == 'journal' || bundle == 'monograph') {
           var import_button = $('<button style="display: block; margin-bottom: 1em;" class="edoweb edit action">Import einer Resource aus dem Katalog</button>').bind('click', function() {
-            instance = {'bundle': bundle, 'field_name': ''}
+            instance = {'bundle': '', 'field_name': ''}
             modal_overlay.html('<div />');
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
               entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
@@ -356,6 +356,8 @@
           var field = $(this);
           var field_name = getFieldName(field);
           if (!field_name) return true;
+          if (!Drupal.settings.edoweb.fields[bundle].hasOwnProperty(field_name)) return true;
+
           var instance = Drupal.settings.edoweb.fields[bundle][field_name]['instance'];
           switch (instance['widget']['type']) {
             case 'text_textarea':
@@ -482,8 +484,14 @@
 
     var bundle_name = instance['bundle'];
     var field_name = instance['field_name'];
+    var qurl;
 
-    var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    if (bundle_name != '') {
+      qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    } else {
+      qurl = Drupal.settings.basePath + '?q=edoweb/search/&endpoint=resource';
+    }
+
     var params = {
       page: page,
       sort: sort,
