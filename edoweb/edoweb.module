@@ -2218,10 +2218,7 @@ function edoweb_rdf_types($bundle = null) {
       'skos:Concept',
       'gnd:SubjectHeading'
     ),
-    'monograph' => array(
-      'bibo:Book',
-      'lv:ArchivedWebPage',
-    ),
+    'monograph' => array('bibo:Book'),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
     'issue' => array('bibo:Issue'),
@@ -3588,3 +3585,11 @@ function edoweb_update_7152() {
   $updated_fields = array('field_edoweb_datastream');
   _update_edoweb_installed_fields($updated_fields);
 }
+
+/**
+ * Remove mapping from lv:ArchivedWebPage to monograph bundle
+ */
+function edoweb_update_7153() {
+  _update_rdf_mapping();
+}
+
