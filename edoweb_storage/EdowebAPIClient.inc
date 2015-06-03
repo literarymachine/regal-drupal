@@ -71,7 +71,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $bundle
     );
     $http_response = $this->_http_get($http_url, 'application/json');
-    die($http_response->data);
+    return $http_response->data;
   }
 
   public function getLastModified($remote_id, $content_type = 'file') {
@@ -108,6 +108,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     die(l($entity->label(), 'resource/' . $entity->identifier()));
 
+  }
+
+  public function getTree($entity) {
+    $http_url = sprintf(
+      '%s/resource/%s/all',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+    return json_decode($http_response->data, TRUE);
   }
 
   public function addURN($entity) {

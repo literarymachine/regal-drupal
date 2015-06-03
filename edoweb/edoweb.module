@@ -548,7 +548,7 @@ function edoweb_permission() {
 
 function _edoweb_templates($bundle_name = null) {
   $api = new EdowebAPIClient();
-  return $api->getTemplates($bundle_name);
+  die($api->getTemplates($bundle_name));
 }
 
 function _edoweb_lastmodified($remote_id) {
@@ -1512,53 +1512,25 @@ function _edoweb_find_top_level_parent($entity) {
   return $entity;
 }
 
-function _edoweb_build_tree($entity) {
-
-  static $ld_data;
-
-  if (!$ld_data) {
-    $ld_client = new LinkedDataClient();
-    $ld_data = $ld_client->getRDF(
-      _edoweb_expand_curie("{$entity->remote_id}/all")
-    );
-  }
+function _edoweb_build_tree($tree) {
 
   // Add current entity to tree
-  $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
-  $entity_url = entity_class_uri($entity);
-  $entity_bundle = $entity->bundle();
+  $title = implode(', ', $tree['title']);
+  $entity_bundle = $tree['contentType'];
   $options = array('attributes' => array('data-bundle' => $entity_bundle));
   $tree_item = array(
-    'data' => l($title, $entity_url['path'], $options),
-    'data-curie' => $entity->remote_id,
+    'data' => l($title, 'resource/' . $tree['@id'], $options),
+    'data-curie' => $tree['@id'],
     'class' => array('collapsed'),
   );
 
-  // Append download links when applicable
-  if ('file' == $entity->bundle_type) {
-    $datastreams = field_get_items(
-      'edoweb_basic', $entity, 'field_edoweb_datastream'
-    );
-    if (FALSE !== $datastreams) {
-      foreach ($datastreams as $datastream) {
-        if (drupal_valid_path('resource/' .  $datastream['value'])) {
-          $download_link = field_view_value(
-            EDOWEB_ENTITY_TYPE, $entity, 'field_edoweb_datastream', $datastream
-          );
-          $tree_item['data'] .= ' ' . drupal_render($download_link);
-        }
-      }
-    }
-  }
-
   // Add child enities to tree
-  $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-  if (FALSE !== $children) {
+  if (isset($tree['hasPart'])) {
+    $children = $tree['hasPart'];
     foreach ($children as $child) {
-      $child_entity = entity_get_controller('edoweb_basic')->load(
-        array($child['value']), array(), $ld_data
-      );
-      $tree_item['children'][] = _edoweb_build_tree(end($child_entity));
+      foreach ($child as $id => $subtree) {
+        $tree_item['children'][] = _edoweb_build_tree($subtree);
+      }
     }
   }
 
@@ -1637,11 +1609,11 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity) {
+  $api = new EdowebAPIClient();
   if ('POST' == $_SERVER['REQUEST_METHOD'] && user_access('edit any edoweb_basic entity')) {
     $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
     $parts = isset($_POST['parts']) ? $_POST['parts'] : FALSE;
 
-    $api = new EdowebAPIClient();
     if ($new_parent_id) {
       $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
       $prev_parent = $wrapper->field_edoweb_struct_parent->value();
@@ -1665,7 +1637,7 @@ function edoweb_basic_structure($entity) {
   } else if ('POST' == $_SERVER['REQUEST_METHOD']) {
     return MENU_ACCESS_DENIED;
   } else {
-    $subtree = _edoweb_build_tree($entity);
+    $subtree = _edoweb_build_tree($api->getTree($top_level_parent));
     die(theme_item_list(array(
       'items' => array($subtree),
       'title' => null,
@@ -2355,7 +2327,8 @@ function edoweb_block_view($delta = '') {
         $top_level_parent = _edoweb_find_top_level_parent($entity);
         if (_edoweb_is_editable_entity($top_level_parent) &&
             in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
-          $subtree = _edoweb_build_tree($top_level_parent);
+          $api = new EdowebAPIClient();
+          $subtree = _edoweb_build_tree($api->getTree($top_level_parent));
           $block['content'] = theme_item_list(array(
             'items' => array($subtree),
             'title' => null,
