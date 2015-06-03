@@ -1515,7 +1515,8 @@ function _edoweb_find_top_level_parent($entity) {
 function _edoweb_build_tree($tree) {
 
   // Add current entity to tree
-  $title = implode(', ', $tree['title']);
+  $title = isset($tree['title'])
+      ? implode(', ', $tree['title']) : $tree['@id'];
   $entity_bundle = $tree['contentType'];
   $options = array('attributes' => array('data-bundle' => $entity_bundle));
   $tree_item = array(
