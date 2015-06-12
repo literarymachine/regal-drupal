@@ -663,16 +663,17 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     );
   } else if (isset($query['endpoint']) && 'resource' == $query['endpoint']) {
     $options = array(
+      'generic' => t('Any'),
       'monograph' => t('Monograph'),
       'journal' => t('Journal'),
       'webpage' => t('Webpage'),
     );
     $form['query'][$search_count]['type'] = array(
-      '#type' => 'checkboxes',
+      '#type' => 'radios',
       '#options' => $options,
       '#default_value' => isset($query['type']) && $query['type'] != ''
         ? $query['type']
-        : array_keys($options)
+        : current(array_keys($options)),
     );
   }
 
