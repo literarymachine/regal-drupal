@@ -185,6 +185,13 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'generic' => array(
+        'label' => t('Bibliographic Resource'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/generic/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
       'person' => array(
         'label' => t('Person'),
         'namespace' => 'local',
@@ -799,6 +806,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'collection':
     case 'webpage':
     case 'version':
+    case 'generic':
       $columns = array(
         array(
           'data' => t('HT-Nummer'),
@@ -2248,6 +2256,7 @@ function edoweb_rdf_types($bundle = null) {
     'webpage' => array('lv:ArchivedWebPage'),
     //FIXME: dummy RDF type for version
     'version' => array('lv:ArchivedWebPageVersion'),
+    'generic' => array('dc:BibliographicResource'),
     'authority_resource' => array('gnd:AuthorityResource'),
     'collection' => array(
       'bibo:Collection',
@@ -3614,3 +3623,13 @@ function edoweb_update_7153() {
   _update_rdf_mapping();
 }
 
+function edoweb_update_7154() {
+  module_load_install('edoweb');
+  $available_instances = _edoweb_installed_instances();
+  $added_instances = array(
+    'generic' => array_keys($available_instances['generic']),
+  );
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+  entity_info_cache_clear();
+}

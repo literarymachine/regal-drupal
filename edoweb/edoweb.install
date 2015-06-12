@@ -1829,13 +1829,107 @@ function _edoweb_installed_instances() {
     ),
 
     /*
-     * Field instances in generic bundle
+     * Field instances in generic authority resource bundle
      */
     'authority_resource' => array(
       'field_gnd_name' => array(),
       'field_gnd_identifier' => array(),
     ),
 
+    /*
+     * Field instances in generic bibliographic resource bundle
+     */
+    'generic' => array(
+      'field_edoweb_identifier_ht' => array(),
+      'field_edoweb_title' => array(),
+      'field_edoweb_title_other' => array(),
+      'field_edoweb_title_alternative' => array(),
+      'field_edoweb_title_short' => array(),
+      'field_edoweb_creator' => array(),
+      'field_edoweb_contributor' => array(),
+      'field_edoweb_editor' => array(),
+      'field_edoweb_edt' => array(),
+      'field_edoweb_translator' => array(),
+      'field_edoweb_ill' => array(),
+      'field_edoweb_act' => array(),
+      'field_edoweb_drt' => array(),
+      'field_edoweb_clb' => array(),
+      'field_edoweb_pht' => array(),
+      'field_edoweb_cnd' => array(),
+      'field_edoweb_cmp' => array(),
+      'field_edoweb_aui' => array(),
+      'field_edoweb_aus' => array(),
+      'field_edoweb_col' => array(),
+      'field_edoweb_ctb' => array(),
+      'field_edoweb_prf' => array(),
+      'field_edoweb_cng' => array(),
+      'field_edoweb_ant' => array(),
+      'field_edoweb_voc' => array(),
+      'field_edoweb_ivr' => array(),
+      'field_edoweb_ive' => array(),
+      'field_edoweb_ctg' => array(),
+      'field_edoweb_mus' => array(),
+      'field_edoweb_aft' => array(),
+      'field_edoweb_pro' => array(),
+      'field_edoweb_egr' => array(),
+      'field_edoweb_dte' => array(),
+      'field_edoweb_edition' => array(),
+      'field_edoweb_publication_place' => array(),
+      'field_edoweb_publisher' => array(),
+      'field_edoweb_issued' => array(),
+      'field_edoweb_urn' => array(),
+      'field_edoweb_isbn10' => array(),
+      'field_edoweb_isbn13' => array(),
+      'field_edoweb_doi' => array(),
+      'field_edoweb_language' => array(),
+      'field_edoweb_extent' => array(),
+      'field_edoweb_description' => array(),
+      'field_edoweb_subject' => array(),
+      'field_edoweb_subject_chain' => array(),
+      'field_edoweb_tag' => array(),
+      'field_edoweb_abstract' => array(),
+      'field_edoweb_parallel' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'generic' => 'generic',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_volume' => array(),
+      'field_edoweb_struct_child' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'file' => 'file',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_parent' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'collection' => 'collection',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_collected_by' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'collection' => 'collection',
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 
