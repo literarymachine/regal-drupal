@@ -538,7 +538,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $size = array_key_exists('length', $efq->range)
       ? $efq->range['length']
       : $results_per_page;
-    $type = array_key_exists('type', $efq->metaData)
+    $types = array_key_exists('type', $efq->metaData)
       ? $efq->metaData['type']
       : null;
 
@@ -547,12 +547,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
 
-    if ($type) {
+    if ($types) {
       $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
-      $bundle_info = $bundle_infos[$type];
       $rdf_types = array();
-      foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
-        $rdf_types[] = _edoweb_expand_curie($rdf_type);
+
+      foreach ($types as $type) {
+        $bundle_info = $bundle_infos[$type];
+        foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
+          $rdf_types[] = _edoweb_expand_curie($rdf_type);
+        }
       }
       $http_url .= '&type=' . urlencode(implode(',', $rdf_types));
     }

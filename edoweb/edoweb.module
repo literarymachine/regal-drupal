@@ -185,6 +185,13 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'generic' => array(
+        'label' => t('Bibliographic Resource'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/generic/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
       'person' => array(
         'label' => t('Person'),
         'namespace' => 'local',
@@ -585,6 +592,9 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $endpoint = 'resource';
     $parameter = 'name';
     $query->entityCondition('bundle', array($bundle_name));
+  } else if (isset($_GET['endpoint'])) {
+    $endpoint = $_GET['endpoint'];
+    $parameter = 'name';
   }
 
   if ($endpoint && $parameter) {
@@ -618,7 +628,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     if ("query[$search_count][term]" == urldecode($key)
         || 'page' == $key
         || 'op' == $key
-        || "query[$search_count][type]" == urldecode($key)
+        || "query[$search_count][type]" == substr(urldecode($key), 0, strlen("query[$search_count][type]"))
         || "query[$search_count][user]" == urldecode($key)
         || "query[$search_count][fulltext]" == urldecode($key)
         ) continue;
@@ -644,6 +654,20 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       $bundle_info = $bundle_infos[$target_bundle];
       $options[$target_bundle] = $bundle_info['label'];
     }
+    $form['query'][$search_count]['type'] = array(
+      '#type' => 'radios',
+      '#options' => $options,
+      '#default_value' => isset($query['type']) && $query['type'] != ''
+        ? $query['type']
+        : current(array_keys($options)),
+    );
+  } else if (isset($query['endpoint']) && 'resource' == $query['endpoint']) {
+    $options = array(
+      'generic' => t('Any'),
+      'monograph' => t('Monograph'),
+      'journal' => t('Journal'),
+      'webpage' => t('Webpage'),
+    );
     $form['query'][$search_count]['type'] = array(
       '#type' => 'radios',
       '#options' => $options,
@@ -743,6 +767,11 @@ function edoweb_basic_search_entities(
   }
 
   if (@$type = $query['type']) {
+    if (!is_array($type)) {
+      $type = array($type);
+    } else {
+      $type = array_keys($type);
+    }
     $efq->addMetaData('type', $type);
   }
 
@@ -778,6 +807,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'collection':
     case 'webpage':
     case 'version':
+    case 'generic':
       $columns = array(
         array(
           'data' => t('HT-Nummer'),
@@ -2191,10 +2221,7 @@ function edoweb_rdf_types($bundle = null) {
       'skos:Concept',
       'gnd:SubjectHeading'
     ),
-    'monograph' => array(
-      'bibo:Book',
-      'lv:ArchivedWebPage',
-    ),
+    'monograph' => array('bibo:Book'),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
     'issue' => array('bibo:Issue'),
@@ -2203,6 +2230,7 @@ function edoweb_rdf_types($bundle = null) {
     'webpage' => array('lv:ArchivedWebPage'),
     //FIXME: dummy RDF type for version
     'version' => array('lv:ArchivedWebPageVersion'),
+    'generic' => array('dc:BibliographicResource'),
     'authority_resource' => array('gnd:AuthorityResource'),
     'collection' => array(
       'bibo:Collection',
@@ -3561,4 +3589,22 @@ function edoweb_update_7151() {
 function edoweb_update_7152() {
   $updated_fields = array('field_edoweb_datastream');
   _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Remove mapping from lv:ArchivedWebPage to monograph bundle
+ */
+function edoweb_update_7153() {
+  _update_rdf_mapping();
+}
+
+function edoweb_update_7154() {
+  module_load_install('edoweb');
+  $available_instances = _edoweb_installed_instances();
+  $added_instances = array(
+    'generic' => array_keys($available_instances['generic']),
+  );
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+  entity_info_cache_clear();
 }
