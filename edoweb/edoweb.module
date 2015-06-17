@@ -2252,6 +2252,7 @@ function edoweb_rdf_types($bundle = null) {
 function edoweb_rdf_namespaces() {
   $edoweb_api_host = variable_get('edoweb_api_host');
   $edoweb_api_namespace = variable_get('edoweb_api_namespace');
+  $edoweb_lobid_host = variable_get('edoweb_lobid_host');
   return array(
     $edoweb_api_namespace => "$edoweb_api_host/resource/$edoweb_api_namespace:",
     'local' => "$edoweb_api_host/resource/local:",
@@ -2268,7 +2269,7 @@ function edoweb_rdf_namespaces() {
     'orca'  => 'http://geni-orca.renci.org/owl/topology.owl#',
     'dnb' => 'http://d-nb.info/gnd/',
     'gnd' => 'http://d-nb.info/standards/elementset/gnd#',
-    'lr' => 'http://lobid.org/resource/',
+    'lr' => "$edoweb_lobid_host/resource/",
     'skos' => 'http://www.w3.org/2004/02/skos/core#',
     'ddc' => 'http://dewey.info/class/',
     'regal' => 'http://hbz-nrw.de/regal#',
