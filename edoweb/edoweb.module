@@ -1590,7 +1590,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
 
 function _edoweb_build_breadcrumb($entity) {
   $trail = _edoweb_build_parent_trail($entity);
-  array_unshift($trail, l(t('Edoweb'), 'resource'));
+  array_unshift($trail, l(t('Home'), 'resource'));
   drupal_set_breadcrumb($trail);
 }
 
