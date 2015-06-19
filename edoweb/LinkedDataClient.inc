@@ -29,15 +29,15 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($remote_id, $rdf_model = null) {
-    if (is_null($rdf_model)) {
-      $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id));
+    if (is_null($rdf_model) && (! $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id)))) {
+      return false;
     } else {
       // FIXME: workaround for API bug after HTTP PATCHing access rights
       // for a subtree (i.e. resource/all).
-      if ("" === "$rdf_model") {
-        $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      }
-      file_put_contents('php://stderr', "Loading $remote_id from data\n");
+      // FIXME: the following is a resource hog
+      // if ("" === "$rdf_model") {
+      //   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
+      // }
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
     $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
@@ -93,7 +93,7 @@ class LinkedDataClient {
         $rdf_data = $http_response->data;
       }
     } else {
-      $rdf_data = '';
+      return false;
     }
 
     try {

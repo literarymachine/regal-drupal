@@ -46,7 +46,7 @@
       );
 
       // Attach clipboard
-      var clipboard = $('<div id="edoweb-tree-clipboard" />');
+      var clipboard = $('<div id="edoweb-tree-clipboard" style="height: 2.5em;" />');
       $('.edoweb-tree', context).closest('div.item-list').before(clipboard);
 
       var menu = $('<div id="edoweb-tree-menu" />');
@@ -67,6 +67,26 @@
         });
       }
 
+      var collapse_all = $('<span title="[Alle zuklappen]" class="octicon octicon-alignment-align" style="margin-right: 0.2em;" />')
+        .bind('click', function() {
+          $(this).closest('.edoweb-tree').find('div.item-list').hide();
+          $(this).closest('.edoweb-tree').find('li').removeClass('expanded').addClass('collapsed');
+          $(this).hide();
+          expand_all.show();
+        }).hide();
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).prepend(collapse_all);
+
+      var expand_all = $('<span title="[Alle aufklappen]" class="octicon octicon-alignment-aligned-to" style="margin-right: 0.2em;" />')
+        .bind('click', function() {
+          $(this).closest('.edoweb-tree').find('div.item-list').show();
+          $(this).closest('.edoweb-tree').find('li').removeClass('collapsed').addClass('expanded');
+          $(this).hide();
+          collapse_all.show();
+        });
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).prepend(expand_all);
+
+      $('#block-edoweb-edoweb-tree-navigation ul.edoweb-tree>li', context).addClass('expanded').removeClass('collapsed');
+
       $('.edoweb-tree li', context).each(function() {
 
         var list_element = $(this);
@@ -79,15 +99,12 @@
         $(this).click(function(e) {
           if (e.target != this) return true;
           if ($(this).hasClass('collapsed')) {
-            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
-            $(this).find('div.edoweb-tree-toolbox').after(throbber);
-            loadTree(entity_id, list_element, function() {
-              throbber.remove();
-            });
-          } else {
-            $(this).children('div.item-list').remove();
+            $(this).children('div.item-list').show();
+            $(this).toggleClass('expanded collapsed');
+          } else if ($(this).hasClass('expanded')) {
+            $(this).children('div.item-list').hide();
+            $(this).toggleClass('expanded collapsed');
           }
-          $(this).toggleClass('expanded collapsed');
           // Fix FF behaviour that selects text of subordinate lists
           // on expansion
           if (window.getSelection && window.getSelection().removeAllRanges) {
@@ -107,7 +124,6 @@
           history.pushState({tree: true}, null, link.attr('href'));
           Drupal.edoweb.navigateTo(link.attr('href'));
           $('.edoweb-tree li.active', context).removeClass('active');
-          link.closest('li').addClass('active');
           Drupal.edoweb.refreshTree();
           return false;
         });
@@ -157,20 +173,20 @@
   };
 
   var UIButtons = [];
-  var expandTree = function(tree) {
-    tree.parents('ul').show();
-    tree.addClass('expanded');
-    tree.removeClass('collapsed');
-    tree.parents('li').addClass('expanded');
-    tree.parents('li').removeClass('collapsed');
-    tree.children('div').children('ul').show();
-  }
 
   Drupal.edoweb.refreshTree = function () {
+    $('.edoweb-tree li[data-curie="' + Drupal.settings.edoweb.entity + '"]')
+        .addClass('active').parents('li').removeClass('collapsed').addClass('expanded');
+    $('.edoweb-tree li.collapsed').children('div.item-list').hide();
+    $('.edoweb-tree li.expanded').children('div.item-list').show();
+    $('.edoweb-tree li:has(>div.item-list)')
+        .css('list-style-image', '').css('list-style-type', '');
+    $('.edoweb-tree li:not(:has(>div.item-list>ul>li))')
+        .css('list-style-image', 'none').css('list-style-type', 'none');
+
     $('.edoweb-tree a').removeClass('edoweb-tree-cut-item');
     $('.edoweb-tree div.edoweb-tree-toolbox').removeClass('edoweb-tree-insert');
     $('#edoweb-tree-clipboard').empty();
-    expandTree($('.edoweb-tree li.active'));
     $.each(UIButtons, function(i, button) {
       button.remove();
     });
@@ -197,11 +213,6 @@
         .closest('li').find('a[data-bundle]').addClass('edoweb-tree-cut-item');
 
       $('.edoweb-tree li').each(function() {
-        var insert_position = $(this).children('div.item-list').children('ul');
-        if (insert_position.length == 0) {
-          insert_position = $('<ul />');
-          $(this).append($('<div class="item-list"></div>').append(insert_position));
-        }
 
         var bundle_fields = Drupal.settings.edoweb.fields[$(this).children('a[data-bundle]').attr('data-bundle')];
         var target_bundles = [];
@@ -215,11 +226,11 @@
         // Possible insert positions are as a child of the current entry
         // or as a sibling of the children of the current entry
         if (target_bundles.indexOf(entity_bundle) != -1) {
-          var insert_button = $('<a href="#" title="[Unterhalb dieser Ebene einfügen]"><span class="octicon octicon-diff-added" /></a>');
-          insert_button.hide();
-          $(this).children('.edoweb-tree-toolbox').append(insert_button);
-          UIButtons.push(insert_button);
-          insert_button.bind('click', function() {
+          var append_button = $('<a href="#" title="[Unterhalb dieser Ebene als letztes einfügen]"><span class="octicon octicon-jump-down" /></a>');
+          append_button.hide();
+          $(this).children('.edoweb-tree-toolbox').append(append_button);
+          UIButtons.push(append_button);
+          append_button.bind('click', function() {
             $.blockUI(Drupal.edoweb.blockUIMessage);
             var list_item = $(this).closest('li');
             var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
@@ -229,15 +240,55 @@
             var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
 
             localStorage.removeItem('cut_entity');
-            $('.edoweb-tree a.edoweb-tree-cut-item').closest('li').remove();
-            var inserted_item = $('<li />');
+            var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+            if (inserted_item.length == 0) {
+              inserted_item = $('<li />');
+              loadTree(entity_id, inserted_item);
+            }
+            var insert_position = list_item.children('div.item-list').children('ul');
+            if (insert_position.length == 0) {
+              insert_position = $('<ul />');
+              list_item.append($('<div class="item-list"></div>').append(insert_position));
+            }
+            insert_position.append(inserted_item);
+            $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+              console.log(data);
+              saveStructure(list_item, function() {$.unblockUI()});
+              throbber.remove();
+              Drupal.edoweb.refreshTree();
+            });
+            return false;
+          });
+          var prepend_button = $('<a href="#" title="[Unterhalb dieser Ebene als erstes einfügen]"><span class="octicon octicon-jump-up" /></a>');
+          prepend_button.hide();
+          $(this).children('.edoweb-tree-toolbox').append(prepend_button);
+          UIButtons.push(prepend_button);
+          prepend_button.bind('click', function() {
+            $.blockUI(Drupal.edoweb.blockUIMessage);
+            var list_item = $(this).closest('li');
+            var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
+            $('#edoweb-tree-clipboard p>span').replaceWith(throbber);
+            var target_struct_url = Drupal.settings.basePath + 'resource/' + entity_id + '/structure';
+            var target_parent_url = list_item.find('a:eq(0)').attr('href');
+            var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
+
+            localStorage.removeItem('cut_entity');
+            var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+            if (inserted_item.length == 0) {
+              inserted_item = $('<li />');
+              loadTree(entity_id, inserted_item);
+            }
+            var insert_position = list_item.children('div.item-list').children('ul');
+            if (insert_position.length == 0) {
+              insert_position = $('<ul />');
+              list_item.append($('<div class="item-list"></div>').append(insert_position));
+            }
             insert_position.prepend(inserted_item);
-            loadTree(entity_id, inserted_item, function() {
-              $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
-                console.log(data);
-                saveStructure(list_item, function() {$.unblockUI()});
-                throbber.remove();
-              });
+            $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+              console.log(data);
+              saveStructure(list_item, function() {$.unblockUI()});
+              throbber.remove();
+              Drupal.edoweb.refreshTree();
             });
             return false;
           });
@@ -253,7 +304,7 @@
               if (self_uri == entity_id) {
                 return true;
               }
-              var insert_button = $('<a href="#" title="[Auf gleicher Ebene einfügen]"><span class="octicon octicon-move-right" /></a>');
+              var insert_button = $('<a href="#" title="[Auf gleicher Ebene dahinter einfügen]"><span class="octicon octicon-jump-right" /></a>');
               insert_button.hide();
               $(this).append(insert_button);
               $(this).addClass('edoweb-tree-insert');
@@ -267,15 +318,17 @@
                 var target_parent_id = decodeURIComponent(target_parent_url.split('/').pop());
 
                 localStorage.removeItem('cut_entity');
-                $('.edoweb-tree a.edoweb-tree-cut-item').closest('li').remove();
-                var inserted_item = $('<li />');
+                var inserted_item = $('.edoweb-tree li[data-curie="' + entity_id + '"]');
+                if (inserted_item.length == 0) {
+                  inserted_item = $('<li />');
+                  loadTree(entity_id, inserted_item);
+                }
                 list_item.after(inserted_item);
-                loadTree(entity_id, inserted_item, function() {
-                  $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
-                    console.log(data);
-                    saveStructure(list_item.parent().closest('li'), function() {$.unblockUI()});
-                    throbber.remove();
-                  });
+                $.post(target_struct_url, {'parent_id': target_parent_id}, function(data, textStatus, jqXHR) {
+                  console.log(data);
+                  saveStructure(list_item.parent().closest('li'), function() {$.unblockUI()});
+                  throbber.remove();
+                  Drupal.edoweb.refreshTree();
                 });
                 return false;
               });

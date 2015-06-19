@@ -140,8 +140,8 @@
         }
 
         if (bundle == 'journal' || bundle == 'monograph') {
-          var import_button = $('<button class="edoweb edit action">Importieren</button>').bind('click', function() {
-            instance = {'bundle': bundle, 'field_name': ''}
+          var import_button = $('<button style="display: block; margin-bottom: 1em;" class="edoweb edit action">Import einer Resource aus dem Katalog</button>').bind('click', function() {
+            instance = {'bundle': '', 'field_name': ''}
             modal_overlay.html('<div />');
             refreshTable(modal_overlay, null, null, null, null, null, instance, function(uri) {
               entity_render_view('edoweb_basic', Drupal.edoweb.compact_uri(uri)).onload = function() {
@@ -171,7 +171,7 @@
             modal_overlay.dialog('open');
             return false;
           });
-          template_select.after(import_button);
+          additional_fields.before(import_button);
         }
 
         activateFields(entity.find('.field'), bundle, context);
@@ -214,13 +214,11 @@
                 history.pushState({tree: true}, null, href);
                 Drupal.edoweb.navigateTo(href);
               }
+              $.unblockUI();
             };
           } else {
-            history.pushState({tree: true}, null, href);
-            Drupal.edoweb.navigateTo(href);
-            Drupal.edoweb.refreshTree(context);
+            window.location = href;
           }
-          $.unblockUI();
         });
         return false;
       }
@@ -358,6 +356,8 @@
           var field = $(this);
           var field_name = getFieldName(field);
           if (!field_name) return true;
+          if (!Drupal.settings.edoweb.fields[bundle].hasOwnProperty(field_name)) return true;
+
           var instance = Drupal.settings.edoweb.fields[bundle][field_name]['instance'];
           switch (instance['widget']['type']) {
             case 'text_textarea':
@@ -484,8 +484,14 @@
 
     var bundle_name = instance['bundle'];
     var field_name = instance['field_name'];
+    var qurl;
 
-    var qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    if (bundle_name != '') {
+      qurl = Drupal.settings.basePath + '?q=edoweb/search/' + bundle_name + '/' + field_name;
+    } else {
+      qurl = Drupal.settings.basePath + '?q=edoweb/search/&endpoint=resource';
+    }
+
     var params = {
       page: page,
       sort: sort,
@@ -561,6 +567,10 @@
           Drupal.edoweb.entity_label($(this));
         });
 
+        container.find('a[data-curie].resolved').each(function() {
+          $(this).attr('target', '_blank');
+        });
+
         container.find('input[name="op"]').click(function() {
           var term = container.find('input[type="text"]').val();
           var target_type = $(this).closest('form').find('input[type=radio]:checked').first().val();
@@ -586,6 +596,13 @@
               callback(resource_uri);
               return false;
             });
+          var i = row.closest('table').find('th[specifier="field_edoweb_identifier_ht value"]').index();
+          if (i != -1) {
+            row.children('td:eq(' + i + ')').each(function() {
+              $(this).html('<a href="http://193.30.112.134/F/?func=find-c&ccl_term=IDN%3D'
+                  + $(this).text() + '" target="_blank">' + $(this).text() + '</a>');
+            });
+          }
         });
 
         Drupal.edoweb.hideEmptyTableColumns(container.find('.sticky-enabled'));

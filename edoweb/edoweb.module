@@ -185,6 +185,13 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'generic' => array(
+        'label' => t('Bibliographic Resource'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/generic/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
       'person' => array(
         'label' => t('Person'),
         'namespace' => 'local',
@@ -427,6 +434,16 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  // 'Status' tab.
+  $items['resource/%edoweb_basic/status'] = array(
+    'title' => 'Status',
+    'page callback' => 'edoweb_basic_status',
+    'page arguments' => array(1),
+    'access callback' => '_edoweb_is_editable_entity',
+    'access arguments' => array(1, 'edit any edoweb_basic entity'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   // 'Crawler settings' tab for an individual webpage.
   $items['resource/%edoweb_basic/crawler'] = array(
     'title' => 'Crawler settings',
@@ -538,7 +555,7 @@ function edoweb_permission() {
 
 function _edoweb_templates($bundle_name = null) {
   $api = new EdowebAPIClient();
-  return $api->getTemplates($bundle_name);
+  die($api->getTemplates($bundle_name));
 }
 
 function _edoweb_lastmodified($remote_id) {
@@ -575,6 +592,9 @@ function _edoweb_search($bundle_name = null, $field_name = null) {
     $endpoint = 'resource';
     $parameter = 'name';
     $query->entityCondition('bundle', array($bundle_name));
+  } else if (isset($_GET['endpoint'])) {
+    $endpoint = $_GET['endpoint'];
+    $parameter = 'name';
   }
 
   if ($endpoint && $parameter) {
@@ -606,8 +626,9 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     if (empty($param)) continue;
     list($key, $value) = explode('=', $param);
     if ("query[$search_count][term]" == urldecode($key)
+        || 'page' == $key
         || 'op' == $key
-        || "query[$search_count][type]" == urldecode($key)
+        || "query[$search_count][type]" == substr(urldecode($key), 0, strlen("query[$search_count][type]"))
         || "query[$search_count][user]" == urldecode($key)
         || "query[$search_count][fulltext]" == urldecode($key)
         ) continue;
@@ -633,6 +654,20 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       $bundle_info = $bundle_infos[$target_bundle];
       $options[$target_bundle] = $bundle_info['label'];
     }
+    $form['query'][$search_count]['type'] = array(
+      '#type' => 'radios',
+      '#options' => $options,
+      '#default_value' => isset($query['type']) && $query['type'] != ''
+        ? $query['type']
+        : current(array_keys($options)),
+    );
+  } else if (isset($query['endpoint']) && 'resource' == $query['endpoint']) {
+    $options = array(
+      'generic' => t('Any'),
+      'monograph' => t('Monograph'),
+      'journal' => t('Journal'),
+      'webpage' => t('Webpage'),
+    );
     $form['query'][$search_count]['type'] = array(
       '#type' => 'radios',
       '#options' => $options,
@@ -732,6 +767,11 @@ function edoweb_basic_search_entities(
   }
 
   if (@$type = $query['type']) {
+    if (!is_array($type)) {
+      $type = array($type);
+    } else {
+      $type = array_keys($type);
+    }
     $efq->addMetaData('type', $type);
   }
 
@@ -767,6 +807,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'collection':
     case 'webpage':
     case 'version':
+    case 'generic':
       $columns = array(
         array(
           'data' => t('HT-Nummer'),
@@ -1062,6 +1103,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     }
     foreach ($active_facets as $jsonld_property => $facet) {
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      $is_user = 'createdBy' == $jsonld_property;
       foreach ($facet as $key => $value) {
         // Link to remove facet
         $params = drupal_get_query_parameters();
@@ -1069,9 +1111,13 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         if (isset($params['page'])) {
           unset($params['page']);
         }
-        $item = $is_ref
-          ? '<span data-curie="' .  _edoweb_compact_uri($value) . '" class="facet">' . $value .  '</span>'
-          : "<span>" . _edoweb_map_string($value) . "</span>";
+        if ($is_ref) {
+          $item = '<span data-curie="' .  _edoweb_compact_uri($value) .  '" class="facet">' . $value .  '</span>';
+        } else if ($is_user) {
+          $item = '<span>' . _edoweb_user_name($value) . '</span>';
+        } else {
+          $item = '<span>' . _edoweb_map_string($value) . '</span>';
+        }
         $item .= l(t(' [x]'), current_path(), array('query' => $params));
         $content['filters'][$jsonld_property]['#items'][$value] = $item;
         // Add facet to query
@@ -1111,6 +1157,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#title' => _edoweb_map_string($jsonld_property),
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
+      $is_user = 'createdBy' == $jsonld_property;
       foreach ($facet->terms as $term) {
         // Don't add facets that are already applied to the list
         if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
@@ -1122,8 +1169,15 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
         $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
+        if ($is_ref) {
+          $title = $facet_entity_uri;
+        } else if ($is_user) {
+          $title = _edoweb_user_name($facet_entity_uri);
+        } else {
+          $title = _edoweb_map_string("$facet_entity_uri");
+        }
         $apply_facet_link = l(
-          _edoweb_map_string("$facet_entity_uri"), current_path(),
+          $title, current_path(),
           array(
             'query' => $params,
             'attributes' => $is_ref
@@ -1153,6 +1207,19 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     );
   }
   return $content;
+}
+
+/**
+ * Get a user name
+ */
+function _edoweb_user_name($id) {
+  $account = is_numeric($id) ? user_load($id) : false;
+  if (!$account) {
+    $name = $id;
+  } else {
+    $name = $account->name != '' ? $account->name : $account->uid;
+  }
+  return $name;
 }
 
 /**
@@ -1372,18 +1439,9 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
         );
       }
 
-      $entity->content['access_rights'] = array(
-        '#type' => 'item',
-        '#markup' => '<div style="display: none;">'
-                    . '<span property="regal:publishScheme">' . $entity->access_md . '</span>'
-                    . '<span property="regal:accessScheme">' .  $entity->access_data . '</span>'
-                    . '</div>',
-        '#weight' => 1000,
-      );
-
       $entity->content['_updated'] = array(
         '#type' => 'item',
-        '#markup' => '<small>Letzte Änderung: ' .  _edoweb_format_date($entity->updated) . ' durch ' . $entity->uid . '</small>',
+        '#markup' => '<small>Letzte Änderung: ' . _edoweb_format_date($entity->updated) . ' durch ' . _edoweb_user_name($entity->uid) . '</small>',
         '#weight' => 1000,
       );
 
@@ -1531,55 +1589,26 @@ function _edoweb_find_top_level_parent($entity) {
   return $entity;
 }
 
-function _edoweb_build_tree($entity) {
+function _edoweb_build_tree($tree) {
 
   // Add current entity to tree
-  $title = entity_label(EDOWEB_ENTITY_TYPE, $entity);
-  $entity_url = entity_class_uri($entity);
-  $entity_bundle = $entity->bundle();
+  $title = isset($tree['title'])
+      ? implode(', ', $tree['title']) : $tree['@id'];
+  $entity_bundle = $tree['contentType'];
   $options = array('attributes' => array('data-bundle' => $entity_bundle));
   $tree_item = array(
-    'data' => l($title, $entity_url['path'], $options),
-    'class' => array('expanded'),
+    'data' => l($title, 'resource/' . $tree['@id'], $options),
+    'data-curie' => $tree['@id'],
+    'class' => array('collapsed'),
   );
 
   // Add child enities to tree
-  $children = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_child');
-  if (FALSE !== $children) {
-    $ld_client = new LinkedDataClient();
-    $ld_data = $ld_client->getRDF(
-      _edoweb_expand_curie("{$entity->remote_id}/parts")
-    );
+  if (isset($tree['hasPart'])) {
+    $children = $tree['hasPart'];
     foreach ($children as $child) {
-      $child_entity = entity_get_controller('edoweb_basic')->load(
-        array($child['value']), array(), $ld_data
-      );
-      $child_entity = end($child_entity);
-      $title = entity_label(EDOWEB_ENTITY_TYPE, $child_entity);
-      $entity_url = entity_class_uri($child_entity);
-      $entity_bundle = $child_entity->bundle();
-      $options = array('attributes' => array('data-bundle' => $entity_bundle));
-      $tree_child = array(
-        'data' => l($title, $entity_url['path'], $options),
-        'class' => array('collapsed'),
-      );
-      // Append download links when applicable
-      if ('file' == $child_entity->bundle_type) {
-        $datastreams = field_get_items(
-          'edoweb_basic', $child_entity, 'field_edoweb_datastream'
-        );
-        if (FALSE !== $datastreams) {
-          foreach ($datastreams as $datastream) {
-            if (drupal_valid_path('resource/' .  $datastream['value'])) {
-              $download_link = field_view_value(
-                EDOWEB_ENTITY_TYPE, $child_entity, 'field_edoweb_datastream', $datastream
-              );
-              $tree_child['data'] .= ' ' . drupal_render($download_link);
-            }
-          }
-        }
+      foreach ($child as $id => $subtree) {
+        $tree_item['children'][] = _edoweb_build_tree($subtree);
       }
-      $tree_item['children'][] = $tree_child;
     }
   }
 
@@ -1608,7 +1637,7 @@ function _edoweb_build_parent_trail($entity, $trail = array()) {
 
 function _edoweb_build_breadcrumb($entity) {
   $trail = _edoweb_build_parent_trail($entity);
-  array_unshift($trail, l(t('Edoweb'), 'resource'));
+  array_unshift($trail, l(t('Home'), 'resource'));
   drupal_set_breadcrumb($trail);
 }
 
@@ -1658,11 +1687,11 @@ function edoweb_basic_add($bundle_type, $parent = NULL) {
  * Provides a wrapper on the edit form to add a new child to an entity.
  */
 function edoweb_basic_structure($entity) {
+  $api = new EdowebAPIClient();
   if ('POST' == $_SERVER['REQUEST_METHOD'] && user_access('edit any edoweb_basic entity')) {
     $new_parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : FALSE;
     $parts = isset($_POST['parts']) ? $_POST['parts'] : FALSE;
 
-    $api = new EdowebAPIClient();
     if ($new_parent_id) {
       $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
       $prev_parent = $wrapper->field_edoweb_struct_parent->value();
@@ -1686,7 +1715,7 @@ function edoweb_basic_structure($entity) {
   } else if ('POST' == $_SERVER['REQUEST_METHOD']) {
     return MENU_ACCESS_DENIED;
   } else {
-    $subtree = _edoweb_build_tree($entity);
+    $subtree = _edoweb_build_tree($api->getTree($top_level_parent));
     die(theme_item_list(array(
       'items' => array($subtree),
       'title' => null,
@@ -1803,6 +1832,92 @@ function edoweb_basic_crawler_form_submit($form, &$form_state) {
     }
 
   }
+
+}
+
+/**
+ * Provides API status information for a single entity.
+ */
+function edoweb_basic_status($entity) {
+
+  $api = new EdowebAPIClient();
+  $status = $api->getStatus($entity);
+  $content = array();
+
+  $content['interfaces'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Interfaces'),
+  );
+
+  $content['interfaces']['_urnStatus'] = array(
+    '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                  . t('URN Status')
+                  . ':</div><div class="field-items"><div class="field-item even">',
+    '#suffix' => '</div></div></div>',
+    '#markup' => '<a href="' . @$status['links']['urn'] . '"target="_blank">' . @$status['urnStatus'] . '</a>',
+    '#weight' => 999,
+  );
+
+  $content['interfaces']['_oaiStatus'] = array(
+    '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                  . t('OAI Status')
+                  . ':</div><div class="field-items"><div class="field-item even">',
+    '#suffix' => '</div></div></div>',
+    '#markup' => '<a href="' . @$status['links']['oai'] . '"target="_blank">' .  @$status['oaiStatus'] . '</a>',
+    '#weight' => 999,
+  );
+
+  if ('webpage' == $entity->bundle()) {
+    $content['webgatherer'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Web Gatherer'),
+    );
+    $content['webgatherer']['_crawlControllerState'] = array(
+      '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                    . t('Crawler state')
+                    . ':</div><div class="field-items"><div class="field-item even">',
+      '#suffix' => '</div></div></div>',
+      '#markup' => @$status['webgatherer']['crawlControllerState'],
+      '#weight' => 999,
+    );
+    $content['webgatherer']['_crawlExitStatus'] = array(
+      '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                    . t('Exit status')
+                    . ':</div><div class="field-items"><div class="field-item even">',
+      '#suffix' => '</div></div></div>',
+      '#markup' => @$status['webgatherer']['crawlExitStatus'],
+      '#weight' => 999,
+    );
+    $content['webgatherer']['_launchCount'] = array(
+      '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                    . t('Launch Count')
+                    . ':</div><div class="field-items"><div class="field-item even">',
+      '#suffix' => '</div></div></div>',
+      '#markup' => @$status['webgatherer']['launchCount'],
+      '#weight' => 999,
+    );
+
+    $content['webgatherer']['_lastLaunch'] = array(
+      '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                    . t('Last launch')
+                    . ':</div><div class="field-items"><div class="field-item even">',
+      '#suffix' => '</div></div></div>',
+      '#markup' => isset($status['webgatherer']['lastLaunch'])
+        ? _edoweb_format_date(strtotime($status['webgatherer']['lastLaunch'])) : '',
+      '#weight' => 999,
+    );
+    $content['webgatherer']['_nextLaunch'] = array(
+      '#prefix' => '<div class="field field-label-above"><div class="field-label">'
+                    . t('Next launch')
+                    . ':</div><div class="field-items"><div class="field-item even">',
+      '#suffix' => '</div></div></div>',
+      '#markup' => isset($status['webgatherer']['nextLaunch'])
+        ? _edoweb_format_date(strtotime($status['webgatherer']['nextLaunch'])) : '',
+      '#weight' => 999,
+    );
+  }
+
+  return $content;
 
 }
 
@@ -2153,10 +2268,7 @@ function edoweb_rdf_types($bundle = null) {
       'skos:Concept',
       'gnd:SubjectHeading'
     ),
-    'monograph' => array(
-      'bibo:Book',
-      'lv:ArchivedWebPage',
-    ),
+    'monograph' => array('bibo:Book'),
     'journal' => array('bibo:Journal'),
     'volume' => array('bibo:Volume'),
     'issue' => array('bibo:Issue'),
@@ -2165,6 +2277,7 @@ function edoweb_rdf_types($bundle = null) {
     'webpage' => array('lv:ArchivedWebPage'),
     //FIXME: dummy RDF type for version
     'version' => array('lv:ArchivedWebPageVersion'),
+    'generic' => array('dc:BibliographicResource'),
     'authority_resource' => array('gnd:AuthorityResource'),
     'collection' => array(
       'bibo:Collection',
@@ -2186,6 +2299,7 @@ function edoweb_rdf_types($bundle = null) {
 function edoweb_rdf_namespaces() {
   $edoweb_api_host = variable_get('edoweb_api_host');
   $edoweb_api_namespace = variable_get('edoweb_api_namespace');
+  $edoweb_lobid_host = variable_get('edoweb_lobid_host');
   return array(
     $edoweb_api_namespace => "$edoweb_api_host/resource/$edoweb_api_namespace:",
     'local' => "$edoweb_api_host/resource/local:",
@@ -2202,7 +2316,7 @@ function edoweb_rdf_namespaces() {
     'orca'  => 'http://geni-orca.renci.org/owl/topology.owl#',
     'dnb' => 'http://d-nb.info/gnd/',
     'gnd' => 'http://d-nb.info/standards/elementset/gnd#',
-    'lr' => 'http://lobid.org/resource/',
+    'lr' => "$edoweb_lobid_host/resource/",
     'skos' => 'http://www.w3.org/2004/02/skos/core#',
     'ddc' => 'http://dewey.info/class/',
     'regal' => 'http://hbz-nrw.de/regal#',
@@ -2288,8 +2402,10 @@ function edoweb_block_view($delta = '') {
           drupal_get_path('module', 'edoweb') . '/edoweb_tree.js'
         );
         $top_level_parent = _edoweb_find_top_level_parent($entity);
-        if (in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
-          $subtree = _edoweb_build_tree($top_level_parent);
+        if (_edoweb_is_editable_entity($top_level_parent) &&
+            in_array($top_level_parent->bundle_type, array('monograph', 'journal'))) {
+          $api = new EdowebAPIClient();
+          $subtree = _edoweb_build_tree($api->getTree($top_level_parent));
           $block['content'] = theme_item_list(array(
             'items' => array($subtree),
             'title' => null,
@@ -2373,6 +2489,10 @@ function _edoweb_http_request($request_url, $http_options) {
 
   $http_response = drupal_http_request($request_url, $http_options);
 
+  if (in_array($http_options['method'], array('PUT', 'POST', 'DELETE', 'PATCH'))) {
+    console_log($http_response);
+  }
+
   // FIXME: drupal_http_request does not follow 303s
   if ((303 == $http_response->code) || (307 == $http_response->code)) {
     $redirect_url = $http_response->headers['location'];
@@ -2387,10 +2507,6 @@ function _edoweb_http_request($request_url, $http_options) {
     }
     $request_url = $redirect_url;
     $http_response = drupal_http_request($request_url, $http_options);
-  }
-
-  if ($http_response->code[0] != 2) {
-    console_log($http_response);
   }
 
   // Display response in UI
@@ -2530,7 +2646,7 @@ function _edoweb_available_languages() {
 }
 
 function console_log($obj) {
-  file_put_contents('php://stderr', print_r($obj, true) . "\n");
+  file_put_contents('php://stderr', date('Y-m-d H:i:s') . ': ' . print_r($obj, true) . "\n");
 }
 
 function _update_edoweb_installed_fields($updated_fields = null) {
@@ -3513,4 +3629,30 @@ function edoweb_update_7150() {
  */
 function edoweb_update_7151() {
   _update_rdf_mapping();
+}
+
+/**
+ * Update metadata type of field_edoweb_datastream
+ */
+function edoweb_update_7152() {
+  $updated_fields = array('field_edoweb_datastream');
+  _update_edoweb_installed_fields($updated_fields);
+}
+
+/**
+ * Remove mapping from lv:ArchivedWebPage to monograph bundle
+ */
+function edoweb_update_7153() {
+  _update_rdf_mapping();
+}
+
+function edoweb_update_7154() {
+  module_load_install('edoweb');
+  $available_instances = _edoweb_installed_instances();
+  $added_instances = array(
+    'generic' => array_keys($available_instances['generic']),
+  );
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+  entity_info_cache_clear();
 }

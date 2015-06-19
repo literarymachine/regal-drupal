@@ -32,11 +32,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
    */
   public function load($remote_id, $rdf_model = null) {
     $linkedDataClient = new LinkedDataClient();
-    $entity = $linkedDataClient->load($remote_id, $rdf_model);
-    $namespace = variable_get('edoweb_api_namespace');
-    if (_is_edoweb_entity($entity) && !$rdf_model) {
-      $this->sortParts($entity);
+    if (! $entity = $linkedDataClient->load($remote_id, $rdf_model)) {
+      return false;
     }
+    $namespace = variable_get('edoweb_api_namespace');
     return $entity;
   }
 
@@ -72,14 +71,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $bundle
     );
     $http_response = $this->_http_get($http_url, 'application/json');
-    die($http_response->data);
+    return $http_response->data;
   }
 
-  public function getLastModified($remote_id) {
+  public function getLastModified($remote_id, $content_type = 'file') {
     $http_url = sprintf(
-      '%s/resource/%s/all/lastModified',
+      '%s/resource/%s/all/lastModified?contentType=%s',
       $this->__edoweb_api_host,
-      $remote_id
+      $remote_id,
+      $content_type
     );
     $http_response = $this->_http_get($http_url, 'application/json');
 
@@ -108,6 +108,16 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
     die(l($entity->label(), 'resource/' . $entity->identifier()));
 
+  }
+
+  public function getTree($entity) {
+    $http_url = sprintf(
+      '%s/resource/%s/all',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+    $http_response = $this->_http_get($http_url, 'application/json');
+    return json_decode($http_response->data, TRUE);
   }
 
   public function addURN($entity) {
@@ -228,37 +238,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       return TRUE;
     }
     return FALSE;
-  }
-
-  public function sortParts($entity) {
-    // Get order of resource parts
-    $http_url = sprintf(
-      '%s/resource/%s/parts?style=short',
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-    $http_response = $this->_http_get($http_url, 'application/json');
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to get parts for @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    $wrapper = entity_metadata_wrapper(EDOWEB_ENTITY_TYPE, $entity);
-    try {
-      $current_values = $wrapper->field_edoweb_struct_child->value();
-      $wrapper->field_edoweb_struct_child = array();
-      foreach (json_decode($http_response->data) as $new_key => $child)
-        foreach($current_values as $old_key => $current_value)
-          if ($child == $current_value['value'])
-            $wrapper->field_edoweb_struct_child[$new_key] = $current_value;
-    } catch (EntityMetadataWrapperException $e) {
-      // No child field available, ignore
-    }
-    return TRUE;
   }
 
   public function saveResource($entity, $transformers = null) {
@@ -424,6 +403,30 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   }
 
+  public function getStatus($entity) {
+
+    $http_url = sprintf(
+      '%s/resource/%s/status',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_get($http_url);
+
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to get crawler configuration for @id at @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+
+    return json_decode($http_response->data, TRUE);
+
+  }
+
   public function setCrawlerConfiguration($entity, $conf) {
 
     $http_url = sprintf(
@@ -535,7 +538,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $size = array_key_exists('length', $efq->range)
       ? $efq->range['length']
       : $results_per_page;
-    $type = array_key_exists('type', $efq->metaData)
+    $types = array_key_exists('type', $efq->metaData)
       ? $efq->metaData['type']
       : null;
 
@@ -544,12 +547,15 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $lobid_host, $endpoint, $parameter, urlencode($term), $from, $size
     );
 
-    if ($type) {
+    if ($types) {
       $bundle_infos = field_info_bundles(EDOWEB_ENTITY_TYPE);
-      $bundle_info = $bundle_infos[$type];
       $rdf_types = array();
-      foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
-        $rdf_types[] = _edoweb_expand_curie($rdf_type);
+
+      foreach ($types as $type) {
+        $bundle_info = $bundle_infos[$type];
+        foreach ($bundle_info['rdf_mapping']['rdftype'] as $rdf_type) {
+          $rdf_types[] = _edoweb_expand_curie($rdf_type);
+        }
       }
       $http_url .= '&type=' . urlencode(implode(',', $rdf_types));
     }
@@ -723,6 +729,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     if (array_key_exists('term', $efq->metaData)) {
       $query['query']['filtered']['query']['query_string']['query']
         = $efq->metaData['term'];
+      $query['query']['filtered']['query']['query_string']['default_operator']
+        = 'AND';
     }
 
     if (array_key_exists('bundle', $efq->entityConditions)) {

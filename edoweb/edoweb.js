@@ -45,7 +45,23 @@
           $('a[href="/"]').attr('href', home_href + search);
         }
       }
+
+      /**
+       * Date parser for tablesort plugin
+       */
+      $.tablesorter.addParser({
+        id: 'edowebDate',
+        is: function(s) {
+          return /^.*, /.test(s);
+        },
+        format: function(s, table, cell, cellIndex) {
+          return s.match(/^.*, (.*)/)[1];
+        },
+        type: 'text'
+      });
+
     }
+
   }
 
   /**
@@ -107,7 +123,10 @@
                 Drupal.edoweb.entity_label($(this));
               });
               result_table.removeClass('sticky-enabled');
-              result_table.tablesorter({sortList: [[1,1]]});
+              var updated_column = result_table.find('th[specifier="updated"]').index();
+              if (updated_column > -1) {
+                result_table.tablesorter({sortList: [[updated_column,1]]});
+              }
               //TODO: check interference with tree navigation block
               //Drupal.attachBehaviors(result_table);
               container.hide();
