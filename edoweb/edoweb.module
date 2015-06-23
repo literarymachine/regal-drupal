@@ -1951,7 +1951,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
       $edoweb_api_host = variable_get('edoweb_api_host');
       $api_link = l(
         $label,
-        "http://{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
+        "{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
         array('attributes' => array('target'=>'_blank'))
       );
       $form['transformers']['transformers']['#options'][$transformer] = $api_link;
