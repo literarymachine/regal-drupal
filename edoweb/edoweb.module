@@ -1937,12 +1937,11 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     $transformers = $api->getTransformers($entity);
     $form['transformers']['transformers'] = array(
       '#type' => 'checkboxes',
+      '#attributes' => array('disabled' => 'disabled'),
       '#options' => array(
         'epicur' => t('Register Urn'),
         'aleph' => t('Copy to Catalog'),
         'oaidc' => t('Support OAI-PMH'),
-        'pdfbox' => t('Allow Fulltext Search'),
-        'pdfa' => t('Prepare for Long Term Preservation'),
       ),
       '#default_value' => $transformers,
     );
@@ -1958,12 +1957,6 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
       $form['transformers']['transformers']['#options'][$transformer] = $api_link;
     }
 
-    $form['transformers']['apply'] = array(
-      '#type' => 'submit',
-      '#value' => t('Apply'),
-      '#submit' => array('edoweb_basic_admin_apply_transformers'),
-      '#weight' => 200,
-    );
   }
 
   _edoweb_build_breadcrumb($entity);
