@@ -1908,6 +1908,15 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
         '#weight' => 50,
       );
     }
+    $has_doi = field_get_items('edoweb_basic', $entity, 'field_edoweb_doi') ? TRUE : FALSE;
+    if (!$has_doi) {
+      $form['actions']['doi'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add DOI'),
+        '#submit' => array('edoweb_basic_admin_add_doi'),
+        '#weight' => 50,
+      );
+    }
     $form['actions']['index'] = array(
       '#type' => 'submit',
       '#value' => t('Index'),
@@ -1928,12 +1937,11 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
     $transformers = $api->getTransformers($entity);
     $form['transformers']['transformers'] = array(
       '#type' => 'checkboxes',
+      '#attributes' => array('disabled' => 'disabled'),
       '#options' => array(
         'epicur' => t('Register Urn'),
         'aleph' => t('Copy to Catalog'),
         'oaidc' => t('Support OAI-PMH'),
-        'pdfbox' => t('Allow Fulltext Search'),
-        'pdfa' => t('Prepare for Long Term Preservation'),
       ),
       '#default_value' => $transformers,
     );
@@ -1943,18 +1951,12 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
       $edoweb_api_host = variable_get('edoweb_api_host');
       $api_link = l(
         $label,
-        "http://{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
+        "{$edoweb_api_host}/resource/{$entity->remote_id}.$transformer",
         array('attributes' => array('target'=>'_blank'))
       );
       $form['transformers']['transformers']['#options'][$transformer] = $api_link;
     }
 
-    $form['transformers']['apply'] = array(
-      '#type' => 'submit',
-      '#value' => t('Apply'),
-      '#submit' => array('edoweb_basic_admin_apply_transformers'),
-      '#weight' => 200,
-    );
   }
 
   _edoweb_build_breadcrumb($entity);
@@ -2037,6 +2039,21 @@ function edoweb_basic_admin_add_urn( $form , &$form_state ) {
     drupal_set_message(t('URN added'));
   } else {
     drupal_set_message(t('Failed to add URN'), 'error');
+  }
+}
+
+/**
+ * Form add DOI handler.
+ *
+ */
+function edoweb_basic_admin_add_doi( $form , &$form_state ) {
+  $entity = $form_state['values']['basic_entity'];
+  $api = new EdowebAPIClient();
+  if ($api->addDOI($entity)) {
+    entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
+    drupal_set_message(t('DOI added'));
+  } else {
+    drupal_set_message(t('Failed to add DOI'), 'error');
   }
 }
 
