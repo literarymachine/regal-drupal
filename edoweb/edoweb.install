@@ -992,7 +992,7 @@ function _edoweb_installed_fields() {
       ),
     ),
     'field_edoweb_urn' => array(
-      'cardinality' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
@@ -1025,11 +1025,12 @@ function _edoweb_installed_fields() {
       ),
     ),
     'field_edoweb_doi' => array(
-      'cardinality' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
       'type'        => 'text',
       'settings'    => array(
         'metadata_type' => 'descriptive',
-        'predicates' => array('bibo:doi'),
+        'read_only' => TRUE,
+        'predicates' => array('regal:doi', 'bibo:doi'),
       ),
     ),
     'field_edoweb_language' => array(
@@ -1613,6 +1614,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_filesize' => array(),
       'field_edoweb_filetype' => array(),
       'field_edoweb_urn' => array(),
+      'field_edoweb_doi' => array(),
       'field_edoweb_datastream' => array('required' => TRUE),
       'field_edoweb_struct_parent' => array(
         'settings'    => array(
@@ -1736,6 +1738,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_filesize' => array(),
       'field_edoweb_filetype' => array(),
       'field_edoweb_urn' => array(),
+      'field_edoweb_doi' => array(),
       'field_edoweb_datastream' => array('required' => TRUE),
       'field_edoweb_struct_parent' => array(
         'settings'    => array(

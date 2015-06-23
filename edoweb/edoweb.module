@@ -3599,6 +3599,9 @@ function edoweb_update_7153() {
   _update_rdf_mapping();
 }
 
+/**
+ * Add fields to generic bundle
+ */
 function edoweb_update_7154() {
   module_load_install('edoweb');
   $available_instances = _edoweb_installed_instances();
@@ -3608,4 +3611,21 @@ function edoweb_update_7154() {
   _update_edoweb_installed_instances($added_instances);
   _update_rdf_mapping();
   entity_info_cache_clear();
+}
+
+/**
+ * Update field_edoweb_doi mapping
+ */
+function edoweb_update_7155() {
+  $updated_fields = array(
+    'field_edoweb_doi',
+    'field_edoweb_urn',
+  );
+  $updated_instances = array(
+    'file' => array('field_edoweb_doi'),
+    'version' => array('field_edoweb_doi')
+  );
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
 }
