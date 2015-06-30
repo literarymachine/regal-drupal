@@ -1668,7 +1668,7 @@ function edoweb_basic_structure($entity) {
   } else if ('POST' == $_SERVER['REQUEST_METHOD']) {
     return MENU_ACCESS_DENIED;
   } else {
-    $subtree = _edoweb_build_tree($api->getTree($top_level_parent));
+    $subtree = _edoweb_build_tree($api->getTree($entity));
     die(theme_item_list(array(
       'items' => array($subtree),
       'title' => null,
