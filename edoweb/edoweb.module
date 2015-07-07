@@ -1555,6 +1555,12 @@ function _edoweb_build_tree($tree) {
     'class' => array('collapsed'),
   );
 
+  // Append download links when applicable
+  if ('file' == $entity_bundle && isset($tree['hasData'])
+      && drupal_valid_path('resource/' . $tree['hasData']['@id'])) {
+    $tree_item['data'] .= _edoweb_download_link($tree['hasData']['format'], $tree['hasData']['@id']);
+  }
+
   // Add child enities to tree
   if (isset($tree['hasPart'])) {
     $children = $tree['hasPart'];
