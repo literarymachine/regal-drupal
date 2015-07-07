@@ -2457,6 +2457,7 @@ function _edoweb_http_request($request_url, $http_options) {
   $api_host = variable_get('edoweb_api_host');
   if ("$api_host" === substr($request_url, 0, strlen($api_host))) {
     $http_options['headers']['Authorization'] = _get_api_auth_header();
+    $http_options['headers']['UserIp'] = $_SERVER['REMOTE_ADDR'];
   }
 
   $http_options += array(

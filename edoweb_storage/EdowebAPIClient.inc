@@ -955,6 +955,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         "Expect: 100-continue",
         "Content-Type: multipart/form-data; boundary={$boundary}", // change Content-Type
         "Authorization: " . _get_api_auth_header(),
+        "UserIp: " . $_SERVER['REMOTE_ADDR'],
       ),
     );
 
