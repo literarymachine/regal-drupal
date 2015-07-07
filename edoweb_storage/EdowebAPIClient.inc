@@ -144,6 +144,26 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     return TRUE;
   }
 
+  public function addDOI($entity) {
+    $http_url = sprintf(
+      '%s/resource/%s/doi',
+      $this->__edoweb_api_host,
+      $entity->remote_id
+    );
+
+    $http_response = $this->_http_post($http_url);
+    if (200 != $http_response->code) {
+      watchdog('edoweb_storage', 'Unable to generate DOI for @id on @api.',
+        array(
+          '@id' => $entity->remote_id,
+          '@api' => variable_get('edoweb_api_host'),
+        )
+      );
+      return FALSE;
+    }
+    return TRUE;
+  }
+
   /*
    * Save an entity to the API
    *

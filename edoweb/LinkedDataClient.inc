@@ -153,7 +153,7 @@ class LinkedDataClient {
         $equivalent_resource, false, array('descriptive')
       );
       foreach ($equivalent_resource_rdf as $stmt) {
-        if ($stmt->getSubject()->isEqual($equivalent_resource)) {
+        if ($stmt->getSubject()->isEqual($equivalent_resource_uri)) {
           $subject = new LibRDF_URINode($resource_uri);
         } else {
           $subject = $stmt->getSubject();

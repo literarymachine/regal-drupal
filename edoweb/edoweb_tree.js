@@ -52,6 +52,7 @@
       var menu = $('<div id="edoweb-tree-menu" />');
       clipboard.before(menu);
 
+
       if (Drupal.settings.actionAccess) {
         findTargetBundles($('.edoweb-tree>li>a', context).attr('data-bundle'), function(bundle) {
           var link = $('<a />')
@@ -256,6 +257,7 @@
               saveStructure(list_item, function() {$.unblockUI()});
               throbber.remove();
               Drupal.edoweb.refreshTree();
+              location.reload();
             });
             return false;
           });
