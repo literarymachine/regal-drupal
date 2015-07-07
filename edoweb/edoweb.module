@@ -1360,54 +1360,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
         );
       }
 
-      if ('webpage' == $entity->bundle()) {
-        $api = new EdowebAPIClient();
-        $status = $api->getCrawlerStatus($entity);
-        $entity->content['_crawlControllerState'] = array(
-          '#prefix' => '<div class="field field-label-above"><div class="field-label">'
-                        . t('Crawler state')
-                        . ':</div><div class="field-items"><div class="field-item even">',
-          '#suffix' => '</div></div></div>',
-          '#markup' => @$status['crawlControllerState'],
-          '#weight' => 999,
-        );
-        $entity->content['_crawlExitStatus'] = array(
-          '#prefix' => '<div class="field field-label-above"><div class="field-label">'
-                        . t('Exit status')
-                        . ':</div><div class="field-items"><div class="field-item even">',
-          '#suffix' => '</div></div></div>',
-          '#markup' => @$status['crawlExitStatus'],
-          '#weight' => 999,
-        );
-        $entity->content['_launchCount'] = array(
-          '#prefix' => '<div class="field field-label-above"><div class="field-label">'
-                        . t('Launch Count')
-                        . ':</div><div class="field-items"><div class="field-item even">',
-          '#suffix' => '</div></div></div>',
-          '#markup' => @$status['launchCount'],
-          '#weight' => 999,
-        );
-
-        $entity->content['_lastLaunch'] = array(
-          '#prefix' => '<div class="field field-label-above"><div class="field-label">'
-                        . t('Last launch')
-                        . ':</div><div class="field-items"><div class="field-item even">',
-          '#suffix' => '</div></div></div>',
-          '#markup' => isset($status['lastLaunch'])
-            ? _edoweb_format_date(strtotime($status['lastLaunch'])) : '',
-          '#weight' => 999,
-        );
-        $entity->content['_nextLaunch'] = array(
-          '#prefix' => '<div class="field field-label-above"><div class="field-label">'
-                        . t('Next launch')
-                        . ':</div><div class="field-items"><div class="field-item even">',
-          '#suffix' => '</div></div></div>',
-          '#markup' => isset($status['nextLaunch'])
-            ? _edoweb_format_date(strtotime($status['nextLaunch'])) : '',
-          '#weight' => 999,
-        );
-      }
-
       // Find fields linking to this entity
       $inverse_query = new EntityFieldQuery();
       $inverse_query->addTag('elasticsearch');
@@ -1836,6 +1788,9 @@ function edoweb_basic_crawler_form_submit($form, &$form_state) {
     } else {
       drupal_set_message(t('Crawler started'), 'status');
     }
+
+    $uri = $entity->uri();
+    $form_state['redirect'] = $uri['path'] . '/status';
 
   }
 
