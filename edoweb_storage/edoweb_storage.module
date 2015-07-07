@@ -684,6 +684,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     $entity->uid = 0;
   }
   try {
+    $entity->mid = $rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:lastModifiedBy'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    $entity->mid = $entity->uid;
+  }
+  try {
     $entity->name = $rdf_model->getTarget(
         $rdf_about_subject,
         new LibRDF_URINode(_edoweb_expand_curie('regal:name'))

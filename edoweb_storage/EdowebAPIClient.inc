@@ -773,6 +773,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
             ['isDescribedBy.createdBy'] = $uids;
           break;
+        case 'mid':
+          $mids = $property_condition['value'];
+          if (!is_array($mids)) {
+            $mids = array($mids);
+          }
+          $query['query']['filtered']['filter']['bool']['must'][]['terms']
+            ['isDescribedBy.lastModifiedBy'] = $mids;
+          break;
       }
     }
 
@@ -837,6 +845,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         || in_array('edoweb_backend_user', $user->roles)) {
       $query['facets']['createdBy']['terms']['field']
         = 'isDescribedBy.createdBy';
+      $query['facets']['lastModifiedBy']['terms']['field']
+        = 'isDescribedBy.lastModifiedBy';
     }
 
     return json_encode($query);
