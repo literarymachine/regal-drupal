@@ -291,6 +291,10 @@ function edoweb_entity_property_info() {
     'label' => t('The user ID of the creator of the Entity'),
     'type' => 'integer',
   );
+  $properties['mid'] = array(
+    'label' => t('The user ID of the last modificator of the Entity'),
+    'type' => 'integer',
+  );
   $properties['remote_id'] = array(
     'label' => t('The ID of the Entity, a URI'),
     'type' => 'uri',
@@ -689,17 +693,6 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
     '#type' => 'submit',
     '#value' => t('Search'),
   );
-
-  if ($advanced) {
-    // FIXME: Filtering by user to be done by facets
-    //global $user;
-    //$form['query'][$search_count]['users'] = array(
-    //  '#type' => 'checkboxes',
-    //  '#options' => array($user->uid => 'Only entities submitted by me'),
-    //  '#default_value' =>
-    //    isset($query['users']) ? array_keys($query['users']) : array(),
-    //);
-  }
 
   return $form;
 }
@@ -1106,7 +1099,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
     }
     foreach ($active_facets as $jsonld_property => $facet) {
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
-      $is_user = 'createdBy' == $jsonld_property;
+      $is_user = ('createdBy' == $jsonld_property
+          || 'lastModifiedBy' == $jsonld_property);
       foreach ($facet as $key => $value) {
         // Link to remove facet
         $params = drupal_get_query_parameters();
@@ -1126,6 +1120,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         // Add facet to query
         if ('contentType' == $jsonld_property) {
           $efq->entityCondition('bundle', array($value));
+        } else if ('lastModifiedBy' == $jsonld_property) {
+          $efq->propertyCondition('mid', $value);
         } else if ('createdBy' == $jsonld_property) {
           $efq->propertyCondition('uid', $value);
         } else {
@@ -1160,7 +1156,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#title' => _edoweb_map_string($jsonld_property),
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject'));
-      $is_user = 'createdBy' == $jsonld_property;
+      $is_user = ('createdBy' == $jsonld_property
+          || 'lastModifiedBy' == $jsonld_property);
       foreach ($facet->terms as $term) {
         // Don't add facets that are already applied to the list
         if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
@@ -1397,7 +1394,15 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
       $entity->content['_updated'] = array(
         '#type' => 'item',
-        '#markup' => '<small>Letzte Änderung: ' . _edoweb_format_date($entity->updated) . ' durch ' . _edoweb_user_name($entity->uid) . '</small>',
+        '#markup' => '<small>Letzte Änderung: '
+            . _edoweb_format_date($entity->updated)
+            . ' durch '
+            . _edoweb_user_name($entity->mid)
+            . ', erstellt: '
+            .  _edoweb_format_date($entity->created)
+            . ' durch '
+            . _edoweb_user_name($entity->uid)
+            . '</small>',
         '#weight' => 1000,
       );
 
@@ -2462,13 +2467,22 @@ function _edoweb_http_request($request_url, $http_options) {
     $http_options['headers']['Authorization'] = _get_api_auth_header();
   }
 
+  // Add UserId header for modifying methods
+  $modifying = in_array($http_options['method'],
+    array('PUT', 'POST', 'DELETE', 'PATCH')
+  );
+  if ($modifying) {
+    global $user;
+    $http_options['headers']['UserId'] = $user->uid;
+  }
+
   $http_options += array(
     'timeout' => 60,
   );
 
   $http_response = drupal_http_request($request_url, $http_options);
 
-  if (in_array($http_options['method'], array('PUT', 'POST', 'DELETE', 'PATCH'))) {
+  if ($modifying) {
     console_log($http_response);
   }
 
