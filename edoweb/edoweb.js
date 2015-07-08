@@ -55,7 +55,7 @@
           return /^.*, /.test(s);
         },
         format: function(s, table, cell, cellIndex) {
-          return s.match(/^.*, (.*)/)[1];
+          return $(cell).closest('tr').attr('data-updated');
         },
         type: 'text'
       });

@@ -969,7 +969,10 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
 
     $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
     $curie = _edoweb_compact_uri($wrapper->remote_id->value());
-    $row = array('data-curie' => $curie);
+    $row = array(
+      'data-curie' => $curie,
+      'data-updated' => $entity->updated
+    );
     if ('compact' == $view_mode) {
       $entity_view = edoweb_basic_view($entity, 'compact');
       $row['data'][] = drupal_render($entity_view);
