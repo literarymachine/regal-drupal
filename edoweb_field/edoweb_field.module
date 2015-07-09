@@ -337,7 +337,8 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_download_link($mime_type, $uri) {
-  $extension = next(explode('/', $mime_type));
+  $extensions = explode('/', $mime_type);
+  $extension = next($extensions);
   if (!file_exists(__DIR__ . "/$extension.svg")) {
     $extension = 'unknown';
   }
