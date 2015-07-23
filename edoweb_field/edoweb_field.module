@@ -351,7 +351,7 @@ function _edoweb_download_link($mime_type, $uri) {
   //$extension = next(explode('/', $mime_type));
   $extension = str_replace('/', '-', $mime_type);
   if (!file_exists(__DIR__ . "/mimetypes/$extension.svg")) {
-    //$extension = 'unknown';
+    $extension = 'unknown';
   }
   $icon_url = file_create_url(
     drupal_get_path('module', 'edoweb_field') .  "/mimetypes/$extension.svg"
