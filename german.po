@@ -149,7 +149,9 @@ msgid ""
 "Enter your search term here. You may use quotes to search for phrases as in "
 "\"The quick brown fox\", and also boolean operators as in This AND that OR "
 "those."
-msgstr ""
+msgstr "Geben Sie hier Ihre Suchworte ein. Um nach einer Phrase zu suchen, "
+"geben Sie die Worte in Anführungszeichen ein. Einzelne Worte können " 
+"mit AND oder OR verknüpft werden. Mit * können Sie trunkieren"
 
 #: edoweb/edoweb.module:619;2039
 msgid "Search"
