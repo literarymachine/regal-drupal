@@ -458,6 +458,16 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  // Memento tab for an individual webpage.
+  $items['resource/%edoweb_basic/memento'] = array(
+    'title' => 'Memento',
+    'page callback' => 'edoweb_basic_memento',
+    'page arguments' => array(1),
+    'access callback' => '_edoweb_has_memento',
+    'access arguments' => array(1, 'view any edoweb_basic entity'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   // 'Admin' tab for an individual entity page.
   $items['resource/%edoweb_basic/admin'] = array(
     'title' => 'Admin',
@@ -1268,6 +1278,10 @@ function _edoweb_map_string($string) {
       return t('Add webpage');
     case 'Add version':
       return t('Add version');
+    case 'createdBy':
+      return t('createdBy');
+    case 'lastModifiedBy':
+      return t('lastModifiedBy');
     default:
       return $string;
   }
@@ -1359,7 +1373,6 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
           '#weight' => -1000
         );
       }
-
 
       // Find fields linking to this entity
       $inverse_query = new EntityFieldQuery();
@@ -1693,6 +1706,18 @@ function edoweb_basic_structure($entity) {
 }
 
 /**
+ * Provides an iframe for archived web pages
+ */
+function edoweb_basic_memento($entity) {
+  $api = new EdowebAPIClient();
+
+  if (!$conf = $api->getCrawlerConfiguration($entity)) {
+    return '<h1>No memento found</h1>';
+  }
+  return '<iframe width="1024" height="768" src="' . $conf['openWaybackLink'] . '" name="openwayback">Your browser does not support iframes.</iframe>';
+}
+
+/**
  * Provides a form to administrate webpage crawls.
  */
 function edoweb_basic_crawler_form($form, &$form_state, $entity) {
@@ -1797,6 +1822,9 @@ function edoweb_basic_crawler_form_submit($form, &$form_state) {
     } else {
       drupal_set_message(t('Crawler started'), 'status');
     }
+
+    $uri = $entity->uri();
+    $form_state['redirect'] = $uri['path'] . '/status';
 
   }
 
@@ -2631,6 +2659,11 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
 
 function _edoweb_is_webpage_entity($entity, $permissions = null) {
   return 'webpage' == $entity->bundle()
+      && _edoweb_is_editable_entity($entity, $permissions);
+}
+
+function _edoweb_has_memento($entity, $permissions = null) {
+  return ('webpage' == $entity->bundle() || 'version' == $entity->bundle())
       && _edoweb_is_editable_entity($entity, $permissions);
 }
 
