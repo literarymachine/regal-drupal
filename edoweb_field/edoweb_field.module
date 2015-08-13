@@ -320,13 +320,24 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
       break;
 
     case 'edoweb_datastream_format':
-      foreach ($items as $i => $item) {
-        $elements[] = array(
-          '#markup' => _edoweb_download_link(
-            $entity->field_edoweb_filetype[LANGUAGE_NONE][$i]['value'],
-            $item['value']
-          )
+      if ('version' == $entity->bundle()) {
+        $api = new EdowebAPIClient();
+        $conf = $api->getCrawlerConfiguration($entity);
+        $icon_url = file_create_url(
+          drupal_get_path('module', 'edoweb_field') .  "/warc.svg"
         );
+        $elements[] = array(
+          '#markup' => "<a href=\"{$conf['openWaybackLink']}\" target=\"_blank\"><img class=\"edoweb-mimetype\" src=\"$icon_url\" /></a>"
+        );
+      } else {
+        foreach ($items as $i => $item) {
+          $elements[] = array(
+            '#markup' => _edoweb_download_link(
+              $entity->field_edoweb_filetype[LANGUAGE_NONE][$i]['value'],
+              $item['value']
+            )
+          );
+        }
       }
       break;
 
@@ -337,13 +348,13 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_download_link($mime_type, $uri) {
-  $extensions = explode('/', $mime_type);
-  $extension = next($extensions);
-  if (!file_exists(__DIR__ . "/$extension.svg")) {
+  //$extension = next(explode('/', $mime_type));
+  $extension = str_replace('/', '-', $mime_type);
+  if (!file_exists(__DIR__ . "/mimetypes/$extension.svg")) {
     $extension = 'unknown';
   }
   $icon_url = file_create_url(
-    drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
+    drupal_get_path('module', 'edoweb_field') .  "/mimetypes/$extension.svg"
   );
   $curie = _edoweb_compact_uri($uri);
   $link = base_path() . 'resource/' . $uri;

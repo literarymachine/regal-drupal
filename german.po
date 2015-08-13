@@ -149,7 +149,9 @@ msgid ""
 "Enter your search term here. You may use quotes to search for phrases as in "
 "\"The quick brown fox\", and also boolean operators as in This AND that OR "
 "those."
-msgstr ""
+msgstr "Geben Sie hier Ihre Suchworte ein. Um nach einer Phrase zu suchen, "
+"geben Sie die Worte in Anführungszeichen ein. Einzelne Worte können " 
+"mit AND oder OR verknüpft werden. Mit * können Sie trunkieren"
 
 #: edoweb/edoweb.module:619;2039
 msgid "Search"
@@ -409,7 +411,7 @@ msgstr "Einzelplatz"
 
 #: edoweb/edoweb.module:1811
 msgid "Access rights for @id updated."
-msgstr ""
+msgstr "Zugriffsrechte für das Objekt @id aktualisiert "
 
 #: edoweb/edoweb.module:1815
 #, fuzzy
@@ -450,7 +452,7 @@ msgstr "Extras"
 
 #: edoweb/edoweb.module:424
 msgid "Access"
-msgstr ""
+msgstr "Zugriffsrechte"
 
 #: (duplicate) edoweb/edoweb.install:1840
 msgid "HT Nummer"
@@ -916,6 +918,12 @@ msgstr ""
 #: edoweb_storage/edoweb_storage.module:34
 msgid "Configuration for the Edoweb Storage module."
 msgstr ""
+
+msgid "createdBy"
+msgstr "Erfasser"
+
+msgid "lastModifiedBy"
+msgstr "Letzter Bearbeiter"
 
 #~ msgid "The entity %id has been reloaded."
 #~ msgstr "Das Objekt %id wurde neu geladen."
