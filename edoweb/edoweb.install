@@ -1972,7 +1972,6 @@ function _edoweb_installed_instances() {
               'volume' => 'volume',
               'issue' => 'issue',
               'article' => 'article',
-              'file' => 'file',
               'part' => 'part',
             ),
           ),
