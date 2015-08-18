@@ -192,6 +192,13 @@ function edoweb_entity_info() {
           'access arguments' => array('administer edoweb_basic entities'),
         ),
       ),
+      'part' => array(
+        'label' => t('Part'),
+        'admin' => array(
+          'path' => 'admin/structure/edoweb_basic/part/manage',
+          'access arguments' => array('administer edoweb_basic entities'),
+        ),
+      ),
       'person' => array(
         'label' => t('Person'),
         'namespace' => 'local',
@@ -811,6 +818,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'webpage':
     case 'version':
     case 'generic':
+    case 'part':
       $columns = array(
         array(
           'data' => t('HT-Nummer'),
@@ -2291,6 +2299,8 @@ function edoweb_rdf_types($bundle = null) {
     //FIXME: dummy RDF type for version
     'version' => array('lv:ArchivedWebPageVersion'),
     'generic' => array('dc:BibliographicResource'),
+    //FIXME: do we need an RDF type mapping for the 'part' bundle?
+    'part' => array('dc:BibliographicResource'),
     'authority_resource' => array('gnd:AuthorityResource'),
     'collection' => array(
       'bibo:Collection',
@@ -3704,3 +3714,40 @@ function edoweb_update_7155() {
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
 }
+
+function edoweb_update_7156() {
+  module_load_install('edoweb');
+  $available_instances = _edoweb_installed_instances();
+  $updated_instances_fields = array(
+    'field_edoweb_struct_child',
+    'field_edoweb_struct_parent'
+  );
+  $updated_instances = array(
+    'part' => array_keys($available_instances['part']),
+    'monograph' => array(
+      'field_edoweb_struct_child',
+    ),
+    'journal' => array(
+      'field_edoweb_struct_child',
+    ),
+    'volume' => array(
+      'field_edoweb_struct_child',
+      'field_edoweb_struct_parent'
+    ),
+    'issue' => array(
+      'field_edoweb_struct_child',
+      'field_edoweb_struct_parent'
+    ),
+    'article' => array(
+      'field_edoweb_struct_child',
+      'field_edoweb_struct_parent'
+    ),
+    'file' => array(
+      'field_edoweb_struct_parent'
+    ),
+  );
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+  entity_info_cache_clear();
+}
+
