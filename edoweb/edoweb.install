@@ -1365,6 +1365,7 @@ function _edoweb_installed_instances() {
           'target_type' => 'edoweb_basic',
           'handler_settings' => array(
             'target_bundles' => array(
+              'part' => 'part',
               'file' => 'file',
             ),
           ),
@@ -1466,6 +1467,7 @@ function _edoweb_installed_instances() {
               'issue' => 'issue',
               'article' => 'article',
               'file' => 'file',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1513,6 +1515,7 @@ function _edoweb_installed_instances() {
               'issue' => 'issue',
               'article' => 'article',
               'file' => 'file',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1523,6 +1526,7 @@ function _edoweb_installed_instances() {
           'handler_settings' => array(
             'target_bundles' => array(
               'journal' => 'journal',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1546,6 +1550,7 @@ function _edoweb_installed_instances() {
             'target_bundles' => array(
               'article' => 'article',
               'file' => 'file',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1557,6 +1562,7 @@ function _edoweb_installed_instances() {
             'target_bundles' => array(
               'journal' => 'journal',
               'volume' => 'volume',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1587,6 +1593,7 @@ function _edoweb_installed_instances() {
           'handler_settings' => array(
             'target_bundles' => array(
               'file' => 'file',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1599,6 +1606,7 @@ function _edoweb_installed_instances() {
               'journal' => 'journal',
               'volume' => 'volume',
               'issue' => 'issue',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1627,6 +1635,7 @@ function _edoweb_installed_instances() {
               'issue' => 'issue',
               'article' => 'article',
               'webpage' => 'webpage',
+              'part' => 'part',
             ),
           ),
         ),
@@ -1928,6 +1937,42 @@ function _edoweb_installed_instances() {
           'handler_settings' => array(
             'target_bundles' => array(
               'collection' => 'collection',
+            ),
+          ),
+        ),
+      ),
+    ),
+
+    /*
+     * Field instances in part bundle
+     */
+    'part' => array(
+      'field_edoweb_title' => array(),
+      'field_edoweb_struct_child' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'volume' => 'volume',
+              'issue' => 'issue',
+              'article' => 'article',
+              'file' => 'file',
+              'part' => 'part',
+            ),
+          ),
+        ),
+      ),
+      'field_edoweb_struct_parent' => array(
+        'settings'    => array(
+          'target_type' => 'edoweb_basic',
+          'handler_settings' => array(
+            'target_bundles' => array(
+              'monograph' => 'monograph',
+              'journal' => 'journal',
+              'volume' => 'volume',
+              'issue' => 'issue',
+              'article' => 'article',
+              'part' => 'part',
             ),
           ),
         ),

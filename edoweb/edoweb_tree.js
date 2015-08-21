@@ -218,10 +218,16 @@
         var bundle_fields = Drupal.settings.edoweb.fields[$(this).children('a[data-bundle]').attr('data-bundle')];
         var target_bundles = [];
         if (bundle_fields && 'field_edoweb_struct_child' in bundle_fields) {
-          var target_bundles = Object.keys(bundle_fields
+          if (bundle_fields
             ['field_edoweb_struct_child']
             ['instance']['settings']
-            ['handler_settings']['target_bundles']);
+            ['handler_settings']['target_bundles'] != null
+          ) {
+            target_bundles = Object.keys(bundle_fields
+              ['field_edoweb_struct_child']
+              ['instance']['settings']
+              ['handler_settings']['target_bundles']);
+          }
         }
 
         // Possible insert positions are as a child of the current entry
