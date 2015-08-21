@@ -541,7 +541,7 @@ function edoweb_info_page() {
   $query->addTag('elasticsearch');
   $query->entityCondition('entity_type', 'edoweb_basic');
   $query->entityCondition('bundle', array(
-    'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'webpage', 'version'
+    'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'webpage', 'version', 'part'
   ));
   $content['resource_list'] = edoweb_basic_search_entities(
     $query, TRUE, array(), TRUE, user_access('edit any edoweb_basic entity'), TRUE, 'compact', TRUE
@@ -1401,7 +1401,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       }
       if ($has_inverse) {
         $inverse_query->entityCondition('bundle', array(
-          'monograph', 'journal', 'volume', 'issue', 'article', 'file'
+          'monograph', 'journal', 'volume', 'issue', 'article', 'file', 'part'
         ));
         $entity->content['related'] = edoweb_basic_search_entities(
           $inverse_query
