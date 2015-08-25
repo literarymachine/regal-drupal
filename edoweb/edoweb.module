@@ -2519,8 +2519,10 @@ function _edoweb_http_request($request_url, $http_options) {
           $status_type = 'warning';
           break;
       }
-      console_log($data->code);
       drupal_set_message("{$data->code}: {$data->text}", $status_type);
+    } else if ($http_response->code == 410) {
+      // FIXME: API should return text for 410 response.
+      drupal_set_message('Das Objekt wurde zur Löschung markiert', 'warning');
     }
   }
 
