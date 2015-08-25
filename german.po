@@ -285,6 +285,9 @@ msgstr "Neue Webseite"
 msgid "Add version"
 msgstr "Neue Version"
 
+msgid "Add part"
+msgstr "Neue Überordnung"
+
 #: edoweb/edoweb.module:1343
 msgid "Turtle view"
 msgstr ""
@@ -295,7 +298,7 @@ msgstr ""
 
 #: edoweb/edoweb.module:1501;378
 msgid "Edoweb"
-msgstr ""
+msgstr "Bestand"
 
 #: edoweb/edoweb.module:1514
 msgid "Creation date"
@@ -480,7 +483,7 @@ msgstr ""
 
 #: (duplicate) edoweb/edoweb.install:1869
 msgid "Alternativer Titel"
-msgstr ""
+msgstr "Weitere Sachtitel"
 
 #: (duplicate) edoweb/edoweb.install:1877
 msgid "Kurztitel"
@@ -673,7 +676,7 @@ msgstr ""
 
 #: (duplicate) edoweb/edoweb.install:2025
 msgid "Parallele Ausgabe"
-msgstr ""
+msgstr "Titelkopie von"
 
 #: (duplicate) edoweb/edoweb.install:2029
 msgid "Homepage"
@@ -694,6 +697,9 @@ msgstr ""
 #: (duplicate) edoweb/edoweb.install:2041
 msgid "Datei"
 msgstr ""
+
+msgid "part"
+msgstr "Überordnung"
 
 #: (duplicate) edoweb/edoweb.install:2044
 msgid "Parent"

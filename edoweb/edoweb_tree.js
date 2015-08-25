@@ -58,7 +58,7 @@
           var link = $('<a />')
             .attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle)
             .attr('data-bundle', target_bundle)
-            .text(Drupal.t('Add ' + target_bundle))
+            .text(Drupal.edoweb.t('Add ' + target_bundle))
             .bind('click', function() {
               history.pushState({tree: true}, null, $(this).attr('href'));
               Drupal.edoweb.navigateTo($(this).attr('href'));

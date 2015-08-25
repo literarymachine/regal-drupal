@@ -821,7 +821,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'part':
       $columns = array(
         array(
-          'data' => t('HT-Nummer'),
+          'data' => t('ID'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_identifier_ht',
@@ -943,7 +943,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   }
 
   // Add fixed columns, independant of bundle type
-  array_unshift($columns, t('Objekt'));
+  array_unshift($columns, t('Titel'));
   array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
@@ -1270,6 +1270,8 @@ function _edoweb_map_string($string) {
       return t('webpage');
     case 'version':
       return t('version');
+    case 'part':
+      return t('part');
     case 'Add monograph':
       return t('Add monograph');
     case 'Add journal':
@@ -1282,6 +1284,8 @@ function _edoweb_map_string($string) {
       return t('Add article');
     case 'Add file':
       return t('Add file');
+    case 'Add part':
+      return t('Add part');
     case 'Add webpage':
       return t('Add webpage');
     case 'Add version':
