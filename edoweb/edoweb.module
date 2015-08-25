@@ -1341,7 +1341,7 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     $uri = entity_uri(EDOWEB_ENTITY_TYPE, $entity);
     $entity->content = array(
       '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
-                 . '<h1><a href="' . url($uri['path']) . '">' . entity_label(EDOWEB_ENTITY_TYPE, $entity) . '</a></h1>',
+                 . '<h1><a href="' . url($uri['path']) . '">' . $entity->label($view_mode) . '</a></h1>',
       '#suffix' => "</div>",
     );
   }
