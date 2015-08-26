@@ -129,6 +129,19 @@
               }
               //TODO: check interference with tree navigation block
               //Drupal.attachBehaviors(result_table);
+              container.find('div.field-item>a[data-curie]').each(function() {
+                if (! result_table.find('tr[data-curie="' + $(this).attr('data-curie') + '"]').length) {
+                  var missing_entry = $(this).clone();
+                  var row = $('<tr />');
+                  result_table.find('thead').find('tr>th').each(function() {
+                    row.append($('<td />'));
+                  });
+                  missing_entry.removeAttr('data-target-bundle');
+                  row.find('td:eq(0)').append(missing_entry);
+                  row.find('td:eq(1)').append(missing_entry.attr('data-curie'));
+                  result_table.append(row);
+                }
+              });
               container.hide();
               container.after(result_table);
               for (label in operations) {
