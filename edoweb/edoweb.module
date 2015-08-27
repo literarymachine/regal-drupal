@@ -2468,9 +2468,9 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   // Add UserId header for modifying methods
-  $modifying = in_array($http_options['method'],
-    array('PUT', 'POST', 'DELETE', 'PATCH')
-  );
+  $modifying = $is_api_request
+      && in_array($http_options['method'], array('PUT', 'POST', 'DELETE', 'PATCH'));
+
   if ($modifying) {
     global $user;
     $http_options['headers']['UserId'] = $user->uid;
@@ -2482,7 +2482,9 @@ function _edoweb_http_request($request_url, $http_options) {
 
   $http_response = drupal_http_request($request_url, $http_options);
 
-  if ($modifying) {
+  $request = explode(' ', $http_response->request);
+  $is_search_request = $is_api_request && (substr(ltrim(next($request), '/'), 0, 6) == 'search');
+  if ($modifying && !$is_search_request) {
     console_log($http_response);
   }
 
@@ -2503,13 +2505,10 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   // Display response in UI
-
   if ($is_api_request) {
     drupal_add_http_header('Status', $http_response->code);
-    // FIXME: how to decide if parsing response data is actually neccessary,
-    // i.e. when can we expect an API response message?
-    $data = json_decode($http_response->data);
-    if ($data && json_last_error() == JSON_ERROR_NONE && property_exists($data, 'text')) {
+    if (($modifying && !$is_search_request)
+        || ($http_options['method'] == 'GET' && $http_response->code >= 400)) {
       $status_type = 'error';
       switch ($http_response->code[0]) {
         case '2':
@@ -2519,10 +2518,15 @@ function _edoweb_http_request($request_url, $http_options) {
           $status_type = 'warning';
           break;
       }
-      drupal_set_message("{$data->code}: {$data->text}", $status_type);
-    } else if ($http_response->code == 410) {
-      // FIXME: API should return text for 410 response.
-      drupal_set_message('Das Objekt wurde zur Löschung markiert', 'warning');
+      if ('DELETE' == $http_options['method']) {
+        $message = $http_response->data;
+        $code = $http_response->code;
+      } else {
+        $data = json_decode($http_response->data);
+        $message = $data->text;
+        $code = $data->code;
+      }
+      drupal_set_message("$code: $message", $status_type);
     }
   }
 
