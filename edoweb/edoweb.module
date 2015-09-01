@@ -652,6 +652,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
         || "query[$search_count][type]" == substr(urldecode($key), 0, strlen("query[$search_count][type]"))
         || "query[$search_count][user]" == urldecode($key)
         || "query[$search_count][fulltext]" == urldecode($key)
+        || "query[$search_count][childlevel]" == urldecode($key)
         ) continue;
     $form['query']['url_params'][] = array(
       '#type' => 'hidden',
@@ -703,6 +704,11 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       '#type' => 'checkbox',
       '#title' => t('Volltexte'),
       '#default_value' => isset($query['fulltext']),
+    );
+    $form['query'][$search_count]['childlevel'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Kindobjekte'),
+      '#default_value' => isset($query['childlevel']),
     );
   }
 
@@ -786,7 +792,12 @@ function edoweb_basic_search_entities(
   }
 
   if (@$term = $query['term']) {
+    if ((!@$childlevel = $query['childlevel'])) {
+      $term .= ' AND (contentType:monograph OR contentType:journal)';
+    }
     $efq->addMetaData('term', $term);
+  } else if (! (@$childlevel = $query['childlevel'])) {
+    $efq->addMetaData('term', 'contentType:monograph OR contentType:journal');
   }
 
   if (@$fulltext = $query['fulltext']) {
