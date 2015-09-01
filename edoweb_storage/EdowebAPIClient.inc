@@ -813,6 +813,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
             $jsonld_property = 'modified';
+          } else if ($property_name == 'objectTimestamp') {
+            $jsonld_property = 'objectTimestamp';
           }
           break;
         case 'field':

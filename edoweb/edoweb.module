@@ -294,6 +294,10 @@ function edoweb_entity_property_info() {
     'label' => t('The update date of the Entity'),
     'type' => 'text',
   );
+  $properties['objectTimestamp'] = array(
+    'label' => t('The last manual update date of the Entity'),
+    'type' => 'text',
+  );
   $properties['uid'] = array(
     'label' => t('The user ID of the creator of the Entity'),
     'type' => 'integer',
@@ -839,7 +843,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
         array(
           'data' => t('Updated'),
           'type' => 'property',
-          'specifier' => 'updated',
+          'specifier' => 'objectTimestamp',
           'format' => '_edoweb_format_date',
           'sort' => $init_sort ? 'desc' : null,
         ),
@@ -982,7 +986,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
     $curie = _edoweb_compact_uri($wrapper->remote_id->value());
     $row = array(
       'data-curie' => $curie,
-      'data-updated' => $entity->updated
+      'data-updated' => $entity->objectTimestamp
     );
     if ('compact' == $view_mode) {
       $entity_view = edoweb_basic_view($entity, 'compact');
