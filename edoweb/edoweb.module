@@ -79,6 +79,7 @@ function edoweb_init() {
     );
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
+    drupal_add_css('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css', array('type' => 'external'));
   }
 }
 
@@ -847,6 +848,10 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           'format' => '_edoweb_format_date',
           'sort' => $init_sort ? 'desc' : null,
         ),
+        array(
+          'data' => t('Zugriff'),
+          'format' => '_edoweb_format_access_icons',
+        ),
       );
       break;
     case 'person':
@@ -1009,39 +1014,48 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
       $value = null;
       $is_ref = false;
       $list_items = array();
-      if ('field' == $column['type']) {
+      if (!isset($column['type'])) {
+        $property = null;
+      } else if ('field' == $column['type']) {
         $property = $column['specifier']['field'];
         $field_info = field_info_field($property);
         $is_ref = ($field_info['type'] == 'edoweb_ld_reference');
       } else if ('property' == $column['type']) {
         $property = $column['specifier'];
       }
-      try {
-        $values = $wrapper->$property->value();
-        if ($values and !is_array($values)) $values = array($values);
-        if ($values) foreach ($values as $value) {
-          if ('field' == $column['type']) {
-            // Fixme: workaround for Drupal bug
-            // https://www.drupal.org/node/1824820
-            if ($is_ref) {
-              $field_value = field_view_value(
-                EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value['value'])
-              );
-            } else {
-              $field_value = field_view_value(
-                EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
-              );
-            }
-            $list_items[] = drupal_render($field_value);
-          } else if (isset($column['format'])) {
-            $list_items[] = $column['format']($value);
-          } else {
-            $list_items[] = $value;
-          }
+      if (null === $property) {
+        if (isset($column['format'])) {
+          $list_items[] = $column['format']($entity);
         }
-      } catch (EntityMetadataWrapperException $e) {
-        // No value for field, ignore
-        //var_dump($e);
+      } else if (!(($property == 'access_md' || $property == 'access_data')
+          && ! _is_edoweb_entity($entity))) {
+        try {
+          $values = $wrapper->$property->value();
+          if ($values and !is_array($values)) $values = array($values);
+          if ($values) foreach ($values as $value) {
+            if ('field' == $column['type']) {
+              // Fixme: workaround for Drupal bug
+              // https://www.drupal.org/node/1824820
+              if ($is_ref) {
+                $field_value = field_view_value(
+                  EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value['value'])
+                );
+              } else {
+                $field_value = field_view_value(
+                  EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
+                );
+              }
+              $list_items[] = drupal_render($field_value);
+            } else if (isset($column['format'])) {
+              $list_items[] = $column['format']($value);
+            } else {
+              $list_items[] = $value;
+            }
+          }
+        } catch (EntityMetadataWrapperException $e) {
+          // No value for field, ignore
+          //var_dump($e);
+        }
       }
       $row['data'][] = theme_item_list(array(
         'items' => $list_items,
@@ -1294,6 +1308,16 @@ function _edoweb_map_string($string) {
       return t('createdBy');
     case 'lastModifiedBy':
       return t('lastModifiedBy');
+    case 'private':
+      return t('private');
+    case 'public':
+      return t('public');
+    case 'subscriber':
+      return t('subscriber');
+    case 'restricted':
+      return t('restricted');
+    case 'remote':
+      return t('remote');
     default:
       return $string;
   }
@@ -2485,6 +2509,38 @@ function edoweb_preprocess_html(&$vars) {
 
 function _edoweb_format_date($timestamp) {
   return format_date($timestamp, 'custom', 'D, d.m.Y - H:i:s');
+}
+
+function _edoweb_format_access_icons($entity) {
+  
+  $icons = '';
+  switch ($entity->access_data) {
+    case 'private':
+      $icons .= '<i class="fa fa-lock" title="' . t($entity->access_data) . '" style="color:red;"></i>';
+      break;
+    case 'subscriber':
+    case 'restricted':
+      $icons .= '<i class="fa fa-lock" title="' . t($entity->access_data) . '"style="color:orange;"></i>';
+      break;
+    case 'remote':
+      $icons .= '<i class="fa fa-lock" title="' . t($entity->access_data) . '"style="color:yellow;"></i>';
+      break;
+    case 'public':
+      $icons .= '<i class="fa fa-unlock" title="' . t($entity->access_data) . '"style="color:green;"></i>';
+      break;    
+  }
+ 
+  switch ($entity->access_md) {
+    case 'private':
+      $icons .= '&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-circle-o" title="' . t($entity->access_md) . '"style="color:red;"></i>';
+      break;
+    case 'public':
+      $icons .= '&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-circle-o" title="' . t($entity->access_md) . '"style="color:green;"></i>';
+      break;
+  }
+  
+  return $icons;
+
 }
 
 function _edoweb_format_subject($remote_id) {
