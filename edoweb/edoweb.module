@@ -1600,8 +1600,7 @@ function _edoweb_build_tree($tree) {
   );
 
   // Append download links when applicable
-  if ('file' == $entity_bundle && isset($tree['hasData'])
-      && drupal_valid_path('resource/' . $tree['hasData']['@id'])) {
+  if ('file' == $entity_bundle && isset($tree['hasData'])) {
     $tree_item['data'] .= _edoweb_download_link($tree['hasData']['format'], $tree['hasData']['@id']);
   }
 
