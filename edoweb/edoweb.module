@@ -657,6 +657,7 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
         || "query[$search_count][type]" == substr(urldecode($key), 0, strlen("query[$search_count][type]"))
         || "query[$search_count][user]" == urldecode($key)
         || "query[$search_count][fulltext]" == urldecode($key)
+        || "query[$search_count][childlevel]" == urldecode($key)
         ) continue;
     $form['query']['url_params'][] = array(
       '#type' => 'hidden',
@@ -708,6 +709,11 @@ function edoweb_basic_search_entities_form($form, &$form_state, $advanced, $sear
       '#type' => 'checkbox',
       '#title' => t('Volltexte'),
       '#default_value' => isset($query['fulltext']),
+    );
+    $form['query'][$search_count]['childlevel'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Kindobjekte'),
+      '#default_value' => isset($query['childlevel']),
     );
   }
 
@@ -791,7 +797,12 @@ function edoweb_basic_search_entities(
   }
 
   if (@$term = $query['term']) {
+    if ((!@$childlevel = $query['childlevel'])) {
+      $term .= ' AND (contentType:monograph OR contentType:journal)';
+    }
     $efq->addMetaData('term', $term);
+  } else if (! (@$childlevel = $query['childlevel'])) {
+    $efq->addMetaData('term', 'contentType:monograph OR contentType:journal');
   }
 
   if (@$fulltext = $query['fulltext']) {
@@ -826,7 +837,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'part':
       $columns = array(
         array(
-          'data' => t('HT-Nummer'),
+          'data' => t('ID'),
           'type' => 'field',
           'specifier' => array(
             'field' => 'field_edoweb_identifier_ht',
@@ -956,7 +967,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   }
 
   // Add fixed columns, independant of bundle type
-  array_unshift($columns, t('Objekt'));
+  array_unshift($columns, t('Titel'));
   array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
@@ -1292,6 +1303,8 @@ function _edoweb_map_string($string) {
       return t('webpage');
     case 'version':
       return t('version');
+    case 'part':
+      return t('part');
     case 'Add monograph':
       return t('Add monograph');
     case 'Add journal':
@@ -1304,6 +1317,8 @@ function _edoweb_map_string($string) {
       return t('Add article');
     case 'Add file':
       return t('Add file');
+    case 'Add part':
+      return t('Add part');
     case 'Add webpage':
       return t('Add webpage');
     case 'Add version':
@@ -1606,8 +1621,7 @@ function _edoweb_build_tree($tree) {
   );
 
   // Append download links when applicable
-  if ('file' == $entity_bundle && isset($tree['hasData'])
-      && drupal_valid_path('resource/' . $tree['hasData']['@id'])) {
+  if ('file' == $entity_bundle && isset($tree['hasData'])) {
     $tree_item['data'] .= _edoweb_download_link($tree['hasData']['format'], $tree['hasData']['@id']);
   }
 
@@ -1709,12 +1723,14 @@ function edoweb_basic_structure($entity) {
         'value' => $new_parent_id,
         'label' => '',
       );
+      //TODO: How to add response text by AJAX?
       if ($api->saveResource($entity)) {
         echo "Moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
       } else if ($new_parent_id) {
         echo "Failed moving {$entity->remote_id} from $prev_parent_id to $new_parent_id\n";
       }
     }
+    //TODO: How to add response text by AJAX?
     if ($parts && $api->setParts($entity, $parts)) {
       echo "Settings parts for {$entity->remote_id}\n";
     } else if ($parts) {
@@ -1838,23 +1854,12 @@ function edoweb_basic_crawler_form_submit($form, &$form_state) {
   $conf['interval'] = $form_state['values']['interval'];
   $conf['robotsPolicy'] = $form_state['values']['robotsPolicy'];
 
-  if (!$api->setCrawlerConfiguration($entity, $conf)) {
-    drupal_set_message(t('Failed to set crawler configuration'), 'error');
-  } else {
-    drupal_set_message(t('Set crawler configuration'), 'status');
-  }
-
+  $api->setCrawlerConfiguration($entity, $conf);
+  
   if ('crawl' == $form_state['triggering_element']['#name']) {
-
-    if (!$api->triggerCrawl($entity)) {
-      drupal_set_message(t('Failed to start crawl'), 'error');
-    } else {
-      drupal_set_message(t('Crawler started'), 'status');
-    }
-
+    $api->triggerCrawl($entity);
     $uri = $entity->uri();
     $form_state['redirect'] = $uri['path'] . '/status';
-
   }
 
 }
@@ -2041,15 +2046,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
 function edoweb_basic_admin_index( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   $api = new EdowebAPIClient();
-  if ($api->index($entity)) {
-    drupal_set_message(t('The entity %id has been indexed.',
-      array('%id' => $entity->remote_id))
-    );
-  } else {
-    drupal_set_message(t('Failed to index entity %id.',
-      array('%id' => $entity->remote_id)), 'error'
-    );
-  }
+  $api->index($entity);
   $form_state['redirect'] = 'resource/' . $entity->remote_id;
 }
 
@@ -2070,9 +2067,6 @@ function edoweb_basic_admin_reload( $form , &$form_state ) {
 function edoweb_basic_admin_delete( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   edoweb_basic_delete($entity);
-  drupal_set_message(t('The entity %id has been deleted',
-    array('%id' => $entity->remote_id))
-  );
   $parents = field_get_items('edoweb_basic', $entity, 'field_edoweb_struct_parent');
   $parent_id = '';
   if (FALSE !== $parents) {
@@ -2091,11 +2085,7 @@ function edoweb_basic_admin_apply_transformers( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   $transformers = array_keys(array_filter($form_state['values']['transformers']));
   $api = new EdowebAPIClient();
-  if ($api->saveResource($entity, $transformers)) {
-    drupal_set_message(t('Transformers applied'));
-  } else {
-    drupal_set_message(t('Failed to apply transformers'), 'error');
-  }
+  $api->saveResource($entity, $transformers);
 }
 
 /**
@@ -2105,12 +2095,7 @@ function edoweb_basic_admin_apply_transformers( $form , &$form_state ) {
 function edoweb_basic_admin_add_urn( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   $api = new EdowebAPIClient();
-  if ($api->addURN($entity)) {
-    entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
-    drupal_set_message(t('URN added'));
-  } else {
-    drupal_set_message(t('Failed to add URN'), 'error');
-  }
+  $api->addURN($entity);
 }
 
 /**
@@ -2120,12 +2105,7 @@ function edoweb_basic_admin_add_urn( $form , &$form_state ) {
 function edoweb_basic_admin_add_doi( $form , &$form_state ) {
   $entity = $form_state['values']['basic_entity'];
   $api = new EdowebAPIClient();
-  if ($api->addDOI($entity)) {
-    entity_get_controller('edoweb_basic')->clearCache($entity->remote_id);
-    drupal_set_message(t('DOI added'));
-  } else {
-    drupal_set_message(t('Failed to add DOI'), 'error');
-  }
+  $api->addDOI($entity);
 }
 
 /**
@@ -2195,15 +2175,7 @@ function edoweb_basic_access_form_submit($form, &$form_state) {
   if ($access_data) $entity->access_data = $access_data;
 
   $api = new EdowebAPIClient();
-  if ($api->setAccessRights($entity, $subtree_apply)) {
-    drupal_set_message(
-      t('Access rights for @id updated.', array('@id' => $entity->remote_id))
-    );
-  } else {
-    drupal_set_message(
-      t('Failed to update access rights for @id.', array('@id' => $entity->remote_id))
-    );
-  }
+  $api->setAccessRights($entity, $subtree_apply);
 }
 
 function edoweb_basic_data($entity) {
@@ -2555,15 +2527,17 @@ function _edoweb_http_request($request_url, $http_options) {
 
   // Add credentials if loading from API
   $api_host = variable_get('edoweb_api_host');
+  $is_api_request = FALSE;
   if ("$api_host" === substr($request_url, 0, strlen($api_host))) {
+    $is_api_request = TRUE;
     $http_options['headers']['Authorization'] = _get_api_auth_header();
     $http_options['headers']['UserIp'] = $_SERVER['REMOTE_ADDR'];
   }
 
   // Add UserId header for modifying methods
-  $modifying = in_array($http_options['method'],
-    array('PUT', 'POST', 'DELETE', 'PATCH')
-  );
+  $modifying = $is_api_request
+      && in_array($http_options['method'], array('PUT', 'POST', 'DELETE', 'PATCH'));
+
   if ($modifying) {
     global $user;
     $http_options['headers']['UserId'] = $user->uid;
@@ -2575,7 +2549,9 @@ function _edoweb_http_request($request_url, $http_options) {
 
   $http_response = drupal_http_request($request_url, $http_options);
 
-  if ($modifying) {
+  $request = explode(' ', $http_response->request);
+  $is_search_request = $is_api_request && (substr(ltrim(next($request), '/'), 0, 6) == 'search');
+  if ($modifying && !$is_search_request) {
     console_log($http_response);
   }
 
@@ -2596,24 +2572,29 @@ function _edoweb_http_request($request_url, $http_options) {
   }
 
   // Display response in UI
-  if (1 == variable_get('edoweb_api_debug')) {
-    $status_type = 'error';
-    switch ($http_response->code[0]) {
-      case '2':
-        $status_type = 'status';
-        break;
-      case '5':
-        $status_type = 'warning';
-        break;
+  if ($is_api_request) {
+    drupal_add_http_header('Status', $http_response->code);
+    if (($modifying && !$is_search_request)
+        || ($http_options['method'] == 'GET' && $http_response->code >= 400)) {
+      $status_type = 'error';
+      switch ($http_response->code[0]) {
+        case '2':
+          $status_type = 'status';
+          break;
+        case '5':
+          $status_type = 'warning';
+          break;
+      }
+      if ('DELETE' == $http_options['method']) {
+        $message = $http_response->data;
+        $code = $http_response->code;
+      } else {
+        $data = json_decode($http_response->data);
+        $message = $data->text;
+        $code = $data->code;
+      }
+      drupal_set_message("$code: $message", $status_type);
     }
-    drupal_set_message(
-      sprintf(
-        'API call responded with HTTP %s.<pre>{%s}</pre>',
-        $http_response->code,
-        htmlentities(print_r($http_response, TRUE))
-      ),
-      $status_type
-    );
   }
 
   return $http_response;
