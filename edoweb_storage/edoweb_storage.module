@@ -640,6 +640,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     $entity->updated = time();
   }
   try {
+    $entity->objectTimestamp = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:objectTimestamp'))
+    )->getValue());
+  } catch (LibRDF_LookupError $e) {
+    $entity->objectTimestamp = time();
+  }
+  try {
     $entity->created = strtotime($rdf_model->getTarget(
         $rdf_about_subject,
         new LibRDF_URINode(_edoweb_expand_curie('dc:created'))
