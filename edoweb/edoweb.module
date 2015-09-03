@@ -797,12 +797,11 @@ function edoweb_basic_search_entities(
   }
 
   if (@$term = $query['term']) {
-    if ((!@$childlevel = $query['childlevel'])) {
-      $term .= ' AND (contentType:monograph OR contentType:journal)';
-    }
     $efq->addMetaData('term', $term);
-  } else if (! (@$childlevel = $query['childlevel'])) {
-    $efq->addMetaData('term', 'contentType:monograph OR contentType:journal');
+  }
+
+  if (! (@$childlevel = $query['childlevel'])) {
+    $efq->entityCondition('bundle', array('monograph', 'journal', 'webpage'));
   }
 
   if (@$fulltext = $query['fulltext']) {
@@ -821,7 +820,6 @@ function edoweb_basic_search_entities(
  * Returns table header
  */
 function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false) {
-
   $columns = array();
   switch ($bundle_type) {
     case 'monograph':
@@ -1039,8 +1037,8 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
         $property = $column['specifier'];
       }
       if (null === $property) {
-        if (isset($column['format'])) {
-          $list_items[] = $column['format']($entity);
+        if (isset($column['format']) && $list_item = $column['format']($entity)) {
+          $list_items[] = $list_item;
         }
       } else if (!(($property == 'access_md' || $property == 'access_data')
           && ! _is_edoweb_entity($entity))) {
@@ -2478,6 +2476,10 @@ function _edoweb_format_date($timestamp) {
 
 function _edoweb_format_access_icons($entity) {
   
+  if (!_is_edoweb_entity($entity)) {
+    return '';
+  }
+
   $icons = '';
   switch ($entity->access_data) {
     case 'private':
@@ -2514,7 +2516,7 @@ function _edoweb_format_subject($remote_id) {
 }
 
 function _edoweb_link_lastmodified($entity) {
-  if (('journal' == $entity->bundle()) && _is_edoweb_entity($entity)) {
+  if (_is_edoweb_entity($entity)) {
     $curie = _edoweb_compact_uri($entity->remote_id);
     $href = "edoweb/lastmodified/$curie";
     return l("Zuletzt hinzugefügtes Label wird geladen ...",
