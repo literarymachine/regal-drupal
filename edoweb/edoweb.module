@@ -586,7 +586,10 @@ function _edoweb_templates($bundle_name = null) {
 
 function _edoweb_lastmodified($remote_id) {
   $api = new EdowebAPIClient();
-  return $api->getLastModified($remote_id);
+  $old_msg = drupal_get_messages();
+  $last_modified = $api->getLastModified($remote_id);
+  $_SESSION['messages'] = $old_msg;
+  return $last_modified;
 }
 
 function _edoweb_search($bundle_name = null, $field_name = null) {
