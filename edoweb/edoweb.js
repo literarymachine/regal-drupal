@@ -262,20 +262,23 @@
     Drupal.edoweb.navigateTo = function(href) {
       var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
       $('#content').html(throbber);
-      $.get(href, function(data, textStatus, jqXHR) {
-        throbber.remove();
-        var html = $(data);
-        Drupal.attachBehaviors(html);
-        $('#content').replaceWith(html.find('#content'));
-        $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
-        if ($('#messages').length) {
-          $('#messages').replaceWith(html.find('#messages'));
-        } else {
-          $('#header').after(html.find('#messages'));
+      $.ajax({
+        url: href,
+        complete: function(xmlHttp, status) {
+          throbber.remove();
+          var html = $(xmlHttp.response);
+          Drupal.attachBehaviors(html);
+          $('#content').replaceWith(html.find('#content'));
+          $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+          if ($('#messages').length) {
+            $('#messages').replaceWith(html.find('#messages'));
+          } else {
+            $('#header').after(html.find('#messages'));
+          }
+          document.title = html.filter('title').text();
+          $('.edoweb-tree li.active').removeClass('active');
+          $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
         }
-        document.title = html.filter('title').text();
-        $('.edoweb-tree li.active').removeClass('active');
-        $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
       });
     };
     if (!this.attached) {
