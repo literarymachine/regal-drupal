@@ -2351,6 +2351,8 @@ function edoweb_rdf_namespaces() {
     'nwbib-spatial' => 'http://purl.org/lobid/nwbib-spatial#',
     'radion' => 'http://www.w3.org/ns/radion#',
     'holding' => 'http://purl.org/ontology/holding#',
+    'dbpedia' => 'http://dbpedia.org/ontology/',
+    'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   );
 }
 
@@ -3794,5 +3796,31 @@ function edoweb_update_7156() {
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
   entity_info_cache_clear();
+}
+
+/**
+ * Add fields for type, medium and institution to monograph and journal bundles.
+ */
+function edoweb_update_7157() {
+  $added_fields = array(
+    'field_edoweb_type',
+    'field_edoweb_medium',
+    'field_edoweb_institution'
+  );
+  $added_instances = array(
+    'monograph' => array(
+      'field_edoweb_type',
+      'field_edoweb_medium',
+      'field_edoweb_institution'
+    ),
+    'journal' => array(
+      'field_edoweb_type',
+      'field_edoweb_medium',
+      'field_edoweb_institution'
+    ),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
 }
 

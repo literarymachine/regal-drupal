@@ -668,6 +668,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       = 'subject.@id';
     $query['facets']['issued']['terms']['field']
       = 'issued';
+    $query['facets']['type']['terms']['field']
+      = 'type.@id';
+    $query['facets']['medium']['terms']['field']
+      = 'medium.@id';
 
     global $user;
     if (in_array('edoweb_backend_admin', $user->roles)
@@ -681,7 +685,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         'size' => 99,
       );
     }
-
     return json_encode($query);
   }
 

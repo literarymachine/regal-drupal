@@ -1288,6 +1288,39 @@ function _edoweb_installed_fields() {
         'predicates' => array('lv:webPageArchived'),
       ),
     ),
+    'field_edoweb_type' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('rdf:type'),
+      ),
+    ),
+    'field_edoweb_medium' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('dc:medium'),
+      ),
+    ),
+    'field_edoweb_institution' => array(
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'type'        => 'edoweb_ld_reference',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'read_only' => FALSE,
+        'predicates' => array('dbpedia:institution'),
+        'parameter' => 'name',
+        'endpoint' => 'subject',
+        'target_type' => 'edoweb_basic',
+        'handler_settings' => array(
+          'target_bundles' => array(
+            'corporate_body' => 'corporate_body',
+          )
+        ),
+      ),
+    ),
   );
 }
 
@@ -1391,6 +1424,9 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_type' => array(),
+      'field_edoweb_medium' => array(),
+      'field_edoweb_institution' => array(),
     ),
 
     /*
@@ -1492,6 +1528,9 @@ function _edoweb_installed_instances() {
           ),
         ),
       ),
+      'field_edoweb_type' => array(),
+      'field_edoweb_medium' => array(),
+      'field_edoweb_institution' => array(),
     ),
 
     /*
@@ -2257,6 +2296,18 @@ function _edoweb_field_instance_defaults($field_name) {
     ),
     'field_edoweb_webpage_archived' => array(
       'label' => $t('Archivierte Webseite'),
+    ),
+    'field_edoweb_type' => array(
+      'label' => $t('Typ'),
+    ),
+    'field_edoweb_medium' => array(
+      'label' => $t('Medium'),
+    ),
+    'field_edoweb_institution' => array(
+      'label' => $t('Institution'),
+      'settings' => array(
+        'default' => TRUE,
+      ),
     ),
   );
   return $defaults[$field_name];
