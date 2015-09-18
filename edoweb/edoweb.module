@@ -1881,7 +1881,7 @@ function edoweb_basic_status($entity) {
     '#title' => t('Interfaces'),
   );
 
-  $urnStatus = @$status['urnStatus'] == 200 ? t('gemeldet') : t('nicht gemeldet');
+  $urnStatus = @$status['urnStatus'] == 200 ? t('registriert') : t('nicht registriert');
 
   $content['interfaces']['_urnStatus'] = array(
     '#prefix' => '<div class="field field-label-above"><div class="field-label">'
@@ -1892,7 +1892,7 @@ function edoweb_basic_status($entity) {
     '#weight' => 999,
   );
 
-  $oaiStatus = @$status['oaiStatus'] == 200 ? t('registriert') : t('nicht registriert');
+  $oaiStatus = @$status['oaiStatus'] == 200 ? t('gemeldet') : t('nicht gemeldet');
 
   $content['interfaces']['_oaiStatus'] = array(
     '#prefix' => '<div class="field field-label-above"><div class="field-label">'
