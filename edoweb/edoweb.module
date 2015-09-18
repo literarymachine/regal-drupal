@@ -2351,6 +2351,7 @@ function edoweb_rdf_namespaces() {
     'nwbib-spatial' => 'http://purl.org/lobid/nwbib-spatial#',
     'radion' => 'http://www.w3.org/ns/radion#',
     'holding' => 'http://purl.org/ontology/holding#',
+    'rda' => 'http://rdaregistry.info/Elements/u/',
   );
 }
 
@@ -3794,5 +3795,20 @@ function edoweb_update_7156() {
   _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
   entity_info_cache_clear();
+}
+
+/**
+ * Add thesis information field.
+ */
+function edoweb_update_7158() {
+
+  $added_fields = array('field_edoweb_thesis_information');
+  $added_instances = array(
+    'monograph' => array('field_edoweb_thesis_information'),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+
 }
 
