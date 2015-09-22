@@ -3812,3 +3812,41 @@ function edoweb_update_7158() {
 
 }
 
+/**
+ * Add text fields for dce:creator and dce:contributor
+ */
+ function edoweb_update_7159() {
+
+  $added_fields = array(
+    'field_edoweb_creator_label',
+    'field_edoweb_contributor_label',
+  );
+  $added_instances = array(
+    'monograph' => array(
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'journal' => array(
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'webpage' => array(
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'article' => array(
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'generic' => array(
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+
+}
+
+
