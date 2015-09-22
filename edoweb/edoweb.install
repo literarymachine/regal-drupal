@@ -1321,6 +1321,14 @@ function _edoweb_installed_fields() {
         ),
       ),
     ),
+    'field_edoweb_thesis_information' => array(
+      'cardinality' => 1,
+      'type'        => 'text',
+      'settings'    => array(
+        'metadata_type' => 'descriptive',
+        'predicates' => array('rda:P60489'),
+      ),
+    ),
   );
 }
 
@@ -1427,6 +1435,7 @@ function _edoweb_installed_instances() {
       'field_edoweb_type' => array(),
       'field_edoweb_medium' => array(),
       'field_edoweb_institution' => array(),
+      'field_edoweb_thesis_information' => array(),
     ),
 
     /*
@@ -2308,6 +2317,9 @@ function _edoweb_field_instance_defaults($field_name) {
       'settings' => array(
         'default' => TRUE,
       ),
+    ),
+    'field_edoweb_thesis_information' => array(
+      'label' => $t('Hochschulschriftenvermerk'),
     ),
   );
   return $defaults[$field_name];
