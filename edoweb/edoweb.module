@@ -3802,7 +3802,7 @@ function edoweb_update_7156() {
 /**
  * Add fields for type, medium and institution to monograph and journal bundles.
  */
-function edoweb_update_7157() {
+function edoweb_update_7160() {
   $added_fields = array(
     'field_edoweb_type',
     'field_edoweb_medium',
