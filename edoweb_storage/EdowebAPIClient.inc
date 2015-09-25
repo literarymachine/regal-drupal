@@ -484,6 +484,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
+
     $index = user_access('edit any edoweb_basic entity')
       ? variable_get('edoweb_api_namespace')
       : 'public_' . variable_get('edoweb_api_namespace');
@@ -616,11 +617,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         ? 'and' : $field_condition['delta_group'];
       $field_name = $field_condition['field']['field_name'];
       $field_info = field_info_field($field_name);
-      if ('edoweb_ld_reference' == $field_info['type']) {
-        $json_ld_property = _field_name_to_jsonld_key($field_name) .  '.@id';
-      } else {
-        $json_ld_property = _field_name_to_jsonld_key($field_name);
-      }
+      $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
         $query['query']['filtered']['filter']['bool']['must'][]['term'][$json_ld_property] = "$field_value";
@@ -668,6 +665,10 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       = 'subject.@id';
     $query['facets']['issued']['terms']['field']
       = 'issued';
+    $query['facets']['type']['terms']['field']
+      = 'type.prefLabel';
+    $query['facets']['medium']['terms']['field']
+      = 'medium.prefLabel';
 
     global $user;
     if (in_array('edoweb_backend_admin', $user->roles)
@@ -681,7 +682,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         'size' => 99,
       );
     }
-
     return json_encode($query);
   }
 
