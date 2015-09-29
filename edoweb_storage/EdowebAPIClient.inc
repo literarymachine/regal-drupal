@@ -669,6 +669,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       = 'type.prefLabel';
     $query['facets']['medium']['terms']['field']
       = 'medium.prefLabel';
+    $query['facets']['institution']['terms']['field']
+      = 'institution.@id';
 
     global $user;
     if (in_array('edoweb_backend_admin', $user->roles)

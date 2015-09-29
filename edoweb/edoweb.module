@@ -381,6 +381,16 @@ function edoweb_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
 
+  // Repository settings configuration
+  $items['edoweb/config/settings'] = array(
+    'title' => 'Einstellungen',
+    'description' => 'Configuration for the repository.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('edoweb_repository_configuration_form'),
+    'access arguments' => array('administer edoweb configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   // Paged search result listing for AJAX retrieval
   $items['edoweb/search'] = array(
     'page callback' => '_edoweb_search',
@@ -535,6 +545,62 @@ function edoweb_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Repository settings form
+ */
+function edoweb_repository_configuration_form() {
+
+  $access_options = array(
+    'public' => t('Public'),
+    'private' => t('Private'),
+  );
+
+  $form = array();
+
+  $form['access_md_default'] = array(
+    '#type' => 'radios',
+    '#title' => t('Standardsichtbarkeit von Metadaten'),
+    '#options' => $access_options,
+    '#default_value' => variable_get('access_md_default', 'public'),
+  );
+
+  $form['access_data_default'] = array(
+    '#type' => 'radios',
+    '#title' => t('Standardsichtbarkeit von Dateien'),
+    '#options' => $access_options,
+    '#default_value' => variable_get('access_data_default', 'private'),
+  );
+
+  $form['compact_view_title_fields'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Titelfelder in der Kurzansicht'),
+    '#options' => array(
+      'field_edoweb_title' => t('Titel'),
+      'field_edoweb_creator' => t('Autor'),
+      'field_edoweb_contributor' => t('Bearbeiter'),
+    ),
+    '#default_value' => variable_get('compact_view_title_fields', array('field_edoweb_title')),
+  );
+
+  $form['available_facets'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Verfügbare Facetten'),
+    '#options' => array(
+      'creator.@id' => t('Autor'),
+      'contentType' => t('Objektart'),
+      'subject.@id' => t('Sacherschließung'),
+      'issued' => t('Erscheinungsjahr'),
+      'type.prefLabel' => t('Typ'),
+      'medium.prefLabel' => t('Medium'),
+      'institution.@id' => t('Institution'),
+    ),
+    '#default_value' => variable_get('available_facets', array('creator.@id')),
+  );
+
+  return system_settings_form($form);
+
 }
 
 /**
