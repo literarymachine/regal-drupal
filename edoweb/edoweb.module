@@ -2194,7 +2194,7 @@ function edoweb_basic_access_form($form, &$form_state, $entity) {
   $form['access_md'] = array(
     '#type' => 'radios',
     '#title' => t('Metadata'),
-    '#default_value' => isset($entity->access_md) ? $entity->access_md : 'private',
+    '#default_value' => isset($entity->access_md) ? $entity->access_md : variable_get('access_md_default'),
     '#options' => array(
       'public' => t('Public'),
       'private' => t('Private'),
@@ -2204,7 +2204,7 @@ function edoweb_basic_access_form($form, &$form_state, $entity) {
   $form['access_data'] = array(
     '#type' => 'radios',
     '#title' => t('Data'),
-    '#default_value' => isset($entity->access_data) ? $entity->access_data : 'private',
+    '#default_value' => isset($entity->access_data) ? $entity->access_data : variable_get('access_data_default'),
     '#options' => array(
       'public' => t('Public'),
       'private' => t('Private'),

@@ -616,7 +616,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     )->getValue();
   } catch (LibRDF_LookupError $e) {
     // No accessScheme available, default to private
-    $entity->access_data = 'private';
+    $entity->access_data = variable_get('access_data_default');
   }
   try {
     $entity->access_md = $rdf_model->getTarget($rdf_subject,
@@ -625,7 +625,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
   } catch (LibRDF_LookupError $e) {
     // No publishScheme available, default to public for external and
     // private for edoweb entities
-    $entity->access_md = _is_edoweb_entity($entity) ? 'private' : 'public';
+    $entity->access_md = _is_edoweb_entity($entity) ? variable_get('access_md_default') : 'public';
   }
 
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
@@ -999,7 +999,9 @@ function _is_edoweb_entity($entity) {
   $namespace = variable_get('edoweb_api_namespace');
   return ("$namespace:" === substr($remote_id, 0, strlen($namespace) + 1)
       || "template:" === substr($remote_id, 0, 9)
-      || "local:" === substr($remote_id, 0, 6));
+      || "local:" === substr($remote_id, 0, 6)
+      || "_:" === substr($remote_id, 0, 2)
+  );
 }
 
 function _get_api_auth_header() {
