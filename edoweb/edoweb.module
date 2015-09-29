@@ -376,7 +376,7 @@ function edoweb_menu() {
     'position' => 'left',
     'weight' => -100,
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('administer edoweb configuration'),
+    'access arguments' => array('administer edoweb repository'),
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
   );
@@ -387,7 +387,7 @@ function edoweb_menu() {
     'description' => 'Configuration for the repository.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edoweb_repository_configuration_form'),
-    'access arguments' => array('administer edoweb configuration'),
+    'access arguments' => array('administer edoweb repository'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -640,6 +640,9 @@ function edoweb_permission() {
     ),
     'administer edoweb configuration' => array(
       'title' => t('Administer Edoweb Configuration'),
+    ),
+    'administer edoweb repository' => array(
+      'title' => t('Administer Edoweb Repository'),
     ),
   );
   return $permissions;
