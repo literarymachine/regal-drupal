@@ -72,10 +72,14 @@ class EdowebBasicEntity extends Entity {
       case 'webpage':
       case 'version':
       case 'part':
-        $label_fields[] = 'field_edoweb_title';
         if ('compact' == $view_mode) {
-          $label_fields[] = 'field_edoweb_contributor';
-          $label_fields[] = 'field_edoweb_creator';
+          foreach (variable_get('compact_view_title_fields') as $field => $enabled) {
+            if ($enabled) {
+              $label_fields[] = $field;
+            }
+          }
+        } else {
+          $label_fields[] = 'field_edoweb_title';
         }
         break;
       case 'person':

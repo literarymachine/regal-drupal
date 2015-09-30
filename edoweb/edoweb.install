@@ -2374,6 +2374,7 @@ function _edoweb_installed_permissions() {
       'view any edoweb_basic entity',
       'edit any edoweb_basic entity',
       'create edoweb_basic entities',
+      'administer edoweb repository',
       EDOWEB_ENTITY_TYPE . ' entity js read',
     ),
     'edoweb_backend_admin' => array(
@@ -2382,6 +2383,7 @@ function _edoweb_installed_permissions() {
       'edit any edoweb_basic entity',
       'create edoweb_basic entities',
       'administer edoweb configuration',
+      'administer edoweb repository',
       EDOWEB_ENTITY_TYPE . ' entity js read',
     ),
     'edoweb_backend_subscriber' => array(

@@ -657,18 +657,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
     }
 
-    $query['facets']['creator']['terms']['field']
-      = 'creator.@id';
-    $query['facets']['contentType']['terms']['field']
-      = 'contentType';
-    $query['facets']['subject']['terms']['field']
-      = 'subject.@id';
-    $query['facets']['issued']['terms']['field']
-      = 'issued';
-    $query['facets']['type']['terms']['field']
-      = 'type.prefLabel';
-    $query['facets']['medium']['terms']['field']
-      = 'medium.prefLabel';
+    foreach (variable_get('available_facets') as $available_facet => $enabled) {
+      if ($enabled) {
+        $field_name = current(explode('.', $available_facet));
+        $query['facets'][$field_name]['terms']['field'] = $available_facet;
+      }
+    }
 
     global $user;
     if (in_array('edoweb_backend_admin', $user->roles)
