@@ -964,22 +964,6 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           'format' => '_edoweb_format_subject',
         ),
         array(
-          'data' => 'Geburtsdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_birth',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => 'Todesdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_death',
-            'column' => 'value',
-          ),
-        ),
-        array(
           'data' => 'Gründungsdatum',
           'type' => 'field',
           'specifier' => array(
@@ -1004,6 +988,24 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
       );
+      if (!user_is_anonymous()) {
+        $columns[] = array(
+          'data' => 'Geburtsdatum',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_gnd_date_of_birth',
+            'column' => 'value',
+          ),
+        );
+        $columns[] = array(
+          'data' => 'Todesdatum',
+          'type' => 'field',
+          'specifier' => array(
+            'field' => 'field_gnd_date_of_death',
+            'column' => 'value',
+          ),
+        );
+      }
       break;
     case 'subject':
       $columns = array(
@@ -1626,6 +1628,13 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
 
   // And finally return the content.
   return $entity->content;
+}
+
+function edoweb_entity_view_alter(&$build, $type) {
+  if (user_is_anonymous()) {
+    unset($build['field_gnd_date_of_birth']);
+    unset($build['field_gnd_date_of_death']);
+  }
 }
 
 function edoweb_basic_edit($entity, $view_mode = 'edit') {
