@@ -2103,6 +2103,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
         'epicur' => t('Register Urn'),
         'aleph' => t('Copy to Catalog'),
         'oaidc' => t('Support OAI-PMH'),
+        'mets' => t('OAI-PMH METS'),
       ),
       '#default_value' => $transformers,
     );
