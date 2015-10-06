@@ -83,7 +83,7 @@ function edoweb_field_menu() {
  */
 function edoweb_entity_label($entity_type, $entity_id) {
   $edoweb_api_host = variable_get('edoweb_api_host');
-  $url = _edoweb_expand_curie($entity_id);
+  $url = urlencode(_edoweb_expand_curie($entity_id));
   $user = variable_get('edoweb_etikett_user');
   $pass = variable_get('edoweb_etikett_password');
   $context = stream_context_create(array(
