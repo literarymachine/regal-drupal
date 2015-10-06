@@ -615,6 +615,44 @@ function edoweb_repository_configuration_form() {
     ),
     '#default_value' => variable_get('available_facets', array('creator.@id')),
   );
+  
+  $entity_table_headers = array();
+  foreach (_edoweb_entity_table_headers() as $field => $column) {
+    $entity_table_headers[$field] = $column['data'];
+  }
+  
+  $form['editor_entity_table_headers'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Dokument-Tabellenheader für Bearbeiter'),
+    '#options' => $entity_table_headers,
+    '#default_value' => variable_get('editor_entity_table_headers', array('field_edoweb_identifier_ht')),
+  );
+  
+  $form['user_entity_table_headers'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Dokument-Tabellenheader für Endnutzer'),
+    '#options' => $entity_table_headers,
+    '#default_value' => variable_get('user_entity_table_headers', array('field_edoweb_identifier_ht')),
+  );
+  
+  $authority_table_headers = array();
+  foreach (_edoweb_authority_table_headers() as $field => $column) {
+    $authority_table_headers[$field] = $column['data'];
+  }
+  
+  $form['editor_authority_table_headers'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Normdaten-Tabellenheader für Bearbeiter'),
+    '#options' => $authority_table_headers,
+    '#default_value' => variable_get('editor_authority_table_headers', array('field_gnd_identifier')),
+  );
+  
+  $form['user_authority_table_headers'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Normdaten-Tabellenheader für Bearbeiter'),
+    '#options' => $authority_table_headers,
+    '#default_value' => variable_get('user_authority_table_headers', array('field_gnd_identifier')),
+  );
 
   return system_settings_form($form);
 
@@ -821,6 +859,7 @@ function edoweb_basic_search_entities(
   $list_noterm = TRUE, $add_links = FALSE, $sortable = TRUE,
   $view_mode = 'default', $fulltext_option = false
 ) {
+
   static $search_count = 0;
   if (array_key_exists('query', $_GET)
       && !empty($_GET['query'])
@@ -892,6 +931,7 @@ function edoweb_basic_search_entities(
   }
 
   if (! (@$childlevel = $query['childlevel'])) {
+    //FIXME: this overwrites person etc bundles!!!
     $efq->entityCondition('bundle', array('monograph', 'journal', 'webpage'));
   }
 
@@ -907,11 +947,140 @@ function edoweb_basic_search_entities(
   return $content;
 }
 
+function _edoweb_entity_table_headers() {
+  return array(
+    'field_edoweb_identifier_ht' => array(
+      'data' => t('ID'),
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_identifier_ht',
+        'column' => 'value',
+      ),
+    ),
+    'field_edoweb_title' => array(
+      'data' => 'Titel',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_title',
+        'column' => 'value',
+      ),
+    ),
+    '_edoweb_compact_view' => array(
+      'data' => t('Kurzansicht'),
+      'format' => '_edoweb_compact_view',  
+    ),
+    'field_edoweb_issued' => array(
+      'data' => t('Issued'),
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_issued',
+        'column' => 'value',
+      ),
+    ),
+    'objectTimestamp' => array(
+      'data' => t('Updated'),
+      'type' => 'property',
+      'specifier' => 'objectTimestamp',
+      'format' => '_edoweb_format_date',
+      //'sort' => $init_sort ? 'desc' : null,
+    ),
+    '_edoweb_format_access_icons' => array(
+      'data' => t('Zugriff'),
+      'format' => '_edoweb_format_access_icons',
+    ),
+    '_edoweb_link_lastmodified' => array(
+      'data' => t('Zuletzt hinzugefügtes Label'),
+      'format' => '_edoweb_link_lastmodified',
+    ),
+  );
+}
+
+function _edoweb_authority_table_headers() {
+  return array(
+    'field_gnd_identifier' => array(
+      'data' => 'ID / Notation',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_identifier',
+        'column' => 'value',
+      ),
+    ),
+    'field_gnd_name' => array(
+      'data' => 'Name / Titel',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_name',
+        'column' => 'value',
+      ),
+    ),
+    '_edoweb_compact_view' => array(
+      'data' => t('Kurzansicht'),
+      'format' => '_edoweb_compact_view',  
+    ),
+    '_edoweb_format_subject' => array(
+      'data' => 'Quelle',
+      'type' => 'property',
+      'specifier' => 'remote_id',
+      'format' => '_edoweb_format_subject',
+    ),
+    'field_gnd_date_of_establishment' => array(
+      'data' => 'Gründungsdatum',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_date_of_establishment',
+        'column' => 'value',
+      ),
+    ),
+    'field_gnd_date_of_termination' => array(
+      'data' => 'Auflösungsdatum',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_date_of_termination',
+        'column' => 'value',
+      ),
+    ),
+    'field_gnd_profession' => array(
+      'data' => 'Beruf',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_profession',
+        'column' => 'value',
+      ),
+    ),
+    'field_gnd_date_of_birth' => array(
+      'data' => 'Geburtsdatum',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_date_of_birth',
+        'column' => 'value',
+      ),
+    ),
+    'field_gnd_date_of_death' => array(
+      'data' => 'Todesdatum',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_date_of_death',
+        'column' => 'value',
+      ),
+    ),
+  );
+}
+
 /*
  * Returns table header
  */
 function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false) {
+
   $columns = array();
+  
+  if (user_access('edit any edoweb_basic entity')) {
+    $entity_table_headers = variable_get('editor_entity_table_headers', array('field_edoweb_identifier_ht'));
+    $authority_table_headers = variable_get('editor_authority_table_headers', array('field_gnd_identifier'));
+  } else {
+    $entity_table_headers = variable_get('user_entity_table_headers', array('field_edoweb_identifier_ht'));
+    $authority_table_headers = variable_get('user_authority_table_headers', array('field_gnd_identifier')); 
+  }
+
   switch ($bundle_type) {
     case 'monograph':
     case 'journal':
@@ -924,39 +1093,11 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'version':
     case 'generic':
     case 'part':
-      $columns = array(
-        array(
-          'data' => t('ID'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_identifier_ht',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => t('Issued'),
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_edoweb_issued',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => t('Updated'),
-          'type' => 'property',
-          'specifier' => 'objectTimestamp',
-          'format' => '_edoweb_format_date',
-          'sort' => $init_sort ? 'desc' : null,
-        ),
-        array(
-          'data' => t('Zugriff'),
-          'format' => '_edoweb_format_access_icons',
-        ),
-        array(
-          'data' => t('Zuletzt hinzugefügtes Label'),
-          'format' => '_edoweb_link_lastmodified',
-        ),
-      );
+      foreach (_edoweb_entity_table_headers() as $field => $column) {
+        if ($entity_table_headers[$field]) {
+          $columns[] = $column;
+        }
+      }
       break;
     case 'person':
     case 'subject':
@@ -965,84 +1106,11 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'work':
     case 'place':
     case 'authority_resource':
-      $columns = array(
-        array(
-          'data' => 'ID / Notation',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_identifier',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => 'Quelle',
-          'type' => 'property',
-          'specifier' => 'remote_id',
-          'format' => '_edoweb_format_subject',
-        ),
-        array(
-          'data' => 'Gründungsdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_establishment',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => 'Auflösungsdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_termination',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => 'Beruf',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_profession',
-            'column' => 'value',
-          ),
-        ),
-      );
-      if (!user_is_anonymous()) {
-        $columns[] = array(
-          'data' => 'Geburtsdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_birth',
-            'column' => 'value',
-          ),
-        );
-        $columns[] = array(
-          'data' => 'Todesdatum',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_date_of_death',
-            'column' => 'value',
-          ),
-        );
+      foreach (_edoweb_authority_table_headers() as $field => $column) {
+        if ($authority_table_headers[$field]) {
+          $columns[] = $column;
+        }
       }
-      break;
-    case 'subject':
-      $columns = array(
-        array(
-          'data' => 'Title',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_name',
-            'column' => 'value',
-          ),
-        ),
-        array(
-          'data' => 'Identifier',
-          'type' => 'field',
-          'specifier' => array(
-            'field' => 'field_gnd_identifier',
-            'column' => 'value',
-          ),
-        ),
-      );
       break;
     default:
       $columns = array(
@@ -1055,11 +1123,10 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
           ),
         ),
       );
+
   }
 
   // Add fixed columns, independant of bundle type
-  array_unshift($columns, t('Titel'));
-  array_push($columns, t('Type'));
   array_push($columns, t('Operations'));
 
   return $columns;
@@ -1080,7 +1147,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
   );
 
   $rows = array();
-  $columns = array_slice($header, 1, sizeof($header) - 3);
+  $columns = $header;
 
   foreach ($entities as $i => $entity) {
 
@@ -1099,22 +1166,7 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
       'data-curie' => $curie,
       'data-updated' => $entity->objectTimestamp
     );
-    if ('compact' == $view_mode) {
-      $entity_view = edoweb_basic_view($entity, 'compact');
-      $row['data'][] = drupal_render($entity_view);
-    } else {
-      $row['data'][] = l(
-        entity_label(EDOWEB_ENTITY_TYPE, $entity),
-        'resource/' . $curie,
-        array(
-          'attributes' => array(
-            'resource' => _edoweb_expand_curie($curie),
-            'data-curie' => $curie,
-            'class' => array('resolved')
-          )
-        )
-      );
-    }
+    
     foreach ($columns as $column) {
       $property = null;
       $value = null;
@@ -1171,12 +1223,14 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
       ));
     }
 
+    /*
     $row['data'][] = sprintf(
       '<span class="entity-label-%s">%s</span>',
       $entity->bundle_type,
       edoweb_basic_bundle_name($entity->bundle_type)
     );
     $row['data'][] = $operation_elements;
+    */
     $rows[] = $row;
   }
 
@@ -2697,6 +2751,11 @@ function _edoweb_link_lastmodified($entity) {
       $href, array('attributes' => array('class' => array('edoweb lastmodified')))
     );
   }
+}
+
+function _edoweb_compact_view($entity) {
+  $entity_view = edoweb_basic_view($entity, 'compact');
+  return drupal_render($entity_view);
 }
 
 function _edoweb_http_request($request_url, $http_options) {
