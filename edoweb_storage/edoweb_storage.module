@@ -259,6 +259,34 @@ function edoweb_account_configuration_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  // Text field for etikett user.
+  $form['edoweb_etikett_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_etikett_user',
+      'etikett'
+    ),
+    '#title' => t('Etikett user'),
+    '#description' => t('The username to authorize with for etikett.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for etikett password.
+  $form['edoweb_etikett_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_etikett_password',
+      'etikett'
+    ),
+    '#title' => t('Etikett password'),
+    '#description' => t('The password to authorize with for etikett.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
   return system_settings_form($form);
 
 }
