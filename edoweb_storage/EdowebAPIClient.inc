@@ -661,8 +661,13 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $facet_order = array_key_exists('facet_order', $efq->metaData) ? $efq->metaData['facet_order'] : 'count';
     foreach (variable_get('available_facets') as $available_facet => $enabled) {
       if ($enabled) {
-        $field_name = current(explode('.', $available_facet));
-        $query['facets'][$field_name]['terms']['field'] = $available_facet;
+        $facet_field = explode('.', $available_facet);
+        $field_name = current($facet_field);
+        if (next($facet_field) == '@id') {
+          $query['facets'][$field_name]['terms']['script_field'] = "_source.?$field_name";
+        } else {
+          $query['facets'][$field_name]['terms']['field'] = $available_facet;
+        }
         $query['facets'][$field_name]['terms']['size'] = $facet_size;
         $query['facets'][$field_name]['terms']['order'] = $facet_order;
       }

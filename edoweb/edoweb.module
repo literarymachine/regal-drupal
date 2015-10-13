@@ -1296,29 +1296,27 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         // Don't add facets that are already applied to the list
         if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
           continue;
-        $params = drupal_get_query_parameters();
-        if (isset($params['page'])) {
-          unset($params['page']);
-        }
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
-        $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
         if ($is_ref) {
-          $title = $facet_entity_uri;
+          $facet_object = es_facet_object($facet_entity_uri);
+          $title = $facet_object['prefLabel'];
+          $facet_entity_uri = $facet_object['@id'];
         } else if ($is_user) {
           $title = _edoweb_user_name($facet_entity_uri);
         } else {
           $title = _edoweb_map_string("$facet_entity_uri");
         }
+        $params = drupal_get_query_parameters();
+        if (isset($params['page'])) {
+          unset($params['page']);
+        }
+        $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
         $apply_facet_link = l(
           $title, current_path(),
           array(
             'query' => $params,
-            'attributes' => $is_ref
-              ? array(
-                'data-curie' => _edoweb_compact_uri($facet_entity_uri),
-                'class' => array('facet')
-              ) : array(),
+            'attributes' => array(),
           )
         ) . " <span>($facet_entity_count)</span>";
         $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
@@ -2336,7 +2334,9 @@ function edoweb_basic_browse($jsonld_property) {
     $facet_entity_uri = $term->term;
     $facet_entity_count = $term->count;
     if ($is_ref) {
-      $title = $facet_entity_uri;
+      $facet_object = es_facet_object($facet_entity_uri);
+      $title = $facet_object['prefLabel'];
+      $facet_entity_uri = $facet_object['@id'];
     } else if ($is_user) {
       $title = _edoweb_user_name($facet_entity_uri);
     } else {
@@ -2348,11 +2348,7 @@ function edoweb_basic_browse($jsonld_property) {
       $title, '/resource/',
       array(
         'query' => $params,
-        'attributes' => $is_ref
-          ? array(
-            'data-curie' => _edoweb_compact_uri($facet_entity_uri),
-            'class' => array('facet')
-          ) : array(),
+        'attributes' => array(),
       )
     ) . " <span>($facet_entity_count)</span>";
     $items[] = array(
@@ -2367,6 +2363,22 @@ function edoweb_basic_browse($jsonld_property) {
     'attributes' => array(),
   ));
 
+}
+
+function es_facet_object($string) {
+  $string = substr($string, 1, -1);
+  $regex = '/(?<=\s|\A)([^\s=]+)=(.*?)(?=(?:\s[^\s=]+=|$))/';
+  $matches = array();
+  if (preg_match_all($regex, $string, $matches)) {
+    $result = array();
+    foreach ($matches[0] as $i => $key_value) {
+      list($key, $value) = explode('=', $key_value, 2);
+      $result[$key] = ($i + 1 == count($matches[0])) ? $value : substr($value, 0, -1);
+    }
+    return $result;
+  } else {
+    return $string;
+  }
 }
 
 /**
