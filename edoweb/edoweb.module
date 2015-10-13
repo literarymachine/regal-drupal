@@ -80,6 +80,8 @@ function edoweb_init() {
     );
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.rdfquery.rdfa.min-1.0.js');
     drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery.url.js');
+    drupal_add_js(drupal_get_path('module', 'edoweb') . '/jquery-listnav.js');
+    drupal_add_css(drupal_get_path('module', 'edoweb') . '/listnav.css');
     drupal_add_css('https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css', array('type' => 'external'));
   }
 }
