@@ -1420,6 +1420,12 @@ function _edoweb_map_string($string) {
       return t('restricted');
     case 'remote':
       return t('remote');
+    case 'institution':
+      return t('institution');
+    case 'type':
+      return t('type');
+    case 'medium':
+      return t('medium');
     default:
       return $string;
   }
