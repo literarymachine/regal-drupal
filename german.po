@@ -931,6 +931,15 @@ msgstr "Erfasser"
 msgid "lastModifiedBy"
 msgstr "Letzter Bearbeiter"
 
+msgid "medium"
+msgstr "Medium"
+
+msgid "type"
+msgstr "Publikationstyp"
+
+msgid "institution"
+msgstr "Institution"
+
 #~ msgid "The entity %id has been reloaded."
 #~ msgstr "Das Objekt %id wurde neu geladen."
 
