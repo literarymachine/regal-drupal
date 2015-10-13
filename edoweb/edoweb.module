@@ -1236,21 +1236,6 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
       $is_user = ('createdBy' == $jsonld_property
           || 'lastModifiedBy' == $jsonld_property);
       foreach ($facet as $key => $value) {
-        // Link to remove facet
-        $params = drupal_get_query_parameters();
-        unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
-        if (isset($params['page'])) {
-          unset($params['page']);
-        }
-        if ($is_ref) {
-          $item = '<span data-curie="' .  _edoweb_compact_uri($value) .  '" class="facet">' . $value .  '</span>';
-        } else if ($is_user) {
-          $item = '<span>' . _edoweb_user_name($value) . '</span>';
-        } else {
-          $item = '<span>' . _edoweb_map_string($value) . '</span>';
-        }
-        $item .= l(t(' [x]'), current_path(), array('query' => $params));
-        $content['filters'][$jsonld_property]['#items'][$value] = $item;
         // Add facet to query
         if ('contentType' == $jsonld_property) {
           $efq->entityCondition('bundle', array($value));
@@ -1293,9 +1278,6 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
       $is_user = ('createdBy' == $jsonld_property
           || 'lastModifiedBy' == $jsonld_property);
       foreach ($facet->terms as $term) {
-        // Don't add facets that are already applied to the list
-        if (isset($content['filters'][$jsonld_property]['#items'][$term->term]))
-          continue;
         $facet_entity_uri = $term->term;
         $facet_entity_count = $term->count;
         if ($is_ref) {
@@ -1307,19 +1289,32 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         } else {
           $title = _edoweb_map_string("$facet_entity_uri");
         }
-        $params = drupal_get_query_parameters();
-        if (isset($params['page'])) {
-          unset($params['page']);
+        // Check if facet is active
+        if ($active_facets && array_key_exists($jsonld_property, $active_facets)
+            && in_array($facet_entity_uri, $active_facets[$jsonld_property])) {
+          // Link to remove facet
+          $params = drupal_get_query_parameters();
+          unset($params['query'][$search_count]['facets'][$jsonld_property][$key]);
+          if (isset($params['page'])) {
+            unset($params['page']);
+          }
+          $remove_facet_link = $title . l(t(' [x]'), current_path(), array('query' => $params));
+          $content['filters'][$jsonld_property]['#items'][] = $remove_facet_link;
+        } else {
+          $params = drupal_get_query_parameters();
+          if (isset($params['page'])) {
+            unset($params['page']);
+          }
+          $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
+          $apply_facet_link = l(
+            $title, current_path(),
+            array(
+              'query' => $params,
+              'attributes' => array(),
+            )
+          ) . " <span>($facet_entity_count)</span>";
+          $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
         }
-        $params['query'][$search_count]['facets'][$jsonld_property][] = $facet_entity_uri;
-        $apply_facet_link = l(
-          $title, current_path(),
-          array(
-            'query' => $params,
-            'attributes' => array(),
-          )
-        ) . " <span>($facet_entity_count)</span>";
-        $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
       }
     }
   }
