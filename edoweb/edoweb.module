@@ -2360,7 +2360,7 @@ function edoweb_basic_browse($jsonld_property) {
     'items' => $items,
     'title' => _edoweb_map_string($jsonld_property),
     'type' => 'ul',
-    'attributes' => array(),
+    'attributes' => array('class' => array('listnav')),
   ));
 
 }
