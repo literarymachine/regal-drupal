@@ -57,6 +57,7 @@
            return $(a).text().toUpperCase().localeCompare($(b).text().toUpperCase());
         })
         $.each(listitems, function(idx, itm) { listnav.append(itm); });
+        $(this).listnav();
       });
 
     }
