@@ -1314,7 +1314,12 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
               'query' => $params,
               'attributes' => array(),
             )
-          ) . " <span>($facet_entity_count)</span>";
+          );
+          global $user;
+          if (!$is_user || ($is_user && $user->uid == $facet_entity_uri)
+              || in_array('edoweb_backend_admin', $user->roles)) {
+            $apply_facet_link .= " <span>($facet_entity_count)</span>";
+          }
           $content['filters']['facets'][$jsonld_property]['#items'][] = $apply_facet_link;
         }
       }
