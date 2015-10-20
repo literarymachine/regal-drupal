@@ -570,6 +570,12 @@ function edoweb_repository_configuration_form() {
 
   $form = array();
 
+  $form['urn_namespace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URN Namensraum'),
+    '#default_value' => variable_get('urn_namespace'),
+  );
+
   $form['access_md_default'] = array(
     '#type' => 'radios',
     '#title' => t('Standardsichtbarkeit von Metadaten'),
