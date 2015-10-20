@@ -2965,6 +2965,7 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       if (FALSE !== $widget_weight) {
         $field_instance['widget']['weight'] = $widget_weight;
         $field_instance['display']['default']['weight'] = $widget_weight;
+        $field_instance['display']['compact']['weight'] = $widget_weight;
         drupal_set_message("Setting widget weight for $field_name in
         bundle $bundle_type to $widget_weight");
       }
@@ -4032,4 +4033,45 @@ function edoweb_update_7158() {
 
 }
 
+/**
+ * Set weight for dce:creator and dce:contributor
+ */
+ function edoweb_update_7161() {
 
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'journal' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'webpage' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'article' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'generic' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+  );
+
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
