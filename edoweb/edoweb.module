@@ -2962,12 +2962,14 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $widget_weight = array_search(
         $field_name, array_keys($installed_instances[$bundle_type])
       );
+      //
       if (FALSE !== $widget_weight) {
         $field_instance['widget']['weight'] = $widget_weight;
-        $field_instance['display']['default']['weight'] = $widget_weight;
-        $field_instance['display']['compact']['weight'] = $widget_weight;
-        drupal_set_message("Setting widget weight for $field_name in
-        bundle $bundle_type to $widget_weight");
+        unset($field_instance['display']);
+        foreach (_edoweb_viewmodes_for($field_name) as $view_mode) {
+          $field_instance['display'][$view_mode]['weight'] = $widget_weight;
+          drupal_set_message("Setting widget weight for $field_name in bundle $bundle_type to $widget_weight for $view_mode");
+        }
       }
       $installed_instance = field_info_instance(
         EDOWEB_ENTITY_TYPE, $field_name, $bundle_type

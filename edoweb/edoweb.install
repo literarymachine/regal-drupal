@@ -52,8 +52,9 @@ function edoweb_install() {
       $defaults = _edoweb_field_instance_defaults($field_name);
       $field_instance += $defaults;
       $field_instance['widget']['weight'] = $i;
-      $field_instance['display']['default']['weight'] = $i;
-      $field_instance['display']['compact']['weight'] = $i;
+      foreach (_edoweb_viewmodes_for($field_name) as $view_mode) {
+        $field_instance['display'][$view_mode]['weight'] = $i;
+      }
       field_create_instance($field_instance);
       $i++;
     }
@@ -2396,6 +2397,15 @@ function _edoweb_installed_permissions() {
       EDOWEB_ENTITY_TYPE . ' entity js read',
     ),
   );
+}
+
+function _edoweb_viewmodes_for($field_name) {
+  $view_modes = array('default' => array());
+  $defaults = _edoweb_field_instance_defaults($field_name);
+  if (array_key_exists('display', $defaults)) {
+    $view_modes = array_merge($view_modes, $defaults['display']);
+  }
+  return array_keys($view_modes);
 }
 
 /**
