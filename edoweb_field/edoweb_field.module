@@ -329,9 +329,22 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         } else {
           $attributes['class'][] = 'resolved';
         }
+        $query = array();
+        if (_is_edoweb_entity($curie)) {
+          console_log($curie);
+          $href = 'resource/' . $curie;
+        } else {
+          $facet_field = explode('.', _field_name_to_jsonld_key($field['field_name']));
+          $field_index = current($facet_field);
+          $href = "resource";
+          $query = array("query[0][facets][$field_index][0]" => $item['value']);
+        }
         $elements[$delta] = array(
-          '#markup' => l($item['label'], 'resource/' . $curie,
-            array('attributes' => $attributes)
+          '#markup' => l($item['label'], $href,
+            array(
+              'attributes' => $attributes,
+              'query' => $query,
+            )
           ),
         );
       }

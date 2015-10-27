@@ -570,6 +570,12 @@ function edoweb_repository_configuration_form() {
 
   $form = array();
 
+  $form['urn_namespace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URN Namensraum'),
+    '#default_value' => variable_get('urn_namespace'),
+  );
+
   $form['access_md_default'] = array(
     '#type' => 'radios',
     '#title' => t('Standardsichtbarkeit von Metadaten'),
@@ -2962,11 +2968,14 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $widget_weight = array_search(
         $field_name, array_keys($installed_instances[$bundle_type])
       );
+      //
       if (FALSE !== $widget_weight) {
         $field_instance['widget']['weight'] = $widget_weight;
-        $field_instance['display']['default']['weight'] = $widget_weight;
-        drupal_set_message("Setting widget weight for $field_name in
-        bundle $bundle_type to $widget_weight");
+        unset($field_instance['display']);
+        foreach (_edoweb_viewmodes_for($field_name) as $view_mode) {
+          $field_instance['display'][$view_mode]['weight'] = $widget_weight;
+          drupal_set_message("Setting widget weight for $field_name in bundle $bundle_type to $widget_weight for $view_mode");
+        }
       }
       $installed_instance = field_info_instance(
         EDOWEB_ENTITY_TYPE, $field_name, $bundle_type
@@ -4056,6 +4065,47 @@ function edoweb_update_7163() {
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
+}
+
+/**
+ * Set weight for dce:creator and dce:contributor
+ */
+ function edoweb_update_7161() {
+
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'journal' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'webpage' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'article' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'generic' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+  );
+
+  _update_edoweb_installed_instances($updated_instances);
   _update_rdf_mapping();
 
 }
