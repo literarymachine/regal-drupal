@@ -112,13 +112,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function addURN($entity) {
     list($namespace, $id) = explode(':', $entity->remote_id);
-    $snid = 'hbz:929:02';
     $http_url = sprintf(
       '%s/utils/addUrn?namespace=%s&id=%s&snid=%s',
       $this->__edoweb_api_host,
       $namespace,
       $id,
-      $snid
+      variable_get('urn_namespace', 'urn:uuid')
     );
     return $this->_http_post($http_url);
   }
