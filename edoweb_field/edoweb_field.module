@@ -330,7 +330,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
           $attributes['class'][] = 'resolved';
         }
         $elements[$delta] = array(
-          '#markup' => _get_edoweb_url($item['value'], $item['label'], $attributes)
+          '#markup' => _get_edoweb_url($item['label'], $item['value'], $attributes)
         );
       }
       break;

@@ -625,14 +625,14 @@ function edoweb_repository_configuration_form() {
     '#type' => 'checkboxes',
     '#title' => t('Dokument-Tabellenheader für Bearbeiter'),
     '#options' => $entity_table_headers,
-    '#default_value' => variable_get('editor_entity_table_headers', array('field_edoweb_identifier_ht')),
+    '#default_value' => variable_get('editor_entity_table_headers', _edoweb_entity_table_headers_defaults()),
   );
   
   $form['user_entity_table_headers'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Dokument-Tabellenheader für Endnutzer'),
     '#options' => $entity_table_headers,
-    '#default_value' => variable_get('user_entity_table_headers', array('field_edoweb_identifier_ht')),
+    '#default_value' => variable_get('user_entity_table_headers',  _edoweb_entity_table_headers_defaults()),
   );
   
   $authority_table_headers = array();
@@ -644,14 +644,14 @@ function edoweb_repository_configuration_form() {
     '#type' => 'checkboxes',
     '#title' => t('Normdaten-Tabellenheader für Bearbeiter'),
     '#options' => $authority_table_headers,
-    '#default_value' => variable_get('editor_authority_table_headers', array('field_gnd_identifier')),
+    '#default_value' => variable_get('editor_authority_table_headers',  _edoweb_authority_table_headers_defaults()),
   );
   
   $form['user_authority_table_headers'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Normdaten-Tabellenheader für Endnutzer'),
     '#options' => $authority_table_headers,
-    '#default_value' => variable_get('user_authority_table_headers', array('field_gnd_identifier')),
+    '#default_value' => variable_get('user_authority_table_headers', _edoweb_authority_table_headers_defaults()),
   );
 
   return system_settings_form($form);
@@ -947,16 +947,19 @@ function edoweb_basic_search_entities(
   return $content;
 }
 
+function _edoweb_entity_table_headers_defaults() {
+  return array(
+    '_edoweb_compact_view',
+    'field_edoweb_issued',
+    'objectTimestamp',
+    '_edoweb_format_access_icons',
+    '_edoweb_link_lastmodified',
+    'bundle_type',
+  );
+}
+
 function _edoweb_entity_table_headers($init_sort = null) {
   return array(
-    'field_edoweb_identifier_ht' => array(
-      'data' => t('ID'),
-      'type' => 'field',
-      'specifier' => array(
-        'field' => 'field_edoweb_identifier_ht',
-        'column' => 'value',
-      ),
-    ),
     'field_edoweb_title' => array(
       'data' => 'Titel',
       'type' => 'field',
@@ -964,6 +967,16 @@ function _edoweb_entity_table_headers($init_sort = null) {
         'field' => 'field_edoweb_title',
         'column' => 'value',
       ),
+      'format' => '_get_edoweb_url',
+    ),
+    'field_edoweb_identifier_ht' => array(
+      'data' => t('ID'),
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_identifier_ht',
+        'column' => 'value',
+      ),
+      'format' => '_get_external_url',
     ),
     '_edoweb_compact_view' => array(
       'data' => t('Kurzansicht'),
@@ -995,19 +1008,30 @@ function _edoweb_entity_table_headers($init_sort = null) {
       'type' => 'generated',
       'format' => '_edoweb_link_lastmodified',
     ),
+    'bundle_type' => array(
+      'data' => t('Objektart'),
+      'type' => 'property',
+      'specifier' => 'bundle_type',
+      'format' => '_edoweb_format_bundle_name',
+    ),
+  );
+}
+
+function _edoweb_authority_table_headers_defaults() {
+  return array(
+    'field_gnd_identifier',
+    'field_gnd_name',
+    '_edoweb_format_subject',
+    'field_gnd_date_of_establishment',
+    'field_gnd_date_of_termination',
+    'field_gnd_profession',
+    'field_gnd_date_of_birth',
+    'field_gnd_date_of_death'
   );
 }
 
 function _edoweb_authority_table_headers() {
   return array(
-    'field_gnd_identifier' => array(
-      'data' => 'ID / Notation',
-      'type' => 'field',
-      'specifier' => array(
-        'field' => 'field_gnd_identifier',
-        'column' => 'value',
-      ),
-    ),
     'field_gnd_name' => array(
       'data' => 'Name / Titel',
       'type' => 'field',
@@ -1015,6 +1039,16 @@ function _edoweb_authority_table_headers() {
         'field' => 'field_gnd_name',
         'column' => 'value',
       ),
+      'format' => '_get_edoweb_url',
+    ),
+    'field_gnd_identifier' => array(
+      'data' => 'ID / Notation',
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_gnd_identifier',
+        'column' => 'value',
+      ),
+      'format' => '_get_external_url',
     ),
     '_edoweb_compact_view' => array(
       'data' => t('Kurzansicht'),
@@ -1078,11 +1112,11 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
   $columns = array();
   
   if (user_access('edit any edoweb_basic entity')) {
-    $entity_table_headers = variable_get('editor_entity_table_headers', array('field_edoweb_identifier_ht'));
-    $authority_table_headers = variable_get('editor_authority_table_headers', array('field_gnd_identifier'));
+    $entity_table_headers = variable_get('editor_entity_table_headers', _edoweb_entity_table_headers_defaults());
+    $authority_table_headers = variable_get('editor_authority_table_headers', _edoweb_authority_table_headers_defaults());
   } else {
-    $entity_table_headers = variable_get('user_entity_table_headers', array('field_edoweb_identifier_ht'));
-    $authority_table_headers = variable_get('user_authority_table_headers', array('field_gnd_identifier')); 
+    $entity_table_headers = variable_get('user_entity_table_headers', _edoweb_entity_table_headers_defaults());
+    $authority_table_headers = variable_get('user_authority_table_headers', _edoweb_authority_table_headers_defaults()); 
   }
 
   switch ($bundle_type) {
@@ -1207,7 +1241,11 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
                   EDOWEB_ENTITY_TYPE, $entity, $property, array('value' => $value)
                 );
               }
-              $list_items[] = drupal_render($field_value);
+              if (isset($column['format'])) {
+                $list_items[] = $column['format'](drupal_render($field_value), $entity);
+              } else {
+                $list_items[] = drupal_render($field_value);
+              }
             } else if (isset($column['format'])) {
               $list_items[] = $column['format']($value, $entity);
             } else {
@@ -1533,10 +1571,10 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
     );
   } else {
-    $uri = entity_uri(EDOWEB_ENTITY_TYPE, $entity);
+    $link = _get_edoweb_url($entity->label($view_mode), $entity);
     $entity->content = array(
       '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
-                 . '<h1><a href="' . url($uri['path']) . '">' . $entity->label($view_mode) . '</a></h1>',
+                 . '<h1>' . $link . '</h1>',
       '#suffix' => "</div>",
     );
   }
@@ -2956,8 +2994,9 @@ function _edoweb_available_languages() {
   return $languages;
 }
 
-function _get_edoweb_url($entity, $label = null, $attributes = array()) {
+function _get_edoweb_url($label, $entity, $attributes = array()) {
   if (is_object($entity)) {
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
     $curie = $entity->remote_id;
   } else {
     $curie = $entity;
@@ -2966,6 +3005,14 @@ function _get_edoweb_url($entity, $label = null, $attributes = array()) {
   $query = array();
   if (_is_edoweb_entity($curie)) {
     $href = 'resource/' . $curie;
+  } else if ('lr:' == substr($curie, 0, 3)) {
+    if ($wrapper) {
+      $id = $wrapper->field_edoweb_identifier_ht->value();
+    } else {
+      $id = $label;
+    }
+    $attributes['target'] = '_blank';
+    $href = "http://okeanos-www.hbz-nrw.de/F/?func=find-c&ccl_term=IDN%3D{$id}";
   } else {
     $href = "resource";
     $query = array("query[0][term]" => '"' . $uri . '"');
@@ -2975,6 +3022,42 @@ function _get_edoweb_url($entity, $label = null, $attributes = array()) {
       'attributes' => $attributes,
       'query' => $query,
     )
+  );
+}
+
+function _get_external_url($label, $entity, $attributes = array()) {
+  if (is_object($entity)) {
+    $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
+    $curie = $entity->remote_id;
+  } else {
+    $curie = $entity;
+  }
+  $uri = _edoweb_expand_curie($curie);
+  if (_is_edoweb_entity($curie)) {
+    $href = 'resource/' . $curie;
+  } else if ('lr:' == substr($curie, 0, 3)) {
+    if ($wrapper) {
+      $id = $wrapper->field_edoweb_identifier_ht->value();
+    } else {
+      $id = $label;
+    }
+    $href = "http://okeanos-www.hbz-nrw.de/F/?func=find-c&ccl_term=IDN%3D{$id}";
+  } else {
+    $href = $uri;
+  }
+  $attributes['target'] = '_blank';
+  return l($label ? $label : $curie, $href,
+    array(
+      'attributes' => $attributes
+    )
+  );
+}
+
+function _edoweb_format_bundle_name($bundle) {
+  return sprintf(
+    '<span class="entity-label-%s">%s</span>',
+    $bundle,
+    edoweb_basic_bundle_name($bundle)
   );
 }
 
