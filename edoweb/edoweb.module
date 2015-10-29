@@ -4044,7 +4044,7 @@ function edoweb_update_7158() {
 /**
  * Add field for marcrel:red
  */
-function edoweb_update_7162() {
+function edoweb_update_7164() {
 
   $added_fields = array(
     'field_edoweb_red',
