@@ -2956,6 +2956,28 @@ function _edoweb_available_languages() {
   return $languages;
 }
 
+function _get_edoweb_url($entity, $label = null, $attributes = array()) {
+  if (is_object($entity)) {
+    $curie = $entity->remote_id;
+  } else {
+    $curie = $entity;
+  }
+  $uri = _edoweb_expand_curie($curie);
+  $query = array();
+  if (_is_edoweb_entity($curie)) {
+    $href = 'resource/' . $curie;
+  } else {
+    $href = "resource";
+    $query = array("query[0][term]" => '"' . $uri . '"');
+  }
+  return l($label ? $label : $curie, $href,
+    array(
+      'attributes' => $attributes,
+      'query' => $query,
+    )
+  );
+}
+
 function console_log($obj) {
   file_put_contents('php://stderr', date('Y-m-d H:i:s') . ': ' . print_r($obj, true) . "\n");
 }
