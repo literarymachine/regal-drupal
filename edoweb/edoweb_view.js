@@ -37,8 +37,8 @@
 
       // Process result listing tables
       $('table', context).not('.field-multiple-table').each(function() {
-        //Drupal.edoweb.hideEmptyTableColumns($(this));
-        //Drupal.edoweb.hideTableHeaders($(this));
+        Drupal.edoweb.hideEmptyTableColumns($(this));
+        Drupal.edoweb.hideTableHeaders($(this));
       });
 
       // Load entity-labels in facet list

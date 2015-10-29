@@ -649,7 +649,7 @@ function edoweb_repository_configuration_form() {
   
   $form['user_authority_table_headers'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Normdaten-Tabellenheader für Bearbeiter'),
+    '#title' => t('Normdaten-Tabellenheader für Endnutzer'),
     '#options' => $authority_table_headers,
     '#default_value' => variable_get('user_authority_table_headers', array('field_gnd_identifier')),
   );
@@ -947,7 +947,7 @@ function edoweb_basic_search_entities(
   return $content;
 }
 
-function _edoweb_entity_table_headers() {
+function _edoweb_entity_table_headers($init_sort = null) {
   return array(
     'field_edoweb_identifier_ht' => array(
       'data' => t('ID'),
@@ -967,6 +967,7 @@ function _edoweb_entity_table_headers() {
     ),
     '_edoweb_compact_view' => array(
       'data' => t('Kurzansicht'),
+      'type' => 'generated',
       'format' => '_edoweb_compact_view',  
     ),
     'field_edoweb_issued' => array(
@@ -982,14 +983,16 @@ function _edoweb_entity_table_headers() {
       'type' => 'property',
       'specifier' => 'objectTimestamp',
       'format' => '_edoweb_format_date',
-      //'sort' => $init_sort ? 'desc' : null,
+      'sort' => $init_sort ? 'desc' : null,
     ),
     '_edoweb_format_access_icons' => array(
       'data' => t('Zugriff'),
+      'type' => 'generated',
       'format' => '_edoweb_format_access_icons',
     ),
     '_edoweb_link_lastmodified' => array(
       'data' => t('Zuletzt hinzugefügtes Label'),
+      'type' => 'generated',
       'format' => '_edoweb_link_lastmodified',
     ),
   );
@@ -1015,6 +1018,7 @@ function _edoweb_authority_table_headers() {
     ),
     '_edoweb_compact_view' => array(
       'data' => t('Kurzansicht'),
+      'type' => 'generated',
       'format' => '_edoweb_compact_view',  
     ),
     '_edoweb_format_subject' => array(
@@ -1093,7 +1097,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'version':
     case 'generic':
     case 'part':
-      foreach (_edoweb_entity_table_headers() as $field => $column) {
+      foreach (_edoweb_entity_table_headers($init_sort) as $field => $column) {
         if ($entity_table_headers[$field]) {
           $columns[] = $column;
         }
