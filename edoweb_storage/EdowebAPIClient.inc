@@ -47,18 +47,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
 
     $http_response = $this->_http_get($http_url, 'application/json');
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to load resource @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
     $json = json_decode($http_response->data);
-    if (isset($json->transformer)) {
+    if ($json && isset($json->transformer)) {
       return $json->transformer;
     }
     return array();
@@ -122,26 +112,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
 
   public function addURN($entity) {
     list($namespace, $id) = explode(':', $entity->remote_id);
-    $snid = 'hbz:929:02';
     $http_url = sprintf(
       '%s/utils/addUrn?namespace=%s&id=%s&snid=%s',
       $this->__edoweb_api_host,
       $namespace,
       $id,
-      $snid
+      variable_get('urn_namespace', 'urn:uuid')
     );
-
-    $http_response = $this->_http_post($http_url);
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to generate URN for @id on @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    return TRUE;
+    return $this->_http_post($http_url);
   }
 
   public function addDOI($entity) {
@@ -150,18 +128,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-
-    $http_response = $this->_http_post($http_url);
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to generate DOI for @id on @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    return TRUE;
+    return $this->_http_post($http_url);
   }
 
   /*
@@ -184,23 +151,12 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     $http_post_data = _edoweb_storage_entity_serialize_ntriples(
       $entity, array('descriptive')
     );
-    header("Content-Type: text/plain");
     $http_url = sprintf(
       '%s/resource/%s/metadata',
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-    $http_response = $this->_http_post($http_url, $http_post_data);
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to save metadata for @id to @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    return TRUE;
+    return $this->_http_post($http_url, $http_post_data);
   }
 
   public function saveFiles($entity) {
@@ -245,19 +201,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         $this->__edoweb_api_host,
         $entity->remote_id
       );
-      $http_response = $this->_http_put($http_url, json_encode($parts), 'application/json');
-      if (200 != $http_response->code) {
-        watchdog('edoweb_storage', 'Unable to save parts for @id to @api.',
-          array(
-            '@id' => $entity->remote_id,
-            '@api' => variable_get('edoweb_api_host'),
-          )
-        );
-        return FALSE;
-      }
-      return TRUE;
+      return $this->_http_put($http_url, json_encode($parts), 'application/json');
     }
-    return FALSE;
   }
 
   public function saveResource($entity, $transformers = null) {
@@ -306,18 +251,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id = $remote_id;
 
     }
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to save @id to @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
-    return TRUE;
+    
+    return $http_response;
 
   }
 
@@ -335,17 +270,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-
-    $http_response = $this->_http_delete($http_url);
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to delete @id from @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return;
-    }
+    return $this->_http_delete($http_url);
   }
 
   public function index($entity) {
@@ -356,18 +281,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id,
       $entity->bundle_type
     );
-
-    $http_response = $this->_http_post($http_url);
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to index @id on @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-    return TRUE;
+    return $this->_http_post($http_url);
   }
 
   public function query(EntityFieldQuery $efq) {
@@ -407,19 +321,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $data['contentType'] = $entity->bundle_type;
     }
 
-    $http_response = $this->_http_patch($http_url, json_encode($data), 'application/json');
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to set access rights for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
-    return TRUE;
+    return $this->_http_patch($http_url, json_encode($data), 'application/json');
 
   }
 
@@ -432,17 +334,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
 
     $http_response = $this->_http_get($http_url);
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to get crawler configuration for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
     return json_decode($http_response->data, TRUE);
 
   }
@@ -455,19 +346,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $entity->remote_id
     );
 
-    $http_response = $this->_http_put($http_url, json_encode($conf), 'application/json');
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to set crawler configuration for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
-    return TRUE;
+    return $this->_http_put($http_url, json_encode($conf), 'application/json');
 
   }
 
@@ -480,17 +359,6 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
 
     $http_response = $this->_http_get($http_url);
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to get crawler configuration for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
     return json_decode($http_response->data, TRUE);
 
   }
@@ -502,45 +370,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       $this->__edoweb_api_host,
       $entity->remote_id
     );
-
-    $http_response = $this->_http_post($http_url);
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to start crawl for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
-    return TRUE;
-
-  }
-
-  public function getCrawlerStatus($entity) {
-
-    $http_url = sprintf(
-      '%s/resource/%s/status',
-      $this->__edoweb_api_host,
-      $entity->remote_id
-    );
-
-    $http_response = $this->_http_get($http_url);
-
-    if (200 != $http_response->code) {
-      watchdog('edoweb_storage', 'Unable to get crawler configuration for @id at @api.',
-        array(
-          '@id' => $entity->remote_id,
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
-    }
-
-    return json_decode($http_response->data, TRUE);
-
+    return $this->_http_post($http_url);
+    
   }
 
   protected function _query_lobid(EntityFieldQuery $efq, $page = 0) {
@@ -652,6 +483,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
   }
 
   protected function _query_elasticsearch(EntityFieldQuery $efq, $page = 0) {
+
     $index = user_access('edit any edoweb_basic entity')
       ? variable_get('edoweb_api_namespace')
       : 'public_' . variable_get('edoweb_api_namespace');
@@ -673,12 +505,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
     );
 
     if (200 != $http_response->code || !isset($http_response->data)) {
-      watchdog('edoweb_storage', 'Unable to execute query on @api.',
-        array(
-          '@api' => variable_get('edoweb_api_host'),
-        )
-      );
-      return FALSE;
+      return array();
     }
 
     $json_response = json_decode($http_response->data);
@@ -773,6 +600,14 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $query['query']['filtered']['filter']['bool']['must'][]['terms']
             ['isDescribedBy.createdBy'] = $uids;
           break;
+        case 'mid':
+          $mids = $property_condition['value'];
+          if (!is_array($mids)) {
+            $mids = array($mids);
+          }
+          $query['query']['filtered']['filter']['bool']['must'][]['terms']
+            ['isDescribedBy.lastModifiedBy'] = $mids;
+          break;
       }
     }
 
@@ -781,11 +616,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         ? 'and' : $field_condition['delta_group'];
       $field_name = $field_condition['field']['field_name'];
       $field_info = field_info_field($field_name);
-      if ('edoweb_ld_reference' == $field_info['type']) {
-        $json_ld_property = _field_name_to_jsonld_key($field_name) .  '.@id';
-      } else {
-        $json_ld_property = _field_name_to_jsonld_key($field_name);
-      }
+      $json_ld_property = _field_name_to_jsonld_key($field_name);
       $field_value = $field_condition['value'];
       if ($bool_op == 'and') {
         $query['query']['filtered']['filter']['bool']['must'][]['term'][$json_ld_property] = "$field_value";
@@ -805,6 +636,8 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
           $property_name = $sort['specifier'];
           if ($property_name == 'updated') {
             $jsonld_property = 'modified';
+          } else if ($property_name == 'objectTimestamp') {
+            $jsonld_property = 'objectTimestamp';
           }
           break;
         case 'field':
@@ -823,22 +656,34 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
       }
     }
 
-    $query['facets']['creator']['terms']['field']
-      = 'creator.@id';
-    $query['facets']['contentType']['terms']['field']
-      = 'contentType';
-    $query['facets']['subject']['terms']['field']
-      = 'subject.@id';
-    $query['facets']['issued']['terms']['field']
-      = 'issued';
+    $facet_size = array_key_exists('facet_size', $efq->metaData) ? $efq->metaData['facet_size'] : 10;
+    $facet_order = array_key_exists('facet_order', $efq->metaData) ? $efq->metaData['facet_order'] : 'count';
+    foreach (variable_get('available_facets') as $available_facet => $enabled) {
+      if ($enabled) {
+        $facet_field = explode('.', $available_facet);
+        $field_name = current($facet_field);
+        if (next($facet_field) == '@id') {
+          $query['facets'][$field_name]['terms']['script_field'] = "_source.?$field_name";
+        } else {
+          $query['facets'][$field_name]['terms']['field'] = $available_facet;
+        }
+        $query['facets'][$field_name]['terms']['size'] = $facet_size;
+        $query['facets'][$field_name]['terms']['order'] = $facet_order;
+      }
+    }
 
     global $user;
     if (in_array('edoweb_backend_admin', $user->roles)
         || in_array('edoweb_backend_user', $user->roles)) {
-      $query['facets']['createdBy']['terms']['field']
-        = 'isDescribedBy.createdBy';
+      $query['facets']['createdBy']['terms'] = array(
+        'field' => 'isDescribedBy.createdBy',
+        'size' => 99,
+      );
+      $query['facets']['lastModifiedBy']['terms'] = array(
+        'field' => 'isDescribedBy.lastModifiedBy',
+        'size' => 99,
+      );
     }
-
     return json_encode($query);
   }
 
@@ -955,6 +800,7 @@ class EdowebAPIClient implements EdowebAPIClientInterface {
         "Expect: 100-continue",
         "Content-Type: multipart/form-data; boundary={$boundary}", // change Content-Type
         "Authorization: " . _get_api_auth_header(),
+        "UserIp: " . $_SERVER['REMOTE_ADDR'],
       ),
     );
 

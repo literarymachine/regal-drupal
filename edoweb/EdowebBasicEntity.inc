@@ -58,7 +58,7 @@ class EdowebBasicEntity extends Entity {
       : null;
   }
 
-  public function label() {
+  public function label($view_mode = 'full') {
     $label_fields = array();
 
     switch ($this->bundle_type) {
@@ -71,7 +71,16 @@ class EdowebBasicEntity extends Entity {
       case 'file':
       case 'webpage':
       case 'version':
-        $label_fields[] = 'field_edoweb_title';
+      case 'part':
+        if ('compact' == $view_mode) {
+          foreach (variable_get('compact_view_title_fields') as $field => $enabled) {
+            if ($enabled) {
+              $label_fields[] = $field;
+            }
+          }
+        } else {
+          $label_fields[] = 'field_edoweb_title';
+        }
         break;
       case 'person':
       case 'corporate_body':
@@ -94,7 +103,19 @@ class EdowebBasicEntity extends Entity {
     foreach ($label_fields as $label_field) {
       try {
         $title_value = $wrapper->$label_field->value();
-        if ($title_value) $title_values[] = $title_value;
+        $values = array();
+        if (is_array($title_value)) {
+          foreach($title_value as $value) {
+            if (is_array($value)) {
+              $values[] = $value['label'];
+            } else {
+              $values[] = $value;
+            }
+          }
+        } else {
+          $values[] = $title_value;
+        }
+        if ($title_value) $title_values[] = implode(', ', $values);
       } catch (EntityMetadataWrapperException $e) {
         // Field not available, ignore
       }
@@ -102,7 +123,7 @@ class EdowebBasicEntity extends Entity {
 
     return (empty($title_values) && isset($this->remote_id))
       ? _edoweb_expand_curie($this->remote_id)
-      : implode(' | ', $title_values);
+      : implode(' / ', $title_values);
   }
 
 }

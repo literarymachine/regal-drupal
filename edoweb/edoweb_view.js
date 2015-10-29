@@ -49,6 +49,17 @@
       // Resolve last modified child object label
       Drupal.edoweb.last_modified_label(context);
 
+      // Sort & load listnav
+      $('ul.listnav', context).each(function() {
+        var listnav = $(this);
+        var listitems = listnav.children('li').get();
+        listitems.sort(function(a, b) {
+           return $(a).text().toUpperCase().localeCompare($(b).text().toUpperCase());
+        })
+        $.each(listitems, function(idx, itm) { listnav.append(itm); });
+        $(this).listnav();
+      });
+
     }
 
   };

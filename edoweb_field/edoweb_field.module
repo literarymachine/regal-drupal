@@ -82,8 +82,16 @@ function edoweb_field_menu() {
  * Label entity function for JavaScript callbacks.
  */
 function edoweb_entity_label($entity_type, $entity_id) {
-  if ($entity = entity_load_single($entity_type, $entity_id)) {
-    die(entity_label(EDOWEB_ENTITY_TYPE, $entity));
+  $edoweb_api_host = variable_get('edoweb_api_host');
+  $url = urlencode(_edoweb_expand_curie($entity_id));
+  $user = variable_get('edoweb_etikett_user');
+  $pass = variable_get('edoweb_etikett_password');
+  $context = stream_context_create(array(
+    'http' => array('header'  => "Authorization: Basic " . base64_encode("$user:$pass"))
+  ));
+  $label = file_get_contents("{$edoweb_api_host}/tools/etikett?url={$url}&column=label", false, $context);
+  if ($label) {
+    die($label);
   }
   header("HTTP/1.0 404 Not Found");
   exit();
@@ -96,6 +104,13 @@ function edoweb_entity_list($entity_type, $view_mode) {
   $ids = isset($_GET['ids']) && !empty($_GET['ids']) ? $_GET['ids'] : array();
   $columns = isset($_GET['columns']) ? $_GET['columns'] : 'generic';
   $entities = edoweb_basic_load_multiple($ids);
+  //foreach (array_diff($ids, array_keys($entities)) as $not_loaded) {
+  //  $entity = entity_create(EDOWEB_ENTITY_TYPE, array(
+  //    'remote_id' => $not_loaded,
+  //    'bundle_type' => $columns,
+  //  ));
+  //  array_push($entities, $entity);
+  //}
   if (empty($entities)) {
     header("HTTP/1.0 404 Not Found");
     exit();
@@ -119,6 +134,9 @@ function edoweb_options_list($field_name) {
 }
 
 function edoweb_field_preprocess_field(&$variables) {
+  if ($variables['element']['#field_name'] == 'field_edoweb_parallel') {
+    $variables['label'] = t($variables['label']);
+  }
   if ($variables['element']['#field_type'] == 'list_text') {
     foreach ($variables['element']['#items'] as $i => $item) {
       $variables['items'][$i]['#markup'] =
@@ -311,9 +329,22 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         } else {
           $attributes['class'][] = 'resolved';
         }
+        $query = array();
+        if (_is_edoweb_entity($curie)) {
+          console_log($curie);
+          $href = 'resource/' . $curie;
+        } else {
+          $facet_field = explode('.', _field_name_to_jsonld_key($field['field_name']));
+          $field_index = current($facet_field);
+          $href = "resource";
+          $query = array("query[0][facets][$field_index][0]" => $item['value']);
+        }
         $elements[$delta] = array(
-          '#markup' => l($item['label'], 'resource/' . $curie,
-            array('attributes' => $attributes)
+          '#markup' => l($item['label'], $href,
+            array(
+              'attributes' => $attributes,
+              'query' => $query,
+            )
           ),
         );
       }
@@ -348,12 +379,13 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
 }
 
 function _edoweb_download_link($mime_type, $uri) {
-  $extension = next(explode('/', $mime_type));
-  if (!file_exists(__DIR__ . "/$extension.svg")) {
+  //$extension = next(explode('/', $mime_type));
+  $extension = str_replace('/', '-', $mime_type);
+  if (!file_exists(__DIR__ . "/mimetypes/$extension.svg")) {
     $extension = 'unknown';
   }
   $icon_url = file_create_url(
-    drupal_get_path('module', 'edoweb_field') .  "/$extension.svg"
+    drupal_get_path('module', 'edoweb_field') .  "/mimetypes/$extension.svg"
   );
   $curie = _edoweb_compact_uri($uri);
   $link = base_path() . 'resource/' . $uri;

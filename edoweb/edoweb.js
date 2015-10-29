@@ -19,6 +19,9 @@
 
 (function($) {
 
+  var translations = {
+  }
+
   /**
    * Common behaviours
    */
@@ -55,13 +58,26 @@
           return /^.*, /.test(s);
         },
         format: function(s, table, cell, cellIndex) {
-          return s.match(/^.*, (.*)/)[1];
+          return $(cell).closest('tr').attr('data-updated');
         },
         type: 'text'
       });
+      
+      /**
+       * Translations, these have to be defined here (i.e. in a behaviour)
+       * in order for Drupal.t to pick them up.
+       */
+      translations['Add monograph'] = Drupal.t('Add monograph');
+      translations['Add journal'] = Drupal.t('Add journal');
+      translations['Add volume'] = Drupal.t('Add volume');
+      translations['Add issue'] = Drupal.t('Add issue');
+      translations['Add article'] = Drupal.t('Add article');
+      translations['Add file'] = Drupal.t('Add file');
+      translations['Add part'] = Drupal.t('Add part');
+      translations['Add webpage'] = Drupal.t('Add webpage');
+      translations['Add version'] = Drupal.t('Add version');
 
     }
-
   }
 
   /**
@@ -90,6 +106,15 @@
         if (prefix == curie_parts[0]) {
           return namespaces[prefix] + curie_parts[1];
         }
+      }
+    },
+    
+    t: function(string) {
+      console.log(string);
+      if (string in translations) {
+        return translations[string];
+      } else {
+        return string;
       }
     },
 
@@ -129,6 +154,19 @@
               }
               //TODO: check interference with tree navigation block
               //Drupal.attachBehaviors(result_table);
+              container.find('div.field-item>a[data-curie]').each(function() {
+                if (! result_table.find('tr[data-curie="' + $(this).attr('data-curie') + '"]').length) {
+                  var missing_entry = $(this).clone();
+                  var row = $('<tr />');
+                  result_table.find('thead').find('tr>th').each(function() {
+                    row.append($('<td />'));
+                  });
+                  missing_entry.removeAttr('data-target-bundle');
+                  row.find('td:eq(0)').append(missing_entry);
+                  row.find('td:eq(1)').append(missing_entry.attr('data-curie'));
+                  result_table.append(row);
+                }
+              });
               container.hide();
               container.after(result_table);
               for (label in operations) {
@@ -224,20 +262,23 @@
     Drupal.edoweb.navigateTo = function(href) {
       var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>');
       $('#content').html(throbber);
-      $.get(href, function(data, textStatus, jqXHR) {
-        throbber.remove();
-        var html = $(data);
-        Drupal.attachBehaviors(html);
-        $('#content').replaceWith(html.find('#content'));
-        $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
-        if ($('#messages').length) {
-          $('#messages').replaceWith(html.find('#messages'));
-        } else {
-          $('#header').after(html.find('#messages'));
+      $.ajax({
+        url: href,
+        complete: function(xmlHttp, status) {
+          throbber.remove();
+          var html = $(xmlHttp.response);
+          Drupal.attachBehaviors(html);
+          $('#content').replaceWith(html.find('#content'));
+          $('#breadcrumb').replaceWith(html.find('#breadcrumb'));
+          if ($('#messages').length) {
+            $('#messages').replaceWith(html.find('#messages'));
+          } else {
+            $('#header').after(html.find('#messages'));
+          }
+          document.title = html.filter('title').text();
+          $('.edoweb-tree li.active').removeClass('active');
+          $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
         }
-        document.title = html.filter('title').text();
-        $('.edoweb-tree li.active').removeClass('active');
-        $('.edoweb-tree li>a[href="' + location.pathname + '"]').closest('li').addClass('active');
       });
     };
     if (!this.attached) {

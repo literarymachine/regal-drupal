@@ -30,10 +30,18 @@
 function edoweb_storage_menu() {
   $items = array();
   $items['edoweb/config/storage'] = array(
-    'title' => 'Storage',
-    'description' => 'Configuration for the Edoweb Storage module.',
+    'title' => 'APIs',
+    'description' => 'Configuration for the regal storage module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edoweb_storage_configuration_form'),
+    'access arguments' => array('administer edoweb configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['edoweb/config/accounts'] = array(
+    'title' => 'Accounts',
+    'description' => 'Configuration for the regal API accounts.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('edoweb_account_configuration_form'),
     'access arguments' => array('administer edoweb configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -46,6 +54,8 @@ function edoweb_storage_menu() {
 */
 function edoweb_storage_configuration_form($form, &$form_state) {
 
+  $form = array();
+
   // Text field for api host.
   $form['edoweb_api_host'] = array(
     '#type' => 'textfield',
@@ -55,180 +65,6 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     ),
     '#title' => t('API host'),
     '#description' => t('The hostname or IP address of the API'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Fieldset for api accounts
-  $form['edoweb_api_accounts'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('API account settings'),
-  );
-
-  // Text field for api admin user.
-  $form['edoweb_api_accounts']['edoweb_admin_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_admin_user',
-      'edoweb-admin'
-    ),
-    '#title' => t('API admin user'),
-    '#description' => t('The username to authorize with for the admin role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api admin password.
-  $form['edoweb_api_accounts']['edoweb_admin_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_admin_password',
-      'admin'
-    ),
-    '#title' => t('API admin password'),
-    '#description' => t('The password to authorize with for the admin role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Text field for api editor user.
-  $form['edoweb_api_accounts']['edoweb_editor_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_editor_user',
-      'edoweb-editor'
-    ),
-    '#title' => t('API editor user'),
-    '#description' => t('The username to authorize with for the editor role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api editor password.
-  $form['edoweb_api_accounts']['edoweb_editor_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_editor_password',
-      'editor'
-    ),
-    '#title' => t('API editor password'),
-    '#description' => t('The password to authorize with for the editor role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Text field for api reader user.
-  $form['edoweb_api_accounts']['edoweb_reader_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_reader_user',
-      'edoweb-reader'
-    ),
-    '#title' => t('API reader user'),
-    '#description' => t('The username to authorize with for the reader role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api reader password.
-  $form['edoweb_api_accounts']['edoweb_reader_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_reader_password',
-      'reader'
-    ),
-    '#title' => t('API reader password'),
-    '#description' => t('The password to authorize with for the reader role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Text field for api subscriber user.
-  $form['edoweb_api_accounts']['edoweb_subscriber_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_subscriber_user',
-      'edoweb-subscriber'
-    ),
-    '#title' => t('API subscriber user'),
-    '#description' => t('The username to authorize with for the subscriber role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api subscriber password.
-  $form['edoweb_api_accounts']['edoweb_subscriber_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_subscriber_password',
-      'subscriber'
-    ),
-    '#title' => t('API subscriber password'),
-    '#description' => t('The password to authorize with for the subscriber role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Text field for api remote user.
-  $form['edoweb_api_accounts']['edoweb_remote_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_remote_user',
-      'edoweb-remote'
-    ),
-    '#title' => t('API remote user'),
-    '#description' => t('The username to authorize with for the remote role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api remote password.
-  $form['edoweb_api_accounts']['edoweb_remote_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_remote_password',
-      'remote'
-    ),
-    '#title' => t('API remote password'),
-    '#description' => t('The password to authorize with for the remote role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Text field for api anonymous user.
-  $form['edoweb_api_accounts']['edoweb_anonymous_user'] = array(
-    '#type' => 'textfield',
-    '#default_value' => variable_get(
-      'edoweb_anonymous_user',
-      'edoweb-anonymous'
-    ),
-    '#title' => t('API anonymous user'),
-    '#description' => t('The username to authorize with for the anonymous role.'),
-    '#size' => 40,
-    '#maxlength' => 120,
-    '#required' => TRUE,
-  );
-
-  // Password field for api anonymous password.
-  $form['edoweb_api_accounts']['edoweb_anonymous_password'] = array(
-    '#type' => 'password',
-    '#default_value' => variable_get(
-      'edoweb_anonymous_password',
-      'anonymous'
-    ),
-    '#title' => t('API anonymous password'),
-    '#description' => t('The password to authorize with for the anonymous role.'),
     '#size' => 40,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -276,21 +112,183 @@ function edoweb_storage_configuration_form($form, &$form_state) {
     '#required' => FALSE,
   );
 
-  // Checkbox for debugging mode
-  $form['edoweb_api_debug'] = array(
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('edoweb_api_debug'),
-    '#title' => t('Show debugging output'),
+  return system_settings_form($form);
+}
+
+function edoweb_account_configuration_form($form, &$form_state) {
+
+  $form = array();
+
+  // Text field for api admin user.
+  $form['edoweb_admin_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_admin_user',
+      'edoweb-admin'
+    ),
+    '#title' => t('API admin user'),
+    '#description' => t('The username to authorize with for the admin role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
   );
 
-  // Checkbox to disable caching
-  $form['edoweb_api_nocache'] = array(
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('edoweb_api_nocache'),
-    '#title' => t('Disable caching'),
+  // Password field for api admin password.
+  $form['edoweb_admin_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_admin_password',
+      'admin'
+    ),
+    '#title' => t('API admin password'),
+    '#description' => t('The password to authorize with for the admin role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api editor user.
+  $form['edoweb_editor_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_editor_user',
+      'edoweb-editor'
+    ),
+    '#title' => t('API editor user'),
+    '#description' => t('The username to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api editor password.
+  $form['edoweb_editor_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_editor_password',
+      'editor'
+    ),
+    '#title' => t('API editor password'),
+    '#description' => t('The password to authorize with for the editor role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api reader user.
+  $form['edoweb_reader_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_reader_user',
+      'edoweb-reader'
+    ),
+    '#title' => t('API reader user'),
+    '#description' => t('The username to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api reader password.
+  $form['edoweb_reader_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_reader_password',
+      'reader'
+    ),
+    '#title' => t('API reader password'),
+    '#description' => t('The password to authorize with for the reader role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api subscriber user.
+  $form['edoweb_subscriber_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_subscriber_user',
+      'edoweb-subscriber'
+    ),
+    '#title' => t('API subscriber user'),
+    '#description' => t('The username to authorize with for the subscriber role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api subscriber password.
+  $form['edoweb_subscriber_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_subscriber_password',
+      'subscriber'
+    ),
+    '#title' => t('API subscriber password'),
+    '#description' => t('The password to authorize with for the subscriber role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for api remote user.
+  $form['edoweb_remote_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_remote_user',
+      'edoweb-remote'
+    ),
+    '#title' => t('API remote user'),
+    '#description' => t('The username to authorize with for the remote role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for api remote password.
+  $form['edoweb_remote_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_remote_password',
+      'remote'
+    ),
+    '#title' => t('API remote password'),
+    '#description' => t('The password to authorize with for the remote role.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Text field for etikett user.
+  $form['edoweb_etikett_user'] = array(
+    '#type' => 'textfield',
+    '#default_value' => variable_get(
+      'edoweb_etikett_user',
+      'etikett'
+    ),
+    '#title' => t('Etikett user'),
+    '#description' => t('The username to authorize with for etikett.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
+  );
+
+  // Password field for etikett password.
+  $form['edoweb_etikett_password'] = array(
+    '#type' => 'password',
+    '#default_value' => variable_get(
+      'edoweb_etikett_password',
+      'etikett'
+    ),
+    '#title' => t('Etikett password'),
+    '#description' => t('The password to authorize with for etikett.'),
+    '#size' => 40,
+    '#maxlength' => 120,
+    '#required' => TRUE,
   );
 
   return system_settings_form($form);
+
 }
 
 /**
@@ -646,7 +644,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     )->getValue();
   } catch (LibRDF_LookupError $e) {
     // No accessScheme available, default to private
-    $entity->access_data = 'private';
+    $entity->access_data = variable_get('access_data_default');
   }
   try {
     $entity->access_md = $rdf_model->getTarget($rdf_subject,
@@ -655,7 +653,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
   } catch (LibRDF_LookupError $e) {
     // No publishScheme available, default to public for external and
     // private for edoweb entities
-    $entity->access_md = _is_edoweb_entity($entity) ? 'private' : 'public';
+    $entity->access_md = _is_edoweb_entity($entity) ? variable_get('access_md_default') : 'public';
   }
 
   $rdf_about_subject = new LibRDF_URINode("{$entity->identifier()}.rdf");
@@ -666,6 +664,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     )->getValue());
   } catch (LibRDF_LookupError $e) {
     $entity->updated = time();
+  }
+  try {
+    $entity->objectTimestamp = strtotime($rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:objectTimestamp'))
+    )->getValue());
+  } catch (LibRDF_LookupError $e) {
+    $entity->objectTimestamp = time();
   }
   try {
     $entity->created = strtotime($rdf_model->getTarget(
@@ -682,6 +688,14 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
     )->getValue();
   } catch (LibRDF_LookupError $e) {
     $entity->uid = 0;
+  }
+  try {
+    $entity->mid = $rdf_model->getTarget(
+        $rdf_about_subject,
+        new LibRDF_URINode(_edoweb_expand_curie('regal:lastModifiedBy'))
+    )->getValue();
+  } catch (LibRDF_LookupError $e) {
+    $entity->mid = $entity->uid;
   }
   try {
     $entity->name = $rdf_model->getTarget(
@@ -729,6 +743,8 @@ function _entity_set_value($wrapper, $field_info, $value, $rdf_model) {
           'value' => $value->getValue(),
           'label' => $label,
         );
+      } else if ('text' == $field_info['type']) {
+        $wrapper->{$field_name}[] = $label;
       } else {
         $wrapper->{$field_name}[] = array(
           'value' => $value->getValue(),
@@ -738,9 +754,6 @@ function _entity_set_value($wrapper, $field_info, $value, $rdf_model) {
     }
   } catch (EntityMetadataWrapperException $e) {
     console_log($e->getMessage());
-    console_log("$rdf_subject");
-    console_log("$rdf_predicate");
-    console_log("$value");
   }
 }
 
@@ -967,6 +980,11 @@ function _field_name_to_jsonld_key($field_name) {
   $context = json_decode(file_get_contents($context_url))->{'@context'};
   foreach ($context as $key => $property) {
     if (is_object($property)) {
+      if ('text' == $field_info['type']) {
+        $key .= '.prefLabel';
+      } else if ('edoweb_ld_reference' == $field_info['type']) {
+        $key .= '.@id';
+      }
       $property = $property->{'@id'};
     }
     if ($property == $field_property_uri) {
@@ -1009,7 +1027,9 @@ function _is_edoweb_entity($entity) {
   $namespace = variable_get('edoweb_api_namespace');
   return ("$namespace:" === substr($remote_id, 0, strlen($namespace) + 1)
       || "template:" === substr($remote_id, 0, 9)
-      || "local:" === substr($remote_id, 0, 6));
+      || "local:" === substr($remote_id, 0, 6)
+      || "_:" === substr($remote_id, 0, 2)
+  );
 }
 
 function _get_api_auth_header() {
@@ -1031,8 +1051,8 @@ function _get_api_auth_header() {
     $api_user = variable_get('edoweb_remote_user');
     $api_pass = variable_get('edoweb_remote_password');
   } else {
-    $api_user = variable_get('edoweb_anonymous_user');
-    $api_pass = variable_get('edoweb_anonymous_password');
+    $api_user = variable_get('edoweb_reader_user');
+    $api_pass = variable_get('edoweb_reader_password');
   }
   return 'Basic ' . base64_encode($api_user . ':' . $api_pass);
 }

@@ -58,7 +58,7 @@
           var link = $('<a />')
             .attr('href', Drupal.settings.basePath + 'resource/add/' + target_bundle)
             .attr('data-bundle', target_bundle)
-            .text(Drupal.t('Add ' + target_bundle))
+            .text(Drupal.edoweb.t('Add ' + target_bundle))
             .bind('click', function() {
               history.pushState({tree: true}, null, $(this).attr('href'));
               Drupal.edoweb.navigateTo($(this).attr('href'));
@@ -218,10 +218,16 @@
         var bundle_fields = Drupal.settings.edoweb.fields[$(this).children('a[data-bundle]').attr('data-bundle')];
         var target_bundles = [];
         if (bundle_fields && 'field_edoweb_struct_child' in bundle_fields) {
-          var target_bundles = Object.keys(bundle_fields
+          if (bundle_fields
             ['field_edoweb_struct_child']
             ['instance']['settings']
-            ['handler_settings']['target_bundles']);
+            ['handler_settings']['target_bundles'] != null
+          ) {
+            target_bundles = Object.keys(bundle_fields
+              ['field_edoweb_struct_child']
+              ['instance']['settings']
+              ['handler_settings']['target_bundles']);
+          }
         }
 
         // Possible insert positions are as a child of the current entry
