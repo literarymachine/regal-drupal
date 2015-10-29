@@ -1097,15 +1097,10 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
       $entity_view = edoweb_basic_view($entity, 'compact');
       $row['data'][] = drupal_render($entity_view);
     } else {
-      $row['data'][] = l(
-        entity_label(EDOWEB_ENTITY_TYPE, $entity),
-        'resource/' . $curie,
-        array(
-          'attributes' => array(
-            'resource' => _edoweb_expand_curie($curie),
-            'data-curie' => $curie,
-            'class' => array('resolved')
-          )
+      $row['data'][] = _get_edoweb_url($entity, entity_label(EDOWEB_ENTITY_TYPE, $entity), array(
+          'resource' => _edoweb_expand_curie($curie),
+          'data-curie' => $curie,
+          'class' => array('resolved')
         )
       );
     }
@@ -2885,6 +2880,28 @@ function _edoweb_has_memento($entity, $permissions = null) {
 function _edoweb_available_languages() {
   $languages = include drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc';
   return $languages;
+}
+
+function _get_edoweb_url($entity, $label = null, $attributes = array()) {
+  if (is_object($entity)) {
+    $curie = $entity->remote_id;
+  } else {
+    $curie = $entity;
+  }
+  $uri = _edoweb_expand_curie($curie);
+  $query = array();
+  if (_is_edoweb_entity($curie)) {
+    $href = 'resource/' . $curie;
+  } else {
+    $href = "resource";
+    $query = array("query[0][term]" => '"' . $uri . '"');
+  }
+  return l($label ? $label : $curie, $href,
+    array(
+      'attributes' => $attributes,
+      'query' => $query,
+    )
+  );
 }
 
 function console_log($obj) {
