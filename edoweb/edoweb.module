@@ -1290,6 +1290,8 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
  */
 function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array(), $search_count = 0, $active_facets = null, $sortable = TRUE, $view_mode = 'default') {
 
+  global $user;
+
   // Prepare query: header for table sort
   // TODO: decide which table header to use if multiple target bundles
   // are set.
@@ -1394,7 +1396,8 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
           }
           $remove_facet_link = $title . l(t(' [x]'), current_path(), array('query' => $params));
           $content['filters'][$jsonld_property]['#items'][] = $remove_facet_link;
-        } else {
+        } else if (!$is_user || ($is_user && $user->uid == $facet_entity_uri)
+              || in_array('edoweb_backend_admin', $user->roles)) {
           $params = drupal_get_query_parameters();
           if (isset($params['page'])) {
             unset($params['page']);
@@ -4183,9 +4186,31 @@ function edoweb_update_7158() {
 }
 
 /**
+ * Add field for marcrel:red
+ */
+function edoweb_update_7166() {
+
+  $added_fields = array(
+    'field_edoweb_red',
+  );
+
+  $updated_instances = array(
+    'monograph' => array('field_edoweb_red'),
+    'journal' => array('field_edoweb_red'),
+    'webpage' => array('field_edoweb_red'),
+    'generic' => array('field_edoweb_red'),
+  );
+
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
+
+/**
  * Add field for regal:isPartOf
  */
-function edoweb_update_7163() {
+function edoweb_update_7165() {
 
   $added_fields = array(
     'field_edoweb_source',
@@ -4206,6 +4231,8 @@ function edoweb_update_7163() {
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+
 }
 
 /**
