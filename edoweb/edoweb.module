@@ -483,16 +483,6 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // Memento tab for an individual webpage.
-  $items['resource/%edoweb_basic/memento'] = array(
-    'title' => 'Memento',
-    'page callback' => 'edoweb_basic_memento',
-    'page arguments' => array(1),
-    'access callback' => '_edoweb_has_memento',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
-    'type' => MENU_LOCAL_TASK,
-  );
-
   // 'Admin' tab for an individual entity page.
   $items['resource/%edoweb_basic/admin'] = array(
     'title' => 'Admin',
@@ -569,6 +559,12 @@ function edoweb_repository_configuration_form() {
   );
 
   $form = array();
+
+  $form['urn_namespace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URN Namensraum'),
+    '#default_value' => variable_get('urn_namespace'),
+  );
 
   $form['access_md_default'] = array(
     '#type' => 'radios',
@@ -1837,18 +1833,6 @@ function edoweb_basic_structure($entity) {
 }
 
 /**
- * Provides an iframe for archived web pages
- */
-function edoweb_basic_memento($entity) {
-  $api = new EdowebAPIClient();
-
-  if (!$conf = $api->getCrawlerConfiguration($entity)) {
-    return '<h1>No memento found</h1>';
-  }
-  return '<iframe width="1024" height="768" src="' . $conf['openWaybackLink'] . '" name="openwayback">Your browser does not support iframes.</iframe>';
-}
-
-/**
  * Provides a form to administrate webpage crawls.
  */
 function edoweb_basic_crawler_form($form, &$form_state, $entity) {
@@ -2872,11 +2856,6 @@ function _edoweb_is_webpage_entity($entity, $permissions = null) {
       && _edoweb_is_editable_entity($entity, $permissions);
 }
 
-function _edoweb_has_memento($entity, $permissions = null) {
-  return ('webpage' == $entity->bundle() || 'version' == $entity->bundle())
-      && _edoweb_is_editable_entity($entity, $permissions);
-}
-
 function _edoweb_available_languages() {
   $languages = include drupal_realpath(file_default_scheme() . '://') .  '/available_languages.inc';
   return $languages;
@@ -2979,11 +2958,14 @@ function _update_edoweb_installed_instances($updated_instances = null) {
       $widget_weight = array_search(
         $field_name, array_keys($installed_instances[$bundle_type])
       );
+      //
       if (FALSE !== $widget_weight) {
         $field_instance['widget']['weight'] = $widget_weight;
-        $field_instance['display']['default']['weight'] = $widget_weight;
-        drupal_set_message("Setting widget weight for $field_name in
-        bundle $bundle_type to $widget_weight");
+        unset($field_instance['display']);
+        foreach (_edoweb_viewmodes_for($field_name) as $view_mode) {
+          $field_instance['display'][$view_mode]['weight'] = $widget_weight;
+          drupal_set_message("Setting widget weight for $field_name in bundle $bundle_type to $widget_weight for $view_mode");
+        }
       }
       $installed_instance = field_info_instance(
         EDOWEB_ENTITY_TYPE, $field_name, $bundle_type
@@ -4049,4 +4031,71 @@ function edoweb_update_7158() {
 
 }
 
+/**
+ * Add field for regal:isPartOf
+ */
+function edoweb_update_7163() {
 
+  $added_fields = array(
+    'field_edoweb_source',
+  );
+  $added_instances = array(
+    'monograph' => array(
+      'field_edoweb_source',
+    ),
+    'journal' => array(
+      'field_edoweb_source',
+    ),
+    'webpage' => array(
+      'field_edoweb_source',
+    ),
+    'generic' => array(
+      'field_edoweb_source',
+    ),
+  );
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($added_instances);
+}
+
+/**
+ * Set weight for dce:creator and dce:contributor
+ */
+ function edoweb_update_7161() {
+
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'journal' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'webpage' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'article' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+    'generic' => array(
+      'field_edoweb_creator',
+      'field_edoweb_contributor',
+      'field_edoweb_creator_label',
+      'field_edoweb_contributor_label',
+    ),
+  );
+
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
