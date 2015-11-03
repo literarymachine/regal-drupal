@@ -4015,6 +4015,28 @@ function edoweb_update_7158() {
 }
 
 /**
+ * Add field for marcrel:red
+ */
+function edoweb_update_7166() {
+
+  $added_fields = array(
+    'field_edoweb_red',
+  );
+
+  $updated_instances = array(
+    'monograph' => array('field_edoweb_red'),
+    'journal' => array('field_edoweb_red'),
+    'webpage' => array('field_edoweb_red'),
+    'generic' => array('field_edoweb_red'),
+  );
+
+  _update_edoweb_installed_fields($added_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
+
+/**
  * Add field for regal:isPartOf
  */
 function edoweb_update_7165() {
