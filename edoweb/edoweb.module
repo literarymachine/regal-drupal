@@ -4017,7 +4017,7 @@ function edoweb_update_7158() {
 /**
  * Add field for regal:isPartOf
  */
-function edoweb_update_7164() {
+function edoweb_update_7165() {
 
   $added_fields = array(
     'field_edoweb_source',
@@ -4038,6 +4038,8 @@ function edoweb_update_7164() {
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
+
 }
 
 /**
