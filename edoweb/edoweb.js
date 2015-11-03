@@ -164,6 +164,7 @@
                   missing_entry.removeAttr('data-target-bundle');
                   row.find('td:eq(0)').append(missing_entry);
                   row.find('td:eq(1)').append(missing_entry.attr('data-curie'));
+                  //FIXME: how to deal with this with configurable columns?
                   result_table.append(row);
                 }
               });
