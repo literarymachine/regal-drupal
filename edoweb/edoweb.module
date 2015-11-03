@@ -483,16 +483,6 @@ function edoweb_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // Memento tab for an individual webpage.
-  $items['resource/%edoweb_basic/memento'] = array(
-    'title' => 'Memento',
-    'page callback' => 'edoweb_basic_memento',
-    'page arguments' => array(1),
-    'access callback' => '_edoweb_has_memento',
-    'access arguments' => array(1, 'view any edoweb_basic entity'),
-    'type' => MENU_LOCAL_TASK,
-  );
-
   // 'Admin' tab for an individual entity page.
   $items['resource/%edoweb_basic/admin'] = array(
     'title' => 'Admin',
@@ -1848,18 +1838,6 @@ function edoweb_basic_structure($entity) {
 }
 
 /**
- * Provides an iframe for archived web pages
- */
-function edoweb_basic_memento($entity) {
-  $api = new EdowebAPIClient();
-
-  if (!$conf = $api->getCrawlerConfiguration($entity)) {
-    return '<h1>No memento found</h1>';
-  }
-  return '<iframe width="1024" height="768" src="' . $conf['openWaybackLink'] . '" name="openwayback">Your browser does not support iframes.</iframe>';
-}
-
-/**
  * Provides a form to administrate webpage crawls.
  */
 function edoweb_basic_crawler_form($form, &$form_state, $entity) {
@@ -2880,11 +2858,6 @@ function _edoweb_is_editable_entity($entity, $permissions = null) {
 
 function _edoweb_is_webpage_entity($entity, $permissions = null) {
   return 'webpage' == $entity->bundle()
-      && _edoweb_is_editable_entity($entity, $permissions);
-}
-
-function _edoweb_has_memento($entity, $permissions = null) {
-  return ('webpage' == $entity->bundle() || 'version' == $entity->bundle())
       && _edoweb_is_editable_entity($entity, $permissions);
 }
 
@@ -4044,7 +4017,7 @@ function edoweb_update_7158() {
 /**
  * Add field for marcrel:red
  */
-function edoweb_update_7164() {
+function edoweb_update_7166() {
 
   $added_fields = array(
     'field_edoweb_red',
@@ -4066,7 +4039,7 @@ function edoweb_update_7164() {
 /**
  * Add field for regal:isPartOf
  */
-function edoweb_update_7163() {
+function edoweb_update_7165() {
 
   $added_fields = array(
     'field_edoweb_source',
@@ -4087,6 +4060,7 @@ function edoweb_update_7163() {
   );
   _update_edoweb_installed_fields($added_fields);
   _update_edoweb_installed_instances($added_instances);
+  _update_rdf_mapping();
 
 }
 

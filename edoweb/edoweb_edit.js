@@ -37,9 +37,12 @@
         return confirmed;
       });
 
-      $('#edoweb-basic-access-form', context).add($('#edoweb-basic-admin', context)).submit(function() {
-        $.blockUI(Drupal.edoweb.blockUIMessage);
-      });
+      $('#edoweb-basic-access-form', context)
+        .add($('#edoweb-basic-admin', context))
+        .add($('#edoweb-basic-crawler-form', context))
+        .submit(function() {
+          $.blockUI(Drupal.edoweb.blockUIMessage);
+        });
 
       $('.tabs a', context).bind('click', function() {
         var href = $(this).attr('href');
@@ -139,7 +142,7 @@
           submit_button.after(template_button);
         }
 
-        if (bundle == 'journal' || bundle == 'monograph') {
+        if (bundle == 'journal' || bundle == 'monograph' || bundle == 'webpage') {
           var import_button = $('<button style="display: block; margin-bottom: 1em;" class="edoweb edit action">Import einer Resource aus dem Katalog</button>').bind('click', function() {
             instance = {'bundle': '', 'field_name': ''}
             modal_overlay.html('<div />');
