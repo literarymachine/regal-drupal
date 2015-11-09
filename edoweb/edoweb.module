@@ -1004,6 +1004,14 @@ function _edoweb_entity_table_headers($init_sort = null) {
       'specifier' => 'bundle_type',
       'format' => '_edoweb_format_bundle_name',
     ),
+    'type' => array(
+      'data' => t('Typ'),
+      'type' => 'field',
+      'specifier' => array(
+        'field' => 'field_edoweb_type',
+        'column' => 'value',
+      ),
+    ),
   );
 }
 
