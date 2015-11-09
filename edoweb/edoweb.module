@@ -1218,7 +1218,8 @@ function edoweb_basic_entity_table($header, $entities, $operations = array(), $t
         $property = $column['specifier'];
       }
       if (null === $property) {
-        if (isset($column['format']) && $list_item = $column['format']($entity)) {
+        if (isset($column['format']) && function_exists($column['format'])
+            && $list_item = $column['format']($entity)) {
           $list_items[] = $list_item;
         }
       } else if (!(($property == 'access_md' || $property == 'access_data')
