@@ -1628,19 +1628,21 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
         );
       }
 
-      $entity->content['_updated'] = array(
-        '#type' => 'item',
-        '#markup' => '<small>Letzte Änderung: '
-            . _edoweb_format_date($entity->updated)
-            . ' durch '
-            . _edoweb_user_name($entity->mid)
-            . ', erstellt: '
-            .  _edoweb_format_date($entity->created)
-            . ' durch '
-            . _edoweb_user_name($entity->uid)
-            . '</small>',
-        '#weight' => 1000,
-      );
+      if (user_access('edit any edoweb_basic entity')) {
+        $entity->content['_updated'] = array(
+          '#type' => 'item',
+          '#markup' => '<small>Letzte Änderung: '
+              . _edoweb_format_date($entity->updated)
+              . ' durch '
+              . _edoweb_user_name($entity->mid)
+              . ', erstellt: '
+              .  _edoweb_format_date($entity->created)
+              . ' durch '
+              . _edoweb_user_name($entity->uid)
+              . '</small>',
+          '#weight' => 1000,
+        );
+      }
 
       $entity->content['remote_id'] = array(
         '#type' => 'item',
