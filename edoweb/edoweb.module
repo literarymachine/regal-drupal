@@ -2208,6 +2208,7 @@ function edoweb_basic_admin($form, &$form_state, $entity) {
         'aleph' => t('Copy to Catalog'),
         'oaidc' => t('Support OAI-PMH'),
         'mets' => t('OAI-PMH METS'),
+	'rdf' => t('OAI-PMH RDF'),
       ),
       '#default_value' => $transformers,
     );
