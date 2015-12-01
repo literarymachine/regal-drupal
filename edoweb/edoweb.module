@@ -1377,7 +1377,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#attributes' => array(
           'class' => array('edoweb-facets-available'),
         ),
-        '#title' => _edoweb_map_string($jsonld_property),
+        '#title' => l(_edoweb_map_string($jsonld_property), 'browse/' . $jsonld_property),
       );
       $is_ref = in_array($jsonld_property, array('creator', 'subject', 'institution', 'medium', 'type'));
       $is_user = ('createdBy' == $jsonld_property
