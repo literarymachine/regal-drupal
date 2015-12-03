@@ -1130,7 +1130,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'generic':
     case 'part':
       foreach (_edoweb_entity_table_headers($init_sort) as $field => $column) {
-        if (isset($entity_table_headers[$field])) {
+        if (isset($entity_table_headers[$field]) && $entity_table_headers[$field]) {
           $columns[] = $column;
         }
       }
