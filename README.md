@@ -11,6 +11,7 @@ Installation on Ubuntu, your distribution may vary:
 
     $ sudo apt-get install php5-librdf
     $ sudo apt-get install php5-curl
+    $ sudo apt-get install php5-intl
 
 Clone the repository and submodules to Drupal's module directory:
 
