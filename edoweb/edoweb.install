@@ -1633,6 +1633,7 @@ function _edoweb_installed_instances() {
      * Field instances in volume bundle
      */
     'volume' => array(
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_volume' => array(),
       'field_edoweb_issued' => array(),
@@ -1672,6 +1673,7 @@ function _edoweb_installed_instances() {
      * Field instances in issue bundle
      */
     'issue' => array(
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_issued' => array(),
       'field_edoweb_urn' => array(),
@@ -1708,6 +1710,7 @@ function _edoweb_installed_instances() {
      * Field instances in article bundle
      */
     'article' => array(
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_creator' => array(),
       'field_edoweb_creator_label' => array(),
@@ -1892,6 +1895,7 @@ function _edoweb_installed_instances() {
      * Field instances in version bundle
      */
     'version' => array(
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_label' => array(),
       'field_edoweb_filesize' => array(),
@@ -2112,6 +2116,7 @@ function _edoweb_installed_instances() {
      * Field instances in part bundle
      */
     'part' => array(
+      'field_edoweb_identifier_ht' => array(),
       'field_edoweb_title' => array(),
       'field_edoweb_struct_child' => array(
         'settings'    => array(
