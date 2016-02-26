@@ -587,6 +587,7 @@ function edoweb_repository_configuration_form() {
       'field_edoweb_title' => t('Titel'),
       'field_edoweb_creator' => t('Autor'),
       'field_edoweb_contributor' => t('Bearbeiter'),
+      'field_edoweb_issued' => t('Erschienen'),
     ),
     '#default_value' => variable_get('compact_view_title_fields', array('field_edoweb_title')),
   );
