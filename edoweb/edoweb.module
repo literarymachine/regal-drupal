@@ -4337,3 +4337,31 @@ function edoweb_update_7167() {
 
 }
 
+/**
+ * Add HT-Number to bundles
+ */
+function edoweb_update_7168() {
+
+  $updated_instances = array(
+    'volume' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'issue' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'article' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'version' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'part' => array(
+      'field_edoweb_identifier_ht',
+    ),
+  );
+
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
+
