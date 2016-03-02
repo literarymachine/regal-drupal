@@ -64,6 +64,8 @@ function edoweb_init() {
         'monograph', 'journal', 'volume', 'issue', 'article'
       ),
       'site_frontpage' => variable_get('site_frontpage', '/'),
+      'deepzoomServiceUrl' => variable_get('edoweb_deepzoom_url') ,
+      'thumbyServiceUrl' => variable_get('edoweb_thumby_url'),
     );
     drupal_add_js(array('edoweb' => $settings), 'setting');
     drupal_add_js(
