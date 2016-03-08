@@ -1591,13 +1591,13 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
     );
   } else {
     $label = $entity->label($view_mode);
-    if ($entity->subLabel()) {
-      $label .= ' / ' . $entity->subLabel();
-    }
     $link = _get_edoweb_url($label, $entity);
     $entity->content = array(
       '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
-                 . '<h1>' . $link . '</h1>',
+                 . '<div class="compact-header">'
+                 . '<h1 class="title">' . $link . '</h1>'
+                 . ($entity->subLabel() ? '<h2 class="title-suffix">' . $entity->subLabel() . '</h2>' : '')
+                 . '</div>',
       '#suffix' => "</div>",
     );
   }
@@ -2757,7 +2757,7 @@ function edoweb_preprocess_html(&$vars) {
 
 function edoweb_preprocess_page(&$vars) {
   if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
-    $vars['title_suffix']['edoweb']['#markup'] = "<h2>" . $entity->subLabel() . "</h2>";
+    $vars['title_suffix']['edoweb']['#markup'] = '<h2 class="title-suffix" id="page-title-suffix">' . $entity->subLabel() . '</h2>';
   }
 }
 
