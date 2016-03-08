@@ -582,15 +582,32 @@ function edoweb_repository_configuration_form() {
     '#default_value' => variable_get('access_data_default', 'private'),
   );
 
-  $form['compact_view_title_fields'] = array(
+  $form['sub_title_config'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Untertitel'),
+  );
+
+  $form['sub_title_config']['sub_title_fields'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Titelfelder in der Kurzansicht'),
+    '#title' => t('Felder'),
     '#options' => array(
-      'field_edoweb_title' => t('Titel'),
       'field_edoweb_creator' => t('Autor'),
       'field_edoweb_contributor' => t('Bearbeiter'),
+      'field_edoweb_issued' => t('Erschienen'),
     ),
-    '#default_value' => variable_get('compact_view_title_fields', array('field_edoweb_title')),
+    '#default_value' => variable_get('sub_title_fields', array('field_edoweb_title')),
+  );
+
+  $form['sub_title_config']['sub_title_field_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Trennzeichen zwischen Feldern'),
+    '#default_value' => variable_get('sub_title_field_separator', '.'),
+  );
+
+  $form['sub_title_config']['sub_title_field_value_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Trennzeichen zwischen einzelnen Felderwerten'),
+    '#default_value' => variable_get('sub_title_field_value_separator', '|'),
   );
 
   $form['available_facets'] = array(
@@ -1575,10 +1592,14 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
     );
   } else {
-    $link = _get_edoweb_url($entity->label($view_mode), $entity);
+    $label = $entity->label($view_mode);
+    $link = _get_edoweb_url($label, $entity);
     $entity->content = array(
       '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
-                 . '<h1>' . $link . '</h1>',
+                 . '<div class="compact-header">'
+                 . '<h1 class="title">' . $link . '</h1>'
+                 . ($entity->subLabel() ? '<h2 class="title-suffix">' . $entity->subLabel() . '</h2>' : '')
+                 . '</div>',
       '#suffix' => "</div>",
     );
   }
@@ -2529,7 +2550,7 @@ function edoweb_rdf_mapping() {
 
 function edoweb_rdf_types($bundle = null) {
   $rdf_types = array(
-    'person' => array('gnd:DifferentiatedPerson'),
+    'person' => array('gnd:DifferentiatedPerson', 'gnd:UndifferentiatedPerson'),
     'corporate_body' => array('gnd:CorporateBody'),
     'event' => array('gnd:ConferenceOrEvent'),
     'family' => array('gnd:Family'),
@@ -2575,6 +2596,7 @@ function edoweb_rdf_namespaces() {
   $edoweb_lobid_host = variable_get('edoweb_lobid_host');
   return array(
     $edoweb_api_namespace => "$edoweb_api_host/resource/$edoweb_api_namespace:",
+    'authors' => "$edoweb_api_host/authors/",
     'local' => "$edoweb_api_host/resource/local:",
     'template' => "$edoweb_api_host/resource/template:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
@@ -2729,6 +2751,12 @@ function edoweb_preprocess_html(&$vars) {
   $site_name = variable_get('site_name');
   if ($site_name == trim(array_pop($title_parts)) && $title_parts) {
     $vars['head_title'] = "{$site_name}: " . implode('|', $title_parts);
+  }
+}
+
+function edoweb_preprocess_page(&$vars) {
+  if ($entity = menu_get_object(EDOWEB_ENTITY_TYPE)) {
+    $vars['title_suffix']['edoweb']['#markup'] = '<h2 class="title-suffix" id="page-title-suffix">' . $entity->subLabel() . '</h2>';
   }
 }
 
