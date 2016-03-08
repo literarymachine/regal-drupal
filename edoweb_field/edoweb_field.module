@@ -103,6 +103,7 @@ function edoweb_entity_label($entity_type, $entity_id) {
 function edoweb_entity_list($entity_type, $view_mode) {
   $ids = isset($_GET['ids']) && !empty($_GET['ids']) ? $_GET['ids'] : array();
   $columns = isset($_GET['columns']) ? $_GET['columns'] : 'generic';
+  $render = isset($_GET['render']) ? $_GET['render'] : 'table';
   $entities = edoweb_basic_load_multiple($ids);
   //foreach (array_diff($ids, array_keys($entities)) as $not_loaded) {
   //  $entity = entity_create(EDOWEB_ENTITY_TYPE, array(
@@ -115,9 +116,12 @@ function edoweb_entity_list($entity_type, $view_mode) {
     header("HTTP/1.0 404 Not Found");
     exit();
   }
-  $output = entity_view($entity_type, $entities, $view_mode);
-  //$header = edoweb_basic_table_header($columns);
-  //$output = edoweb_basic_entity_table($header, $entities, array(), null, $view_mode);
+  if ($render == 'div') {
+    $output = entity_view($entity_type, $entities, $view_mode);
+  } else {
+    $header = edoweb_basic_table_header($columns);
+    $output = edoweb_basic_entity_table($header, $entities, array(), null, $view_mode);
+  }
   die(drupal_render($output));
 }
 

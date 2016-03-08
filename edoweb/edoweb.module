@@ -66,6 +66,7 @@ function edoweb_init() {
       'site_frontpage' => variable_get('site_frontpage', '/'),
       'deepzoomServiceUrl' => variable_get('edoweb_deepzoom_url') ,
       'thumbyServiceUrl' => variable_get('edoweb_thumby_url'),
+      'linked_entity_display' => variable_get('linked_entity_display'),
     );
     drupal_add_js(array('edoweb' => $settings), 'setting');
     drupal_add_js(
@@ -644,6 +645,17 @@ function edoweb_repository_configuration_form() {
     '#title' => t('Normdaten-Tabellenheader für Endnutzer'),
     '#options' => $authority_table_headers,
     '#default_value' => variable_get('user_authority_table_headers', _edoweb_authority_table_headers_defaults()),
+  );
+
+  $form['linked_entity_display'] = array(
+    '#type' => 'radios',
+    '#title' => t('Ansicht verlinkter Entitäten'),
+    '#options' => array(
+      'table' => t('Tabelle'),
+      'div' => t('DIVs'),
+      'plain' => t('Label'),
+    ),
+    '#default_value' => variable_get('linked_entity_display', 'plain'),
   );
 
   return system_settings_form($form);
