@@ -2551,7 +2551,7 @@ function edoweb_rdf_mapping() {
 
 function edoweb_rdf_types($bundle = null) {
   $rdf_types = array(
-    'person' => array('gnd:DifferentiatedPerson'),
+    'person' => array('gnd:DifferentiatedPerson', 'gnd:UndifferentiatedPerson'),
     'corporate_body' => array('gnd:CorporateBody'),
     'event' => array('gnd:ConferenceOrEvent'),
     'family' => array('gnd:Family'),
