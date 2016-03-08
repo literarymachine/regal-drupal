@@ -143,39 +143,13 @@
           container.before(throbber);
           Drupal.edoweb.entity_list('edoweb_basic', curies, columns, view_mode).onload = function () {
             if (this.status == 200) {
-              var result_table = $(this.responseText).find('table');
-              result_table.find('a[data-curie]').not('.resolved').not('.edoweb.download').each(function() {
+              container.hide();
+              var result = $(this.responseText);
+              result.find('a[data-curie]').not('.resolved').not('.edoweb.download').each(function() {
                 Drupal.edoweb.entity_label($(this));
               });
-              result_table.removeClass('sticky-enabled');
-              var updated_column = result_table.find('th[specifier="updated"]').index();
-              if (updated_column > -1) {
-                result_table.tablesorter({sortList: [[updated_column,1]]});
-              }
-              //TODO: check interference with tree navigation block
-              //Drupal.attachBehaviors(result_table);
-              container.find('div.field-item>a[data-curie]').each(function() {
-                if (! result_table.find('tr[data-curie="' + $(this).attr('data-curie') + '"]').length) {
-                  var missing_entry = $(this).clone();
-                  var row = $('<tr />');
-                  result_table.find('thead').find('tr>th').each(function() {
-                    row.append($('<td />'));
-                  });
-                  missing_entry.removeAttr('data-target-bundle');
-                  row.find('td:eq(0)').append(missing_entry);
-                  row.find('td:eq(1)').append(missing_entry.attr('data-curie'));
-                  //FIXME: how to deal with this with configurable columns?
-                  result_table.append(row);
-                }
-              });
-              container.hide();
-              container.after(result_table);
-              for (label in operations) {
-                operations[label](result_table);
-              }
-              Drupal.edoweb.last_modified_label(result_table);
-              Drupal.edoweb.hideEmptyTableColumns(result_table);
-              Drupal.edoweb.hideTableHeaders(result_table);
+              result.css('background-color', '#EFEFEF');
+              container.after(result);
             }
             throbber.remove();
           };

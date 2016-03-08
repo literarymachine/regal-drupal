@@ -115,8 +115,9 @@ function edoweb_entity_list($entity_type, $view_mode) {
     header("HTTP/1.0 404 Not Found");
     exit();
   }
-  $header = edoweb_basic_table_header($columns);
-  $output = edoweb_basic_entity_table($header, $entities, array(), null, $view_mode);
+  $output = entity_view($entity_type, $entities, $view_mode);
+  //$header = edoweb_basic_table_header($columns);
+  //$output = edoweb_basic_entity_table($header, $entities, array(), null, $view_mode);
   die(drupal_render($output));
 }
 
