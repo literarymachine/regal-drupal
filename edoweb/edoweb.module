@@ -2597,6 +2597,7 @@ function edoweb_rdf_namespaces() {
   $edoweb_lobid_host = variable_get('edoweb_lobid_host');
   return array(
     $edoweb_api_namespace => "$edoweb_api_host/resource/$edoweb_api_namespace:",
+    'authors' => "$edoweb_api_host/authors/",
     'local' => "$edoweb_api_host/resource/local:",
     'template' => "$edoweb_api_host/resource/template:",
     'isbd' => 'http://iflastandards.info/ns/isbd/elements/',
