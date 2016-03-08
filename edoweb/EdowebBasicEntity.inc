@@ -97,12 +97,12 @@ class EdowebBasicEntity extends Entity {
 
   public function subLabel($view_mode = 'compact') {
     $label_fields = array();
-    foreach (variable_get('compact_view_title_fields') as $field => $enabled) {
+    foreach (variable_get('sub_title_fields') as $field => $enabled) {
       if ($enabled) {
         $label_fields[] = $field;
       }
     }
-    return implode(' . ', $this->stringifyFields($label_fields));
+    return implode(' ' . variable_get('sub_title_field_separator') . ' ', $this->stringifyFields($label_fields));
   }
 
   private function stringifyFields($field_names) {
@@ -123,7 +123,7 @@ class EdowebBasicEntity extends Entity {
         } else {
           $values[] = $title_value;
         }
-        if ($title_value) $title_values[] = implode(' | ', $values);
+        if ($title_value) $title_values[] = implode(' ' . variable_get('sub_title_field_value_separator') . ' ', $values);
       } catch (EntityMetadataWrapperException $e) {
         // Field not available, ignore
       }

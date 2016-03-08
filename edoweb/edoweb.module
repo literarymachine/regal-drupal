@@ -580,16 +580,32 @@ function edoweb_repository_configuration_form() {
     '#default_value' => variable_get('access_data_default', 'private'),
   );
 
-  $form['compact_view_title_fields'] = array(
+  $form['sub_title_config'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Untertitel'),
+  );
+
+  $form['sub_title_config']['sub_title_fields'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Titelfelder in der Kurzansicht'),
+    '#title' => t('Felder'),
     '#options' => array(
-      'field_edoweb_title' => t('Titel'),
       'field_edoweb_creator' => t('Autor'),
       'field_edoweb_contributor' => t('Bearbeiter'),
       'field_edoweb_issued' => t('Erschienen'),
     ),
-    '#default_value' => variable_get('compact_view_title_fields', array('field_edoweb_title')),
+    '#default_value' => variable_get('sub_title_fields', array('field_edoweb_title')),
+  );
+
+  $form['sub_title_config']['sub_title_field_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Trennzeichen zwischen Feldern'),
+    '#default_value' => variable_get('sub_title_field_separator', '.'),
+  );
+
+  $form['sub_title_config']['sub_title_field_value_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Trennzeichen zwischen einzelnen Felderwerten'),
+    '#default_value' => variable_get('sub_title_field_value_separator', '|'),
   );
 
   $form['available_facets'] = array(
