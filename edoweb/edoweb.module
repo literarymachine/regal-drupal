@@ -974,7 +974,7 @@ function _edoweb_entity_table_headers($init_sort = null) {
         'field' => 'field_edoweb_title',
         'column' => 'value',
       ),
-      'format' => '_get_edoweb_url',
+      'format' => '_full_title',
     ),
     'field_edoweb_identifier_ht' => array(
       'data' => t('ID'),
@@ -1590,14 +1590,9 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       '#suffix' => "<span about=\"$page_url\" rel=\"foaf:primaryTopic\" $attr_rdf_resource /></div>",
     );
   } else {
-    $label = $entity->label($view_mode);
-    $link = _get_edoweb_url($label, $entity);
     $entity->content = array(
       '#prefix' => "<div class=\"edoweb entity $view_mode\" $attr_bundle $attr_rdf_resource $attr_rdf_typeof>"
-                 . '<div class="compact-header">'
-                 . '<h1 class="title">' . $link . '</h1>'
-                 . ($entity->subLabel() ? '<h2 class="title-suffix">' . $entity->subLabel() . '</h2>' : '')
-                 . '</div>',
+                 . '<div class="compact-header">' . _full_title($entity->label(), $entity) . '</div>',
       '#suffix' => "</div>",
     );
   }
@@ -3010,6 +3005,12 @@ function _edoweb_available_languages() {
   return $languages;
 }
 
+function _full_title($label, $entity, $attributes = array()) {
+  $label = '<h1 class="title">' . $entity->label() . '</h1>'
+           . ($entity->subLabel() ? '<h2 class="title-suffix">' . $entity->subLabel() . '</h2>' : '');
+  return _get_edoweb_url($label, $entity, $attributes);
+}
+
 function _get_edoweb_url($label, $entity, $attributes = array()) {
   if (is_object($entity)) {
     $wrapper = entity_metadata_wrapper('edoweb_basic', $entity);
@@ -3037,6 +3038,7 @@ function _get_edoweb_url($label, $entity, $attributes = array()) {
     array(
       'attributes' => $attributes,
       'query' => $query,
+      'html' => TRUE,
     )
   );
 }
