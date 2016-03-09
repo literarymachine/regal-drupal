@@ -640,7 +640,7 @@ function _edoweb_storage_entity_deserialize_rdf($entity, $rdf_model) {
           $list = $rdf_model->getTarget($value,
             new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
           );
-          foreach ($rdf_model->getListAsArray($value) as $list_value) {
+          foreach ($rdf_model->getListAsArray($list) as $list_value) {
             _entity_set_value($wrapper, $field_info, $list_value, $rdf_model);
           }
         } catch (LibRDF_LookupError $e) {
