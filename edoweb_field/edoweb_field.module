@@ -152,6 +152,14 @@ function edoweb_field_preprocess_field(&$variables) {
   }
 }
 
+function edoweb_field_display_alter(&$display, $context) {
+  foreach (variable_get('sub_title_fields') as $field => $enabled) {
+    if ($enabled && $field == $context['field']['field_name']) {
+      $display['type'] = 'hidden';
+    }
+  }
+}
+
 /**
  * Implements hook_field_validate().
  */

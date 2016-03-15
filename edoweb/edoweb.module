@@ -595,7 +595,7 @@ function edoweb_repository_configuration_form() {
       'field_edoweb_contributor' => t('Bearbeiter'),
       'field_edoweb_issued' => t('Erschienen'),
     ),
-    '#default_value' => variable_get('sub_title_fields', array('field_edoweb_title')),
+    '#default_value' => variable_get('sub_title_fields', array('field_edoweb_creator')),
   );
 
   $form['sub_title_config']['sub_title_field_separator'] = array(
