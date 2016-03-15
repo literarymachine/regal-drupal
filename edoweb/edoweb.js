@@ -137,7 +137,7 @@
         var columns = container.find('a[data-target-bundle]')
           .attr('data-target-bundle')
           .split(' ')[0];
-        if (curies.length > 0) {
+        if (columns && curies.length > 0) {
           container.siblings('table').remove();
           var throbber = $('<div class="ajax-progress"><div class="throbber">&nbsp;</div></div>')
           container.before(throbber);

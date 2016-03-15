@@ -64,6 +64,8 @@ function edoweb_init() {
         'monograph', 'journal', 'volume', 'issue', 'article'
       ),
       'site_frontpage' => variable_get('site_frontpage', '/'),
+      'deepzoomServiceUrl' => variable_get('edoweb_deepzoom_url') ,
+      'thumbyServiceUrl' => variable_get('edoweb_thumby_url'),
     );
     drupal_add_js(array('edoweb' => $settings), 'setting');
     drupal_add_js(
@@ -616,8 +618,8 @@ function edoweb_repository_configuration_form() {
       'contentType' => t('Objektart'),
       'subject.@id' => t('Sacherschließung'),
       'issued' => t('Erscheinungsjahr'),
-      'type.prefLabel' => t('Typ'),
-      'medium.prefLabel' => t('Medium'),
+      'type.@id' => t('Typ'),
+      'medium.@id' => t('Medium'),
       'institution.@id' => t('Institution'),
     ),
     '#default_value' => variable_get('available_facets', array('creator.@id')),
@@ -1147,7 +1149,7 @@ function edoweb_basic_table_header($bundle_type = 'generic', $init_sort = false)
     case 'generic':
     case 'part':
       foreach (_edoweb_entity_table_headers($init_sort) as $field => $column) {
-        if ($entity_table_headers[$field]) {
+        if (isset($entity_table_headers[$field]) && $entity_table_headers[$field]) {
           $columns[] = $column;
         }
       }
@@ -1394,9 +1396,9 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         '#attributes' => array(
           'class' => array('edoweb-facets-available'),
         ),
-        '#title' => _edoweb_map_string($jsonld_property),
+        '#title' => l(_edoweb_map_string($jsonld_property), 'browse/' . $jsonld_property),
       );
-      $is_ref = in_array($jsonld_property, array('creator', 'subject', 'institution'));
+      $is_ref = in_array($jsonld_property, array('creator', 'subject', 'institution', 'medium', 'type'));
       $is_user = ('createdBy' == $jsonld_property
           || 'lastModifiedBy' == $jsonld_property);
       foreach ($facet->terms as $term) {
@@ -1404,7 +1406,7 @@ function edoweb_basic_list_entities(EntityFieldQuery $efq, $operations = array()
         $facet_entity_count = $term->count;
         if ($is_ref) {
           $facet_object = es_facet_object($facet_entity_uri);
-          $title = $facet_object['prefLabel'];
+          $title = isset($facet_object['prefLabel']) ? $facet_object['prefLabel'] : $facet_object['@id'];
           $facet_entity_uri = $facet_object['@id'];
         } else if ($is_user) {
           $title = _edoweb_user_name($facet_entity_uri);
@@ -1654,17 +1656,14 @@ function edoweb_basic_view($entity, $view_mode = 'default') {
       }
 
       if (user_access('edit any edoweb_basic entity')) {
+        $markup = '<small>Letzte Änderung ';
+        $markup .= isset($entity->updated) ? _edoweb_format_date($entity->updated) : '';
+        $markup .= ' durch ' . _edoweb_user_name($entity->mid) . ', erstellt: ';
+        $markup .= isset($entity->created) ? _edoweb_format_date($entity->created) : '';
+        $markup .= ' durch ' .  _edoweb_user_name($entity->uid) . '</small>';
         $entity->content['_updated'] = array(
           '#type' => 'item',
-          '#markup' => '<small>Letzte Änderung: '
-              . _edoweb_format_date($entity->updated)
-              . ' durch '
-              . _edoweb_user_name($entity->mid)
-              . ', erstellt: '
-              .  _edoweb_format_date($entity->created)
-              . ' durch '
-              . _edoweb_user_name($entity->uid)
-              . '</small>',
+          '#markup' => $markup,
           '#weight' => 1000,
         );
       }
@@ -2434,7 +2433,7 @@ function edoweb_basic_browse($jsonld_property) {
     return drupal_not_found();
   }
 
-  $is_ref = in_array($jsonld_property, array('creator', 'subject', 'institution'));
+  $is_ref = in_array($jsonld_property, array('creator', 'subject', 'institution', 'type', 'medium'));
   $is_user = ('createdBy' == $jsonld_property
       || 'lastModifiedBy' == $jsonld_property);
   $items = array();
@@ -4280,7 +4279,7 @@ function edoweb_update_7165() {
 /**
  * Set weight for dce:creator and dce:contributor
  */
- function edoweb_update_7161() {
+function edoweb_update_7161() {
 
   $updated_instances = array(
     'monograph' => array(
@@ -4319,3 +4318,82 @@ function edoweb_update_7165() {
   _update_rdf_mapping();
 
 }
+
+/**
+ * Set type, medium and description as linked data fields
+ */
+function edoweb_update_7167() {
+
+  $updated_fields = array(
+    'field_edoweb_description',
+    'field_edoweb_type',
+    'field_edoweb_medium'
+  );
+
+  $updated_instances = array(
+    'monograph' => array(
+      'field_edoweb_type',
+      'field_edoweb_medium',
+      'field_edoweb_description',
+    ),
+    'journal' => array(
+      'field_edoweb_type',
+      'field_edoweb_medium',
+      'field_edoweb_description',
+    ),
+    'volume' => array(
+      'field_edoweb_description',
+    ),
+    'issue' => array(
+      'field_edoweb_description',
+    ),
+    'article' => array(
+      'field_edoweb_description',
+    ),
+    'webpage' => array(
+      'field_edoweb_description',
+    ),
+    'collection' => array(
+      'field_edoweb_description',
+    ),
+    'generic' => array(
+      'field_edoweb_description',
+      'field_edoweb_type',
+      'field_edoweb_medium',
+    ),
+  );
+
+  _update_edoweb_installed_fields($updated_fields);
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
+
+/**
+ * Add HT-Number to bundles
+ */
+function edoweb_update_7168() {
+
+  $updated_instances = array(
+    'volume' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'issue' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'article' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'version' => array(
+      'field_edoweb_identifier_ht',
+    ),
+    'part' => array(
+      'field_edoweb_identifier_ht',
+    ),
+  );
+
+  _update_edoweb_installed_instances($updated_instances);
+  _update_rdf_mapping();
+
+}
+
