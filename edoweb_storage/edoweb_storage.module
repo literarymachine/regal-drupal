@@ -45,6 +45,14 @@ function edoweb_storage_menu() {
     'access arguments' => array('administer edoweb configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['edoweb/config/contexts'] = array(
+    'title' => 'Contexts',
+    'description' => 'Configuration for linked data contexsts.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('edoweb_context_configuration_form'),
+    'access arguments' => array('administer edoweb configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
 
  return $items;
 }
@@ -53,8 +61,6 @@ function edoweb_storage_menu() {
 * Create and display the configuration settings form.
 */
 function edoweb_storage_configuration_form($form, &$form_state) {
-
-  $form = array();
 
   // Text field for api host.
   $form['edoweb_api_host'] = array(
@@ -130,8 +136,6 @@ function edoweb_storage_configuration_form($form, &$form_state) {
 }
 
 function edoweb_account_configuration_form($form, &$form_state) {
-
-  $form = array();
 
   // Text field for api admin user.
   $form['edoweb_admin_user'] = array(
@@ -303,6 +307,78 @@ function edoweb_account_configuration_form($form, &$form_state) {
 
   return system_settings_form($form);
 
+}
+
+/**
+* Create and display the context settings form.
+*/
+function edoweb_context_configuration_form($form, &$form_state) {
+
+  $contexts = variable_get('contexts', array(array('namespace' => '', 'context' => '')));
+
+  $form['contexts'] = array(
+    '#type' => 'fieldset',
+    '#tree' => TRUE,
+    '#title' => t('Contexts'),
+  );
+
+  foreach ($contexts as $i => $context) {
+
+    $form['contexts'][$i]['namespace'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Namespace'),
+      '#default_value' => $context['namespace'],
+    );
+
+    $form['contexts'][$i]['context'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Context'),
+      '#default_value' => $context['context'],
+    );
+
+    $form['contexts'][$i]['reload'] = array(
+      '#type' => 'submit',
+      '#value' => t('Reload'),
+      '#name' => "reload_$i",
+      '#submit' => array('edoweb_context_reload'),
+    );
+
+    $form['contexts'][$i]['remove'] = array(
+      '#type' => 'submit',
+      '#value' => t('Remove'),
+      '#name' => "remove_$i",
+      '#submit' => array('edoweb_context_remove'),
+    );
+
+  }
+
+  $form['add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add'),
+    '#submit' => array('edoweb_context_add'),
+  );
+
+  return system_settings_form($form);
+
+}
+
+function edoweb_context_reload($form, &$form_state) {
+  $i = explode('_', $form_state['triggering_element']['#name'])[1];
+  $contexts = variable_get('contexts');
+  drupal_set_message("Reloading " . $contexts[$i]['namespace']);
+}
+
+function edoweb_context_remove($form, &$form_state) {
+  $i = explode('_', $form_state['triggering_element']['#name'])[1];
+  $contexts = variable_get('contexts');
+  unset($contexts[$i]);
+  variable_set('contexts', $contexts);
+}
+
+function edoweb_context_add($form, &$form_state) {
+  $contexts = variable_get('contexts');
+  $contexts[] = array('namespace' => '', 'context' => '');
+  variable_set('contexts', $contexts);
 }
 
 /**
