@@ -115,13 +115,21 @@ class EdowebBasicEntity extends Entity {
         if (is_array($title_value)) {
           foreach($title_value as $value) {
             if (is_array($value)) {
-              $values[] = $value['label'];
+              $render = field_view_value(
+                EDOWEB_ENTITY_TYPE, $this, $label_field, $value
+              );
             } else {
-              $values[] = $value;
+              $render = field_view_value(
+                EDOWEB_ENTITY_TYPE, $this, $label_field, array('value' => $value)
+              );
             }
+            $values[] = drupal_render($render);
           }
         } else {
-          $values[] = $title_value;
+          $render = field_view_value(
+            EDOWEB_ENTITY_TYPE, $this, $label_field, array('value' => $title_value)
+          );
+          $values[] = drupal_render($render);
         }
         if ($title_value) $title_values[] = implode(' ' . variable_get('sub_title_field_value_separator') . ' ', $values);
       } catch (EntityMetadataWrapperException $e) {

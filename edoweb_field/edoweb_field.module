@@ -339,6 +339,7 @@ function edoweb_field_field_formatter_view($entity_type, $entity, $field, $insta
         }
         $elements[$delta] = array(
           '#markup' => _get_edoweb_url($item['label'], $item['value'], $attributes)
+                     . ' <a href="' . $item['value'] . '" target="_blank"><span class="octicon octicon-link-external" /></a>'
         );
       }
       break;

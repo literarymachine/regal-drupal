@@ -3005,9 +3005,8 @@ function _edoweb_available_languages() {
 }
 
 function _full_title($label, $entity, $attributes = array()) {
-  $label = '<h1 class="title">' . $entity->label() . '</h1>'
+  return '<h1 class="title">' . _get_edoweb_url($entity->label(), $entity, $attributes) . '</h1>'
            . ($entity->subLabel() ? '<h2 class="title-suffix">' . $entity->subLabel() . '</h2>' : '');
-  return _get_edoweb_url($label, $entity, $attributes);
 }
 
 function _get_edoweb_url($label, $entity, $attributes = array()) {
