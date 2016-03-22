@@ -314,7 +314,9 @@ function edoweb_account_configuration_form($form, &$form_state) {
 */
 function edoweb_context_configuration_form($form, &$form_state) {
 
-  $contexts = variable_get('contexts', array(array('namespace' => '', 'context' => '')));
+  //variable_del('contexts');
+
+  $contexts = variable_get('contexts', array(array('namespace' => '', 'url' => '')));
 
   $form['contexts'] = array(
     '#type' => 'fieldset',
@@ -330,10 +332,10 @@ function edoweb_context_configuration_form($form, &$form_state) {
       '#default_value' => $context['namespace'],
     );
 
-    $form['contexts'][$i]['context'] = array(
+    $form['contexts'][$i]['url'] = array(
       '#type' => 'textfield',
-      '#title' => t('Context'),
-      '#default_value' => $context['context'],
+      '#title' => t('URL'),
+      '#default_value' => $context['url'],
     );
 
     $form['contexts'][$i]['reload'] = array(
@@ -363,21 +365,139 @@ function edoweb_context_configuration_form($form, &$form_state) {
 }
 
 function edoweb_context_reload($form, &$form_state) {
+  //variable_del('bundles');
+
   $i = explode('_', $form_state['triggering_element']['#name'])[1];
   $contexts = variable_get('contexts');
-  drupal_set_message("Reloading " . $contexts[$i]['namespace']);
+
+  // Add or update bundle to be picked up by edoweb_entity_info
+  $bundles = variable_get('bundles', array());
+  $bundles[$contexts[$i]['namespace']] = array(
+    'label' => t($contexts[$i]['namespace'])
+  );
+  variable_set('bundles', $bundles);
+  entity_info_cache_clear();
+
+  $context = json_decode(file_get_contents($contexts[$i]['url']))->{'@context'};
+  _edoweb_update_fields_from_context($context, $contexts[$i]['namespace']);
+  drupal_set_message("Reloaded " . $contexts[$i]['namespace'] . " from " . $contexts[$i]['url']);
+  drupal_set_message("Bundles: " . print_r($bundles, true));
+
+}
+
+function _edoweb_delete_fields_by_namespace($namespace) {
+
+  // Delete all instances
+  $instances = field_info_instances(EDOWEB_ENTITY_TYPE, $namespace);
+  foreach ($instances as $instance) {
+    field_delete_instance($instance, TRUE);
+    console_log("Deleted field instance " . $instance['field_name'] . " in " . $namespace);
+  }
+  field_purge_batch(count($instances));
+  
+  // Delete leftover fields, i.e. those without instances
+  $field_purge_count = 0;
+  foreach (array_keys(field_info_fields()) as $machine_name) {
+    // Only handle fields from namespace  
+    if (strpos($machine_name, $namespace) === 0) {
+      field_delete_field($machine_name);
+      console_log("Deleted field " . $machine_name);
+      $field_purge_count++;
+    }
+  }
+  field_purge_batch($field_purge_count);
+  
+  // Delete RDF mapping
+  rdf_mapping_delete(EDOWEB_ENTITY_TYPE, $namespace);
+
+}
+
+function _edoweb_update_fields_from_context($context, $namespace) {
+
+  _edoweb_delete_fields_by_namespace($namespace);
+  
+  $rdf_types = edoweb_rdf_types();
+  $rdf_mapping = array(
+    'type' => EDOWEB_ENTITY_TYPE,
+    'bundle' => $namespace,
+    'mapping' => array(
+      'rdftype' => $rdf_types[$namespace],
+    ),
+  );
+
+  // (Re-) Create fields and instances
+  foreach ($context as $field_name => $field_properties) {
+  
+    $machine_name = substr(strtolower("{$namespace}_{$field_name}"), 0, 32);
+    $field_type = isset($field_properties->{'@type'}) && $field_properties->{'@type'} == '@id'
+              ? 'edoweb_ld_reference' : 'text';
+
+    $field_definition = array(
+      'field_name' => $machine_name,
+      'type' => $field_type,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'metadata_type' => 'descriptive',
+      ),
+      'storage' => array(
+        'type' => 'edoweb_storage',
+      ),
+    );
+
+    field_create_field($field_definition);
+    console_log("Created field " . $machine_name);
+    
+    $label = isset($field_properties->label) ? $field_properties->label : $machine_name;
+    $description = isset($field_properties->comment) ? $field_properties->comment : '';
+    $weight = isset($field_properties->weight) ? $field_properties->weight : 0;
+    
+    $instance_definition = array(
+      'field_name' => $machine_name,
+      'entity_type' => EDOWEB_ENTITY_TYPE,
+      'bundle' => $namespace,
+      'label' => $label,
+      'description' => $description,
+      'widget' => array(
+        'weight' => $weight
+      ),
+    );
+    
+    field_create_instance($instance_definition);
+    console_log("Created instance " . $machine_name . " in " . $namespace);
+    
+    $predicate = _edoweb_compact_uri($field_properties->{'@id'});
+    $rdf_mapping['mapping'][$machine_name]['predicates'] = array($predicate);
+
+  }
+  
+  // Update RDF mapping
+  rdf_mapping_save($rdf_mapping);
+
 }
 
 function edoweb_context_remove($form, &$form_state) {
+
   $i = explode('_', $form_state['triggering_element']['#name'])[1];
   $contexts = variable_get('contexts');
+  
+  // Delete fields
+  _edoweb_delete_fields_by_namespace($contexts[$i]['namespace']);
+  
+  // Unset bundle
+  $bundles = variable_get('bundles');
+  unset($bundles[$contexts[$i]['namespace']]);
+  variable_set('bundles', $bundles);
+  entity_info_cache_clear();
+  
+  // Unset context
   unset($contexts[$i]);
   variable_set('contexts', $contexts);
+
 }
 
 function edoweb_context_add($form, &$form_state) {
   $contexts = variable_get('contexts');
-  $contexts[] = array('namespace' => '', 'context' => '');
+  $contexts[] = array('namespace' => '', 'url' => '');
   variable_set('contexts', $contexts);
 }
 
@@ -1032,6 +1152,10 @@ function _edoweb_compact_uri($uri) {
 function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
   // If all fails, resort to generic bundle
   $bundle_type = 'generic';
+  if (_is_edoweb_entity($remote_id)) {
+    console_log(_edoweb_compact_uri($remote_id));
+    return 'frl';
+  }
   try {
     // Regal content-types overrule RDF types
     $bundle_type = (string) $rdf_data->getTarget(

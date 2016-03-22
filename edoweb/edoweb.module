@@ -97,6 +97,143 @@ function edoweb_init() {
  * and without revision support.
  */
 function edoweb_entity_info() {
+  $bundles = array(
+    'monograph' => array(
+      'label' => t('Monograph'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/monograph/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'journal' => array(
+      'label' => t('Journal'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/journal/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'volume' => array(
+      'label' => t('Volume'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/volume/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'issue' => array(
+      'label' => t('Issue'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/issue/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'article' => array(
+      'label' => t('Article'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/article/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'file' => array(
+      'label' => t('File'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/file/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'webpage' => array(
+      'label' => t('Webseite'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/webpage/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'version' => array(
+      'label' => t('Version'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/version/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'generic' => array(
+      'label' => t('Bibliographic Resource'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/generic/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'part' => array(
+      'label' => t('Part'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/part/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'person' => array(
+      'label' => t('Person'),
+      'namespace' => 'local',
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/person/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'subject' => array(
+      'label' => t('Sachschlagwort'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/subject/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'corporate_body' => array(
+      'label' => t('Körperschaft'),
+      'namespace' => 'local',
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'event' => array(
+      'label' => t('Veranstaltung'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/event/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'family' => array(
+      'label' => t('Familie'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/family/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'work' => array(
+      'label' => t('Werk'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/work/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'place' => array(
+      'label' => t('Geographikum'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/place/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'collection' => array(
+      'label' => t('Sammlung'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/collection/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+    'authority_resource' => array(
+      'label' => t('Authority Resource'),
+      'admin' => array(
+        'path' => 'admin/structure/edoweb_basic/authority_resource/manage',
+        'access arguments' => array('administer edoweb_basic entities'),
+      ),
+    ),
+  );
   $info['edoweb_basic'] = array(
 
     // A human readable label to identify our entity.
@@ -131,146 +268,9 @@ function edoweb_entity_info() {
     'bundle keys' => array(
       'bundle' => 'bundle_type',
     ),
-
     // Bundles are alternative groups of fields or configuration
     // associated with a base entity type.
-    'bundles' => array(
-      'monograph' => array(
-        'label' => t('Monograph'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/monograph/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'journal' => array(
-        'label' => t('Journal'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/journal/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'volume' => array(
-        'label' => t('Volume'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/volume/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'issue' => array(
-        'label' => t('Issue'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/issue/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'article' => array(
-        'label' => t('Article'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/article/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'file' => array(
-        'label' => t('File'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/file/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'webpage' => array(
-        'label' => t('Webseite'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/webpage/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'version' => array(
-        'label' => t('Version'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/version/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'generic' => array(
-        'label' => t('Bibliographic Resource'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/generic/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'part' => array(
-        'label' => t('Part'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/part/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'person' => array(
-        'label' => t('Person'),
-        'namespace' => 'local',
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/person/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'subject' => array(
-        'label' => t('Sachschlagwort'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/subject/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'corporate_body' => array(
-        'label' => t('Körperschaft'),
-        'namespace' => 'local',
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/corporate_body/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'event' => array(
-        'label' => t('Veranstaltung'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/event/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'family' => array(
-        'label' => t('Familie'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/family/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'work' => array(
-        'label' => t('Werk'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/work/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'place' => array(
-        'label' => t('Geographikum'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/place/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'collection' => array(
-        'label' => t('Sammlung'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/collection/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-      'authority_resource' => array(
-        'label' => t('Authority Resource'),
-        'admin' => array(
-          'path' => 'admin/structure/edoweb_basic/authority_resource/manage',
-          'access arguments' => array('administer edoweb_basic entities'),
-        ),
-      ),
-    ),
+    'bundles' => array_merge($bundles, variable_get('bundles', array())),
     'view modes' => array(
       'compact' => array(
         'label' => t('Compact'),
@@ -2570,6 +2570,7 @@ function edoweb_rdf_types($bundle = null) {
     //FIXME: dummy RDF type for version
     'version' => array('lv:ArchivedWebPageVersion'),
     'generic' => array('dc:BibliographicResource'),
+    'frl' => array('dc:BibliographicResource'),
     //FIXME: do we need an RDF type mapping for the 'part' bundle?
     'part' => array('dc:BibliographicResource'),
     'authority_resource' => array('gnd:AuthorityResource'),
