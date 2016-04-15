@@ -29,15 +29,9 @@ class LinkedDataClient {
    *   The drupal entity to load data into
    */
   public function load($remote_id, $rdf_model = null) {
-    if (is_null($rdf_model) && (! $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id)))) {
+    if (is_null($rdf_model)
+        && (! $rdf_model = $this->getRDF(_edoweb_expand_curie($remote_id)))) {
       return false;
-    } else {
-      // FIXME: workaround for API bug after HTTP PATCHing access rights
-      // for a subtree (i.e. resource/all).
-      // FIXME: the following is a resource hog
-      // if ("" === "$rdf_model") {
-      //   $rdf_model = new LibRDF_Model(new LibRDF_Storage());
-      // }
     }
     $rdf_parser = new LibRDF_Parser('rdfxml');
     $bundle = _edoweb_bundle_type_from_rdf($remote_id, $rdf_model);
@@ -110,6 +104,7 @@ class LinkedDataClient {
       );
     }
 
+    /*
     if ('dnb:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
       $ontology_model = new LibRDF_Model(new LibRDF_Storage());
       $ontology_model->loadStatementsFromUri(
@@ -118,6 +113,7 @@ class LinkedDataClient {
       $rdfs_reasoner = new LibRDF_Reasoner('rdfs');
       $rdf_model->inferStatements($rdfs_reasoner, $ontology_model);
     }
+    */
 
     // Workaround for dct:hasVesion in DDC
     if ('ddc:' == substr(_edoweb_compact_uri($resource_uri), 0, 4)) {
@@ -175,4 +171,3 @@ class LinkedDataClient {
   }
 
 }
-

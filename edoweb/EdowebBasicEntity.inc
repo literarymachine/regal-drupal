@@ -72,7 +72,9 @@ class EdowebBasicEntity extends Entity {
       case 'webpage':
       case 'version':
       case 'part':
-        $label_fields[] = 'field_edoweb_title';
+        $label_fields[] = field_name_from_rdf_property(
+          'dc:title', $this->bundle()
+        );
         break;
       case 'person':
       case 'corporate_body':
@@ -82,11 +84,14 @@ class EdowebBasicEntity extends Entity {
       case 'work':
       case 'place':
       case 'authority_resource':
-        $label_fields[] = 'field_gnd_name';
+        $label_fields[] = field_name_from_rdf_property(
+          'gnd:preferredName', $this->bundle()
+        );
         break;
       default:
-        $label_fields[] = 'field_edoweb_title';
-        $label_fields[] = 'field_edoweb_label';
+        $label_fields[] = field_name_from_rdf_property(
+          'dc:title', $this->bundle()
+        );
         break;
     }
 
@@ -97,12 +102,18 @@ class EdowebBasicEntity extends Entity {
 
   public function subLabel($view_mode = 'compact') {
     $label_fields = array();
-    foreach (variable_get('sub_title_fields') as $field => $enabled) {
-      if ($enabled) {
-        $label_fields[] = $field;
+    foreach (variable_get('sub_title_fields') as $rdf_property => $enabled) {
+      $field_name = field_name_from_rdf_property(
+        $rdf_property, $this->bundle()
+      );
+      if ($field_name && $enabled) {
+        $label_fields[] = $field_name;
       }
     }
-    return implode(' ' . variable_get('sub_title_field_separator') . ' ', $this->stringifyFields($label_fields));
+    return implode(
+      ' ' . variable_get('sub_title_field_separator') . ' ',
+      $this->stringifyFields($label_fields)
+    );
   }
 
   private function stringifyFields($field_names) {

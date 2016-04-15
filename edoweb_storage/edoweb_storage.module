@@ -342,14 +342,14 @@ function edoweb_context_configuration_form($form, &$form_state) {
       '#type' => 'submit',
       '#value' => t('Reload'),
       '#name' => "reload_$i",
-      '#submit' => array('edoweb_context_reload'),
+      '#submit' => array('system_settings_form_submit', 'edoweb_context_reload'),
     );
 
     $form['contexts'][$i]['remove'] = array(
       '#type' => 'submit',
       '#value' => t('Remove'),
       '#name' => "remove_$i",
-      '#submit' => array('edoweb_context_remove'),
+      '#submit' => array('system_settings_form_submit', 'edoweb_context_remove'),
     );
 
   }
@@ -416,13 +416,10 @@ function _edoweb_update_fields_from_context($context, $namespace) {
 
   _edoweb_delete_fields_by_namespace($namespace);
   
-  $rdf_types = edoweb_rdf_types();
   $rdf_mapping = array(
     'type' => EDOWEB_ENTITY_TYPE,
     'bundle' => $namespace,
-    'mapping' => array(
-      'rdftype' => $rdf_types[$namespace],
-    ),
+    'mapping' => array(),
   );
 
   // (Re-) Create fields and instances
@@ -467,6 +464,7 @@ function _edoweb_update_fields_from_context($context, $namespace) {
     
     $predicate = _edoweb_compact_uri($field_properties->{'@id'});
     $rdf_mapping['mapping'][$machine_name]['predicates'] = array($predicate);
+    $rdf_mapping['mapping'][$machine_name]['type'] = ($field_type == 'edoweb_ld_reference' ? 'rel' : 'property');
 
   }
   
@@ -926,8 +924,9 @@ function _entity_set_value($wrapper, $field_info, $value, $rdf_model) {
   }
   // External datasources may provide incompatible data, filter that out
   if (($field_info['type'] == 'edoweb_ld_reference')
-      && (!$value instanceof LibRDF_URINode))
-        continue;
+      && (!$value instanceof LibRDF_URINode && !$value instanceof LibRDF_BlankNode)) {
+        return;
+  }
   try {
     if ($value instanceOf LibRDF_LiteralNode) {
       // Fix escaped unicode characters such as \u00E4
@@ -1150,40 +1149,9 @@ function _edoweb_compact_uri($uri) {
 }
 
 function _edoweb_bundle_type_from_rdf($remote_id, $rdf_data) {
-  // If all fails, resort to generic bundle
-  $bundle_type = 'generic';
-  if (_is_edoweb_entity($remote_id)) {
-    console_log(_edoweb_compact_uri($remote_id));
-    return 'frl';
-  }
-  try {
-    // Regal content-types overrule RDF types
-    $bundle_type = (string) $rdf_data->getTarget(
-      new LibRDF_URINode($remote_id),
-      new LibRDF_URINode('http://hbz-nrw.de/regal#contentType')
-    )->getValue();
-  } catch (LibRDF_LookupError $e) {
-    try {
-      // Determine bundle based on RDF type
-      $rdf_types = $rdf_data->getTargets(
-        new LibRDF_URINode(_edoweb_expand_curie($remote_id)),
-        new LibRDF_URINode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
-      );
-      $rdf_type_curies = array();
-      foreach ($rdf_types as $rdf_type) {
-        $rdf_type_curies[] = _edoweb_compact_uri($rdf_type->getValue());
-      }
-      foreach (edoweb_rdf_types() as $bundle => $types) {
-        foreach ($rdf_type_curies as $rdf_type_curie) {
-          if (in_array($rdf_type_curie, $types)) {
-            return $bundle;
-          }
-        }
-      }
-    } catch (LibRDF_LookupError $e) {
-    }
-  }
-  return $bundle_type;
+  $curie = _edoweb_compact_uri($remote_id);
+  list($prefix, $id) = explode(':', $curie);
+  return $prefix;
 }
 
 function _field_name_to_jsonld_key($field_name) {
